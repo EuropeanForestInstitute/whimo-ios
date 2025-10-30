@@ -1,0 +1,90 @@
+//
+//  Container+Mappers.swift
+//  Whimo
+//
+//  Created by Vyacheslav Razumeenko on 19.06.2025.
+//
+//  Copyright (c) 2025 EFI https://efi.int/
+//
+//  Permission is hereby granted, free of charge, to any person obtaining a copy
+//  of this software and associated documentation files (the "Software"), to deal
+//  in the Software without restriction, including without limitation the rights
+//  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+//  copies of the Software, and to permit persons to whom the Software is
+//  furnished to do so, subject to the following conditions:
+//
+//  The above copyright notice and this permission notice shall be included in all
+//  copies or substantial portions of the Software.
+//
+//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+//  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+//  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+//  SOFTWARE.
+//
+
+import FactoryKit
+
+extension AppContainer {
+    var commoditiesMapper: Factory<CommoditiesMapperProtocol> {
+        self { CommoditiesMapper() }
+    }
+
+    var commoditiesGroupsMapper: Factory<CommoditiesGroupsMapperProtocol> {
+        self { CommoditiesGroupsMapper(commoditiesMapper: self.commoditiesMapper.resolve()) }
+    }
+
+    var commodityBalanceMapper: Factory<CommodityBalanceMapperProtocol> {
+        self {
+            CommodityBalanceMapper(commoditiesMapper: self.commoditiesMapper.resolve())
+        }
+    }
+
+    var userMapper: Factory<UserMapperProtocol> {
+        self { UserMapper() }
+    }
+
+    var userOfflineMapper: Factory<UserOfflineMapperProtocol> {
+        self { UserOfflineMapper() }
+    }
+
+    var transactionsMapper: Factory<TransactionsMapperProtocol> {
+        self {
+            TransactionsMapper(
+                commoditiesMapper: self.commoditiesMapper.resolve(),
+                userMapper: self.userMapper.resolve()
+            )
+        }
+    }
+
+    var transactionsOfflineMapper: Factory<TransactionsOfflineMapperProtocol> {
+        self { TransactionsOfflineMapper() }
+    }
+
+    var supplierTransactionMapper: Factory<SupplierTransactionMapperProtocol> {
+        self {
+            SupplierTransactionMapper(
+                commoditiesMapper: self.commoditiesMapper.resolve(),
+                userMapper: self.userMapper.resolve()
+            )
+        }
+    }
+
+    var transactionTraceabilityMapper: Factory<TransactionTraceabilityMapperProtocol> {
+        self { TransactionTraceabilityMapper() }
+    }
+
+    var notificationsMapper: Factory<NotificationsMapperProtocol> {
+        self { NotificationsMapper(transactionsMapper: self.transactionsMapper.resolve()) }
+    }
+
+    var notificationsSettingsMapper: Factory<NotificationsSettingsMapperProtocol> {
+        self { NotificationsSettingsMapper() }
+    }
+
+    var geojsonMapper: Factory<GeojsonMapperProtocol> {
+        self { GeojsonMapper() }
+    }
+}

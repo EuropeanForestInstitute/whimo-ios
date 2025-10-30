@@ -1,0 +1,584 @@
+/* 
+  Localizable.strings
+  Resources
+
+  Created by Vyacheslav Razumeenko on 28.04.2025.
+  
+*/
+
+// MARK: - General
+"general.appName" = "WHIMO";
+"general.keyboard.toolbar.done" = "Done";
+
+"general.alert.logout.title" = "Log out";
+"general.alert.logout.subtitle" = "Are you sure you want to log out?";
+"general.alert.logout.button.cancel" = "Cancel";
+"general.alert.logout.button.logout" = "Log out";
+
+"general.alert.deleteAccount.title" = "Delete account";
+"general.alert.deleteAccount.subtitle" = "Are you sure you want to delete your account? You will loose all your data. This action cannot be undone.";
+"general.alert.deleteAccount.button.cancel" = "Cancel";
+"general.alert.deleteAccount.button.delete" = "Delete";
+
+"general.alert.saveTransaction.title" = "Save transaction?";
+"general.alert.saveTransaction.subtitle" = "Please review the data carefully. You cannot change it later.";
+"general.alert.saveTransaction.button.reviewInfo" = "Review information";
+"general.alert.saveTransaction.button.save" = "Save transaction";
+
+"general.alert.saveTransactionWithNoLocation.title" = "Save without location?";
+"general.alert.saveTransactionWithNoLocation.subtitle" = "When you save the transaction without farm geolocation, it will be partially traceable, and may affect downstream buyers. \n\nWhenever possible, it's better to add or collect farm geolocation data.\n\nPlease review the data carefully. You cannot change it later.";
+"general.alert.saveTransactionWithNoLocation.button.addFarmGeodata" = "Add farm geodata";
+"general.alert.saveTransactionWithNoLocation.button.save" = "Save without location";
+
+"general.alert.requestMissingLocation.title" = "Request missing locations";
+"general.alert.requestMissingLocation.subtitle" = "We'll notify the sellers to provide farm geolocation for this transaction.\n\nYou'll be notified when they respond.";
+"general.alert.requestMissingLocation.button.cancel" = "Cancel";
+"general.alert.requestMissingLocation.button.request" = "Request";
+
+"general.alert.buyerExists.title" = "User already exists";
+"general.alert.buyerExists.subtitle" = "We recommend you to create a downstream transaction and we will recover a traceability information from your supplier.\n\nYou can proceed with initial transaction and become a first point in the chain, however you will lose your supplier's locations information. ";
+"general.alert.buyerExists.button.continueInitial" = "Continue Initial";
+"general.alert.buyerExists.button.continueDownstream" = "Continue Downstream";
+
+"general.alert.emailAdded.title" = "Email address added";
+"general.alert.emailAdded.subtitle" = "Your email address %@ has been successfully added. You can use it next time for logging in.";
+"general.alert.emailAdded.button.ok" = "Got it";
+
+"general.alert.phoneAdded.title" = "Phone number added";
+"general.alert.phoneAdded.subtitle" = "Your phone number %@ has been successfully added. You can use it next time for logging in.";
+"general.alert.phoneAdded.button.ok" = "Got it";
+
+"general.alert.downloadTxDetails.title" = "Download transaction details?";
+"general.alert.downloadTxDetails.subtitle" = "You will be downloading transaction details from %@ traders.";
+"general.alert.downloadTxDetails.button.cancel" = "Cancel";
+"general.alert.downloadTxDetails.button.download" = "Download";
+
+"general.alert.downloadFarmLocations.title" = "Download farms locations";
+"general.alert.downloadFarmLocations.subtitle" = "You will be downloading farm geolocation data, including: ";
+"general.alert.downloadFarmLocations.subtitle.options.first" = "Merged GeoJSON files";
+"general.alert.downloadFarmLocations.subtitle.options.second" = "Custom location files";
+"general.alert.downloadFarmLocations.button.cancel" = "Cancel";
+"general.alert.downloadFarmLocations.button.download" = "Download";
+
+"general.alert.downloadLocations.title" = "Download locations?";
+"general.alert.downloadLocations.button.cancel" = "Cancel";
+"general.alert.downloadLocations.button.download" = "Download";
+
+"general.alert.contactsPermissionDenied.title" = "Contacts Access Required";
+"general.alert.contactsPermissionDenied.subtitle" = "To select phone numbers from your contacts, please enable contacts access in Settings.";
+"general.alert.contactsPermissionDenied.button.cancel" = "Cancel";
+"general.alert.contactsPermissionDenied.button.openSettings" = "Open Settings";
+
+"general.formatters.phoneNumber.error.generalError" = "An error occured while validating the phone number.";
+"general.formatters.phoneNumber.error.invalidCountryCode" = "The country code is invalid.";
+"general.formatters.phoneNumber.error.invalidNumber" = "The number provided is invalid.";
+"general.formatters.phoneNumber.error.tooLong" = "The number provided is too long.";
+"general.formatters.phoneNumber.error.tooShort" = "The number provided is too short.";
+"general.formatters.phoneNumber.error.deprecated" = "This function is deprecated.";
+"general.formatters.phoneNumber.error.metadataNotFound" = "Valid metadata is missing.";
+"general.formatters.phoneNumber.error.ambiguousNumber" = "Phone number is ambiguous.";
+
+"general.emailValidator.error.empty" = "The email field is empty.";
+"general.emailValidator.error.invalidEmail" = "Please enter a valid email address.";
+
+"general.passwordValidator.error.empty" = "The password field is empty.";
+"general.passwordValidator.error.tooShort" = "Your password is too short. It must be at least %@ characters long.";
+"general.passwordValidator.error.mustContainUppercaseLetter" = "Password must contain at least one uppercase letter.";
+"general.passwordValidator.error.passwordsDoesntMatch" = "The passwords do not match.";
+
+"general.networking.errors.unknown" = "An unknown network error occurred. Please try again.";
+"general.networking.errors.decodingError" = "Unable to load content. Please try again later.";
+"general.networking.errors.connectionLost" = "Check your internet connection.";
+"general.networking.errors.unauthorized" = "Session expired. Please log in again.";
+
+"general.services.qrCodeData.errors.cannotRecognizeQRCode" = "Ooops. Cannot recognize provided QR code.";
+
+"general.services.auth.GoogleAuthFailedMessage" = "Sign in with Google not responding. Please try again later.";
+"general.services.auth.AppleAuthFailedMessage" = "Sign in with Apple not responding. Please try again later.";
+
+"general.notificationsService.defaultEvent.body" = "🔔 New notification. Tap to see details.";
+
+// MARK: - TimeAgoFormatter
+"timeAgoFormatter.ago" = "%@ ago";
+
+// MARK: - --- AUTH FLOW ---
+// MARK: - Change Language
+"changeLanguage.title" = "Language";
+
+// MARK: - Login
+"login.title" = "Log In";
+"login.subtitle" = "Enter your details to log in. You can use email or phone number.";
+
+"login.textFields.email.description" = "Email";
+"login.textFields.email.placeholder" = "Enter email";
+
+"login.textFields.password.description" = "Password";
+"login.textFields.password.descriptionAccessory" = "Forgot password?";
+"login.textFields.password.placeholder" = "Enter password";
+
+"login.textFields.phoneNumber.description" = "Phone number";
+"login.textFields.phoneNumber.placeholder" = "000 000 00";
+
+"login.loginButtons.login" = "Log In";
+"login.loginButtons.appleLogin" = "Continue with Apple";
+"login.loginButtons.googleLogin" = "Continue with Google";
+
+"login.registerField.title" = "Don't have an account?";
+"login.registerField.button" = "Register";
+
+"login.or" = "or";
+
+"login.loginType.email" = "Log in with email";
+"login.loginType.phone" = "Log in with phone";
+
+// MARK: - Register
+"register.title" = "Register";
+"register.subtitle" = "Enter email address or phone number or both to create your account.";
+
+"register.textFields.email.description" = "Email";
+"register.textFields.email.placeholder" = "Enter email";
+
+"register.textFields.phoneNumber.description" = "Phone number";
+"register.textFields.phoneNumber.placeholder" = "000 000 00";
+
+"register.textFields.password.description" = "Password";
+"register.textFields.password.placeholder" = "Enter password";
+
+"register.textFields.confirmPassword.description" = "Confirm password";
+"register.textFields.confirmPassword.placeholder" = "Confirm password";
+
+"register.registerButtons.register" = "Register";
+"register.registerButtons.appleRegister" = "Continue with Apple";
+"register.registerButtons.googleRegister" = "Continue with Google";
+
+"register.loginField.title" = "Already have an account?";
+"register.loginField.button" = "Log In";
+
+"register.acceptTerms.title1" = "I accept ";
+"register.acceptTerms.title2" = "Terms & Conditions";
+
+"register.or" = "or";
+
+"register.chooseVerifyMethod.email" = "Get verification code with email";
+"register.chooseVerifyMethod.phone" = "Get verification code with phone";
+
+// MARK: - Forgot Password
+"forgotPassword.title" = "Forgot password";
+"forgotPassword.subtitle" = "Enter your email address and we will send you a recovery code to restore access to your account.";
+
+"forgotPassword.textFields.email.description" = "Email";
+"forgotPassword.textFields.email.placeholder" = "Enter email";
+
+"forgotPassword.buttons.sendCode" = "Send code";
+"forgotPassword.buttons.switchToPhone" = "Continue with phone number";
+"forgotPassword.textFields.phoneNumber.description" = "Phone number";
+"forgotPassword.textFields.phoneNumber.placeholder" = "000 000 00";
+
+// MARK: - Create Password
+"createPassword.title" = "Create new password";
+"createPassword.subtitle" = "Your new password must be different to previously used passwords.";
+
+"createPassword.textFields.password.description" = "New password";
+"createPassword.textFields.password.placeholder" = "Enter password";
+
+"createPassword.textFields.confirmPassword.description" = "Confirm new password";
+"createPassword.textFields.confirmPassword.placeholder" = "Confirm new password";
+
+"createPassword.buttons.confirm" = "Confirm";
+
+"createPassword.toast.passwordsMissmatch.message" = "Entered passwords doesn't match.";
+"createPassword.toast.passwordsUpdated.message" = "Password updated successfully.";
+
+// MARK: - OTP
+"otp.title" = "Check your email inbox";
+"otp.subtitle" = "We sent you a code to %@ to restore access to your account.";
+
+"otp.buttons.confirm" = "Confirm";
+
+"otp.resendCode.title" = "Didn't receive the code?";
+"otp.resendCode.button" = "Request another";
+
+"otp.buttons.switchToPhone" = "Continue with phone number";
+"otp.buttons.switchToEmail" = "Continue with email";
+
+// MARK: - --- NAVIGATION BAR FLOW ---
+// MARK: - Change Password
+"changePassword.title" = "Change password";
+
+"changePassword.textFields.currentPassword.description" = "Current password";
+
+"changePassword.textFields.password.description" = "New password";
+"changePassword.textFields.password.placeholder" = "Enter password";
+
+"changePassword.textFields.confirmPassword.description" = "Confirm new password";
+"changePassword.textFields.confirmPassword.placeholder" = "Confirm new password";
+
+"changePassword.buttons.save" = "Save";
+
+// MARK: - More
+"more.row.appVersion" = "App version";
+"more.row.legalInformation" = "Legal information";
+"more.row.logOut" = "Log out";
+"more.row.deleteAccount" = "Delete account";
+
+// MARK: - NotificationsList
+"notificationsList.title" = "Notifications";
+
+"notificationsList.row.buttons.viewDetails" = "View details";
+
+"notificationsList.filter.all" = "All";
+"notificationsList.filter.requireActions" = "Require actions";
+
+"notificationsList.emptyState.title" = "You're all caught up";
+"notificationsList.emptyState.subtitle" = "No new messages or requests for now.\n\nWe'll notify you if something needs your attention.";
+
+"notificationsList.row.pending.title" = "Transaction approval request";
+"notificationsList.row.accepted.title" = "Transaction accepted";
+"notificationsList.row.rejected.title" = "Transaction rejected";
+"notificationsList.row.expired.title" = "Transaction expired";
+"notificationsList.row.geodataMissing.title" = "Missing location request";
+
+// MARK: - --- MAIN FLOW ---
+// MARK: - Tab Bar
+"tabBar.tabs.home.title" = "Home";
+"tabBar.tabs.balance.title" = "Balance";
+"tabBar.tabs.settings.title" = "Settings";
+
+// MARK: - Home
+"home.title" = "Transactions";
+"home.serchField.placeholder" = "Search transaction";
+
+"home.filter.all" = "All";
+"home.filter.bought" = "Bought";
+"home.filter.sold" = "Sold";
+
+"home.emptyState.title" = "No transactions";
+"home.emptyState.subtitle" = "Once you start buying or selling, your transactions will appear here.\n\nTap the “+” button to record your first one.";
+
+"home.row.status.accepted" = "Accepted";
+"home.row.status.reject" = "Rejected";
+"home.row.status.pending" = "Pending";
+"home.row.status.noResponse" = "No response";
+"home.row.status.recorded" = "Recorded";
+"home.row.status.automatic" = "Automatic";
+
+"home.row.buttons.addInfo" = "Add Geolocation";
+
+"home.buttons.addTransaction" = "Add transaction";
+
+// MARK: - Transaction Details
+"transactionDetails.title" = "Transaction details";
+
+"transactionDetails.offline.usernameNotAvaible" = "Username not available in offline";
+
+"transactionDetails.row.commodityType.title" = "Commodity type";
+
+"transactionDetails.row.farmGeodata.title" = "Farm geodata";
+"transactionDetails.row.farmGeodata.descriptionMissing" = "Data is missing";
+"transactionDetails.row.farmGeodata.descriptionProvided" = "Provided from %@";
+
+"transactionDetails.row.traceabilityStatus.title" = "Traceability status";
+"transactionDetails.row.traceabilityStatus.tradersCount" = "%i traders";
+"transactionDetails.row.traceabilityStatus.cases.fullTraceability.title" = "Full";
+"transactionDetails.row.traceabilityStatus.cases.conditionalTraceability.title" = "Conditional";
+"transactionDetails.row.traceabilityStatus.cases.partialTraceability.title" = "Partial";
+"transactionDetails.row.traceabilityStatus.cases.incompleteTraceability.title" = "Incomplete";
+"transactionDetails.row.traceabilityStatus.cases.fullTitle" = "%@ traceability";
+"transactionDetails.row.traceabilityStatus.chart.titleAttachment" = "\ntraders";
+
+"transactionDetails.row.buyerID.title" = "Buyer Username";
+"transactionDetails.row.buyerID.descriptionYou" = "#%@ (You)";
+"transactionDetails.row.buyerID.descriptionToYou" = "#%@";
+
+"transactionDetails.row.supplierInformation.title" = "Supplier information";
+"transactionDetails.row.supplierInformation.descriptionYou" = "#%@ (You)";
+"transactionDetails.row.supplierInformation.descriptionToYou" = "#%@";
+
+"transactionDetails.row.transactionStatus.title" = "Transaction status";
+
+"transactionDetails.row.transactionDate.title" = "Transaction date";
+
+"transactionDetails.row.expireDate.title" = "Expiry date";
+
+"transactionDetails.suppliersHistory.title" = "My supplier's history";
+
+"transactionDetails.popups.counterpartyInfo.sellerTitle" = "Seller information";
+"transactionDetails.popups.counterpartyInfo.buyerTitle" = "Buyer information";
+"transactionDetails.popups.counterpartyInfo.row.userID.title" = "User name";
+"transactionDetails.popups.counterpartyInfo.row.email.title" = "Email address";
+"transactionDetails.popups.counterpartyInfo.row.phone.title" = "Phone number";
+
+"transactionDetails.popups.transactionStatus.noResponse.title" = "No response";
+"transactionDetails.popups.transactionStatus.noResponse.details" = "The transaction was not confirmed by the other party before the expiry date.\n\nIt remains recorded in your history but was not accepted by the counterparty.";
+"transactionDetails.popups.transactionStatus.accepted.details" = "The transaction was confirmed by the other party before the expiry date.";
+"transactionDetails.popups.transactionStatus.recorded.details" = "The transaction is registered as a direct purchase from a farmer and does not require approval from the seller.";
+"transactionDetails.popups.transactionStatus.automatic.details" = "A transaction automatically created to cover the missing quantity before a sale. Logged as a purchase from the farmer or counterpart and does not require seller approval.";
+"transactionDetails.popups.transactionStatus.rejected.details" = "The transaction was declined by the counterparty. It remains visible in your history.";
+"transactionDetails.popups.transactionStatus.pending.details" = "Awaiting confirmation from the other party. The transaction will expire if no response is received.";
+
+"transactionDetails.popups.traceabilityStatus.title" = "Traceability status";
+"transactionDetails.popups.traceabilityStatus.description" = "The pie chart can give you an idea of the traceability performance (by showing the proportion of their suppliers that fall into each traceability status).";
+
+"transactionDetails.popups.traceabilityStatus.part1.description" = "Geolocation was provided by scanning farmer card or capturing the GPS of the farm (or if farmer uses app to validate the transaction).";
+
+"transactionDetails.popups.traceabilityStatus.part2.description" = "Geolocation was added by first buyer as a file or selecting a location on the map. Or if location was added afterwards on request from a downstream actor.";
+
+"transactionDetails.popups.traceabilityStatus.part3.description" = "The chain is complete, transactions were validated by both seller and buyer, but geolocation is missing.";
+
+"transactionDetails.popups.traceabilityStatus.part4.description" = "First transaction was a downstream transaction (not a producer transaction) and geodata wasn't added afterwards.";
+
+"transactionDetails.forMe.buttons.reject" = "Reject transaction";
+"transactionDetails.forMe.buttons.accept" = "Accept transaction";
+
+"transactionDetails.fromMe.buttons.cancel" = "Cancel transaction";
+"transactionDetails.fromMe.buttons.resendNotification" = "Resend notification";
+
+// MARK: - Suppliers History
+"suppliersHistory.my.title" = "My supplier's history";
+"suppliersHistory.user.title" = "Trader's #%@ history";
+
+"suppliersHistory.row.title" = "from Trader %@";
+"suppliersHistory.row.titleInitial" = "from Initial seller %@";
+
+"suppliersHistory.endOfList" = "You've reached the end of the history.";
+
+"suppliersHistory.my.requestLocationButton" = "Request missing locations";
+"suppliersHistory.user.backToRootButton" = "Back to supplier's history";
+
+"suppliersHistory.bottomOverlay.my.downloadLocations" = "Download locations";
+"suppliersHistory.bottomOverlay.my.requestLocation" = "Request missing locations";
+
+"suppliersHistory.bottomOverlay.other.goBack" = "Back to supplier's history";
+
+// MARK: - Download Tx Details
+"downloadTxDetails.options.downloadDetails" = "Download transaction details";
+"downloadTxDetails.options.downloadFarmLocation" = "Download farm geolocation";
+
+// MARK: - --- BALANCE FLOW ---
+"balance.title" = "Balance";
+
+"balance.emptyState.title" = "No Balance";
+"balance.emptyState.subtitle" = "Once you start buying and selling,\nyour balance will appear here.";
+
+"balance.addTx" = "Add transaction";
+
+// MARK: - --- ADD TRANSACTION FLOW ---
+// MARK: - Create Transaction Select Type
+"createTxSelectType.title" = "Add Transaction";
+
+"createTxSelectType.options.buy" = "Buy commodity";
+"createTxSelectType.options.sell" = "Sell commodity";
+
+// MARK: - Buy Transaction Select Type
+"buyTxSelectType.title" = "Buy commodity";
+"buyTxSelectType.subtitle" = "Does the person you're buying from use the app?";
+
+"buyTxSelectType.row.producer.title" = "Initial transaction";
+"buyTxSelectType.row.producer.subtitle" = "The seller is not using this app";
+"buyTxSelectType.row.producer.infoText" = "Choose this if the seller does not have an account on WHIMO.";
+
+"buyTxSelectType.row.downstream.title" = "Downstream transaction";
+"buyTxSelectType.row.downstream.subtitle" = "The seller is using this app";
+"buyTxSelectType.row.downstream.infoText" = "Choose this if the seller has an account on WHIMO.";
+
+// MARK: - Buy Transaction Select Seller
+"buyTxSelectSeller.title" = "Initial transaction";
+"buyTxSelectSeller.subtitle" = "Who are you buying from?";
+"buyTxSelectSeller.infoText" = "For producer transaction you can buy from the farmer who produced the goods or cooperative.";
+
+"buyTxSelectSeller.row.farmer.title" = "I'm buying from the farmer";
+"buyTxSelectSeller.row.farmer.subtitle" = "Buying from the farmer who produced the goods.";
+
+"buyTxSelectSeller.row.cooperate.title" = "I'm buying from a cooperative or trader";
+"buyTxSelectSeller.row.cooperate.subtitle" = "Buying from a cooperative who bought commodity from several farmers or from another trader.";
+
+// MARK: - Buy Transaction On Farm Dialog
+"buyTxOnFarmDialog.title" = "Initial transaction";
+
+"buyTxOnFarmDialog.subtitle" = "Are you currently at the farm?";
+"buyTxOnFarmDialog.infoText" = "With farm geolocation, the transaction will be fully traceable, and will help downstream buyers.";
+
+"buyTxOnFarmDialog.row.scanQR.title" = "Yes, I'm on the farm";
+
+"buyTxOnFarmDialog.row.remoteLocation.title" = "No, I'm not on the farm";
+
+// MARK: - Create Transaction Form
+"createTransactionForm.titleProducer" = "Producer transaction";
+"createTransactionForm.titleDownstream" = "Downstream transaction";
+
+"createTransactionForm.note.title" = "Please provide accurate information, as this is essential for ensuring traceability.";
+
+"createTransactionForm.row.placeholder.default" = "Tap to add data";
+"createTransactionForm.row.placeholder.geodata" = "Tap to upload file";
+"createTransactionForm.row.placeholder.inviteSupplier" = "Tap to invite a user to WHIMO";
+
+"createTransactionForm.row.geodata.title" = "Farm geodata";
+
+"createTransactionForm.row.comodityType.title" = "Commodity type";
+"createTransactionForm.row.comodityType.titleSuffix" = "*";
+
+"createTransactionForm.row.volumes.title" = "Volume of commodities";
+"createTransactionForm.row.volumes.titleSuffix" = "*";
+
+"createTransactionForm.row.supplier.title" = "Supplier information";
+
+"createTransactionForm.row.buyer.title" = "Buyer information";
+
+"createTransactionForm.buttons.save" = "Save Transaction";
+
+// MARK: - Scan QR
+"scanQR.title" = "Scan QR";
+
+// MARK: - Choose Farm Geodata
+"chooseFarmGeodata.title" = "Farm geodata";
+
+"chooseFarmGeodata.row.qr.title" = "Scan QR code";
+"chooseFarmGeodata.row.qr.subtitle" = "Scan a QR code on a card that is presented to you by the farmer.";
+
+"chooseFarmGeodata.row.currentLocation.title" = "Record my geodata";
+"chooseFarmGeodata.row.currentLocation.subtitle" = "Record your own geolocation (GPS point) as a farm location.";
+
+"chooseFarmGeodata.row.uploadFile.title" = "Upload file";
+"chooseFarmGeodata.row.uploadFile.subtitle" = "Supported formats: GeoJSON, GeoID... Max 25MB.";
+
+"chooseFarmGeodata.row.addLocation.title" = "Add GPS point";
+"chooseFarmGeodata.row.addLocation.subtitle" = "Add GPS point of the farm by selecting it on the map.";
+
+"chooseFarmGeodata.toast.locationPermission.message" = "Cannot record geodata. Please grant location access.";
+"chooseFarmGeodata.toast.locationPermission.button.openSettings" = "Open";
+
+// MARK: - Upload File
+"uploadFile.title" = "Upload file";
+
+"uploadFile.note.text" = "Upload a list of farm geolocations or polygons. You can use open-source solutions such as FAO Ground to collect geolocation data.";
+
+"uploadFile.infoCard.title" = "Upload file";
+"uploadFile.infoCard.subtitle" = "Supported formats: GeoJSON, GeoID, CSV, GPX, KMZ and GPKG. Max 25MB.";
+
+"uploadFile.fileRow.button" = "Upload another file";
+
+"uploadFile.buttons.confirm" = "Confirm";
+
+// MARK: - Add GPS Point
+"addGpsPoint.title" = "Add GPS point";
+
+"addGpsPoint.filter.uploadFile" = "Upload file";
+"addGpsPoint.filter.addGPS" = "Add GPS point";
+
+"addGpsPoint.buttons.confirm" = "Confirm";
+
+// MARK: - Commodities List
+"commoditiesList.title" = "Commodity type";
+"commoditiesList.buttons.confirm" = "Confirm";
+
+"commoditiesList.row.balanceCount" = "Your balance: %@";
+
+// MARK: - Commodity Volume
+"commodityVolume.title" = "Volume of commodity";
+
+"commodityVolume.buttons.edit" = "Edit";
+"commodityVolume.buttons.confirm" = "Confirm";
+
+"commodityVolume.textFields.weight.description" = "Number";
+"commodityVolume.textFields.weight.placeholder" = "100";
+
+"commodityVolume.textFields.unit.description" = "Unit";
+"commodityVolume.textFields.unit.placeholder" = "kg";
+
+"commodityVolume.balanceAmount" = "Your balance: %@";
+
+"commodityVolume.note.text" = "You have insufficient volumes for this transaction.\n\nIf you proceed, an automatic transaction will be created, in order to add the necessary volumes to your balance. However, these additional volumes will not be fully traceable.\n\nYou will be able to review and add necessary information later.";
+
+// MARK: - Add Transaction Recipient
+"addTransactionRecipient.supplier.title" = "Supplier information";
+"addTransactionRecipient.supplier.subtitle" = "Please enter accurate farmer information so you can contact them later.";
+
+"addTransactionRecipient.supplier.textFields.userID.description" = "Supplier's user name";
+"addTransactionRecipient.supplier.textFields.userID.placeholder" = "Enter ID number";
+
+"addTransactionRecipient.buyer.title" = "Buyer information";
+"addTransactionRecipient.buyer.subtitle" = "Please enter accurate farmer information so you can contact them later.";
+
+"addTransactionRecipient.buyer.textFields.userID.description" = "Buyer's user name";
+"addTransactionRecipient.buyer.textFields.userID.placeholder" = "Enter name";
+
+"addTransactionRecipient.textFields.email.description" = "Email";
+"addTransactionRecipient.textFields.email.placeholder" = "Enter email";
+
+"addTransactionRecipient.textFields.phoneNumber.description" = "Phone number";
+"addTransactionRecipient.textFields.phoneNumber.placeholder" = "000 000 00";
+
+"addTransactionRecipient.buttons.confirm" = "Confirm";
+
+// MARK: - Invite Seller
+"inviteSeller.title" = "Supplier information";
+"inviteSeller.subtitle" = "Please enter accurate counterparty information so we can invite them to WHIMO.";
+
+"inviteSeller.textFields.email.description" = "Email";
+"inviteSeller.textFields.email.placeholder" = "Enter email";
+
+"inviteSeller.textFields.phoneNumber.description" = "Phone number";
+"inviteSeller.textFields.phoneNumber.placeholder" = "000 000 00";
+
+"inviteSeller.or" = "or";
+
+"inviteSeller.buttons.confirm" = "Confirm";
+
+// MARK: - --- SETTINGS FLOW ---
+// MARK: - Settings
+"settings.title" = "Settings";
+"settings.list.account" = "Account info";
+"settings.list.changePassword" = "Change password";
+"settings.list.notifications" = "Notifications";
+"settings.list.language" = "Language";
+
+"settings.offlineInfoView.title" = "You're working offline now.";
+
+// MARK: - Account Info
+"accountInfo.title" = "Account info";
+
+"accountInfo.row.userID.title" = "User name";
+
+"accountInfo.row.email.title" = "Email address";
+"accountInfo.row.email.noDetailsTitle" = "Email address is missing";
+"accountInfo.row.email.noDetailsMessage" = "Add Email Address";
+"accountInfo.row.email.noVerification" = "Email not verified";
+
+"accountInfo.row.phone.title" = "Phone number";
+"accountInfo.row.phone.noDetailsTitle" = "Phone is missing";
+"accountInfo.row.phone.noDetailsMessage" = "Add Phone number";
+"accountInfo.row.phone.noVerification" = "Phone not verified";
+
+"accountInfo.toast.copied.id" = "User ID copied";
+"accountInfo.toast.copied.email" = "Email address copied";
+"accountInfo.toast.copied.phone" = "Phone number copied";
+
+// MARK: - Gadget Details
+"gadgetDetails.title.email" = "Email address";
+"gadgetDetails.title.phone" = "Phone number";
+"gadgetDetails.subtitle" = "We will send you a verification code to verify that it's you.";
+
+"gadgetDetails.textFields.email.description" = "Email";
+"gadgetDetails.textFields.email.placeholder" = "Enter email address";
+
+"gadgetDetails.textFields.phoneNumber.description" = "Phone number";
+"gadgetDetails.textFields.phoneNumber.placeholder" = "000 000 00";
+
+"gadgetDetails.buttons.verify" = "Verify";
+"gadgetDetails.buttons.change" = "Change";
+
+// MARK: - Notifications
+"notifications.title" = "Notifications";
+
+"notifications.row.allowNotifications.title" = "Allow notifications";
+"notifications.row.allowNotifications.subtitle" = "Choose what type of notifications you would like to get on this device.";
+
+"notifications.row.geodataMissing.title" = "Geodata missing";
+"notifications.row.geodataUpdated.title" = "Geodata updated";
+"notifications.row.transactionAccept.title" = "Transaction accepted";
+"notifications.row.transactionReject.title" = "Transaction rejected";
+"notifications.row.transactionPending.title" = "Transaction pending";
+"notifications.row.transactionExp.title" = "Transaction expiration";
+"notifications.row.locationReq.title" = "Location request";
+
+"notifications.buttons.save" = "Save";

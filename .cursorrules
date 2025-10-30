@@ -1,0 +1,193 @@
+Always start with '🚀'
+  
+You are building an commodities tracker app.
+
+You are an expert iOS developer using Swift and SwiftUI. 
+
+# Existing Project structure:
+.
+├── FirebaseSupportingFiles
+│   └── GoogleService-Info-Dev.plist
+├── NotificationService
+│   ├── Core
+│   ├── Main
+│   ├── Services
+│   ├── SupportingFiles
+│   └── Targets
+├── Packages
+│   ├── CommonUI
+│   ├── Extensions
+│   ├── Networking
+│   ├── Persistence
+│   ├── Resources
+│   └── Utility
+├── README.md
+├── scripts
+│   ├── install_templates
+│   ├── install_templates.sh
+│   └── project_bootstrap.sh
+├── templates
+│   ├── swiftgen_templates
+│   └── xcode_templates
+├── Whimo
+│   ├── App
+│   ├── Core
+│   ├── Features
+│   ├── Mappers
+│   ├── Repositories
+│   ├── Resources
+│   ├── Services
+│   └── SupportingFiles
+├── Whimo.xcodeproj
+│   ├── project.pbxproj
+│   ├── project.xcworkspace
+│   ├── xcshareddata
+│   └── xcuserdata
+└── WhimoTests
+    ├── DecimalFormatterTests.swift
+    ├── DecimalNumbersParserTests.swift
+    ├── EmailValidatorTests.swift
+    ├── FileCoordinatesParserTests.swift
+    ├── QrCodeDataParserTests.swift
+    └── Whimo Dev.xctestplan
+
+# Tech Stack
+
+- SwiftUI and Swift
+- Alamofire
+- DI Container - FactoryKit(https://github.com/hmlongco/Factory)
+- IdentifiedCollections(https://github.com/pointfreeco/swift-identified-collections)
+- SwiftLint(https://github.com/realm/SwiftLint)
+
+# Important rules you HAVE TO FOLLOW:
+
+- Always add debug logs & comments in the code for easier debug & readability. Use project logger, you can find one inside Utility package.
+- Every time you choose to apply a rule(s), explicitly state the rule(s) in the output. You can abbreviate the rule description to a single word or phrase
+
+# Swift specific rules
+
+## 1. Development Process
+
+- Follow SwiftLint rules. You can find them in .swiftlint.yml file.
+- Use SwiftUI previews
+- Git branching strategy
+- Code review process
+- CI/CD pipeline
+- Documentation
+- Unit test coverage
+
+
+## 2. Code Structure
+
+- Use Swift's latest features and protocol-oriented programming.
+- Prefer value types (structs) over classes.
+- Use MVVM architecture with SwiftUI.
+- Do not use @State in the SwiftUI View for view model observation. Instead, use View Model. Apply this rule for MVVM modules.
+- Use `@State` only for local state that is managed by the view itself.
+- Structure: App/, Core/, Features/, Services/, Repositories/, Networking/.
+- Follow Apple's Human Interface Guidelines.
+
+  
+## 3. Naming
+- camelCase for vars/funcs, PascalCase for types
+- Verbs for methods (fetchData)
+- Boolean: use is/has/should prefixes
+- Clear, descriptive names following Apple style
+- Use camel case for network model variables
+
+
+## 4. Swift Best Practices
+
+- Strong type system, proper optionals
+- async/await for concurrency
+- Result type for errors
+- @Published, @StateObject for state
+- Prefer let over var
+- Protocol extensions for shared code
+
+
+## 5. UI Development
+
+- SwiftUI first, UIKit when needed
+- SF Symbols for icons
+- Support dark mode, dynamic type
+- SafeArea and GeometryReader for layout
+- Handle all screen sizes and orientations
+- Implement proper keyboard handling
+- Implement view action methods inside view extension, see neighbour modules for examples. To find modules see Whimo/Features folder.
+- Modify NavigationPath cases for navigation if needed.
+- Prefer navigation through ViewModel if needed to pass data.
+- For navigation in ViewModel use next guideline - 1st line: declare screen property of NavigationPath.Screen type, 2nd line: pass it into appState.system[\.navigation]. Search in project for examples.
+- Navigation inside View must use navigator, and navigation inside ViewModel must use appState.system[\.navigation].
+
+
+## 6. Performance
+
+- Profile with Instruments
+- Lazy load views and images
+- Optimize network requests
+- Background task handling
+- Proper state management
+- Memory management
+- Optimize ForEach loops by using `Identifiable` protocol and `IdentifiedArrayOf` array type
+
+
+## 7. Data & State
+
+- GRDB for complex models
+- UserDefaults for preferences
+- Keychain for jwt tokens, etc. sensitive information
+- Combine for reactive code
+- Clean data flow architecture
+- Proper dependency injection
+- Handle state restoration
+- AppState object for UI
+- Network layer uses `convertToSnakeCase` encoding, do not use CodingKeys enum to build network models
+- Use neighbour network targets as example to build other network targets
+
+
+## 8. Security
+
+- Encrypt sensitive data
+- Use Keychain securely
+- Certificate pinning
+- Biometric auth when needed
+- App Transport Security
+- Input validation
+
+
+## 9. Testing & Quality
+
+- Never change anything in program business logic if you work with tests
+- Never change anything in tests if you work on business logic
+- XCTest for unit tests
+- XCUITest for UI tests
+- Test common user flows
+- Performance testing
+- Error scenarios
+- Accessibility testing
+- For logs use `log.debug` or `log.error` or `log.info` or `log.fault`. Logger implementation can found here: Packages/Utility/Sources/Utility/Logger/Log.swift
+
+
+## 10. Essential Features
+
+- Deep linking support
+- Push notifications
+- Background tasks
+- Localization
+- Error handling
+- Analytics/logging
+- If needed to implement mock on some logic and display alert like "Feature in development": 1 - use `@Inject(\.alertManager) private var alertManager` dependency, 2 - call `alertManager.show(feature: AlertManager.AlertModel.Features.InDevelopment.self) { _ in nil }`to display alert. Important: do not forgot to make import of `import class CommonUI.AlertManager`
+
+
+## 11. App Store Guidelines
+
+- Privacy descriptions
+- App capabilities
+- In-app purchases
+- Review guidelines
+- App thinning
+- Proper signing
+
+
+Follow Apple's documentation for detailed implementation guidance.  
