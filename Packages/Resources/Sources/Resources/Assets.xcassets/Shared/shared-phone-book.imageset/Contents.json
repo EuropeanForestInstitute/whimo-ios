@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "shared-phone-book.pdf",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}

@@ -1,0 +1,63 @@
+#!/bin/bash
+
+# exit when any command fails
+set -e
+
+# Enter folder
+folderName=$(dirname $0)
+cd $folderName
+echo $folderName
+
+# Constants
+PROJECT_PATH=$(dirname "$0")
+TEMPLATE_DIR="../templates/xcode_templates/"
+TEMPLATE_TYPE=".xctemplate"
+XCODE_TEMPLATES_FOLDER="$HOME/Library/Developer/Xcode/Templates"
+
+# Private methods
+isChildDir() {
+    local dir="$1"
+    [[ ! "$dir" == *"."* || "$dir" == *"$TEMPLATE_TYPE"* ]]
+}
+
+scanTemplatesDir() {
+    local template_dirs=()
+    for dir in "$TEMPLATE_DIR"/*; do
+        if isChildDir "$dir" && [[ -d "$dir" ]]; then
+            template_dirs+=("$dir/")
+        fi
+    done
+    echo "${template_dirs[@]}"
+}
+
+findTemplates() {
+    local dir_name="$1"
+    local templates=()
+    for dir in "$dir_name"/*; do
+        if isChildDir "$dir" && [[ -d "$dir" ]]; then
+            templates+=("$dir")
+        fi
+    done
+    echo "${templates[@]}"
+}
+
+# # Install Templates
+user=$(whoami)
+destination=/Users/$user/Library/Developer/Xcode/Templates
+
+# echo -e "\n\n\n"
+# template_dirs=($(scanTemplatesDir))
+# echo $template_dirs
+# for dir in "${template_dirs[@]}"; do
+    # echo "Found template directory: $dir"
+    # template_files=($(findTemplates "$dir"))
+    # for file in "${template_files[@]}"; do
+    #     echo "  - Template file: $file"
+    # done
+
+    # cp -R $dir $destination
+    # cp -R $dir $destination
+# done
+# echo -e "\n\n"
+
+cp -R $TEMPLATE_DIR $destination
