@@ -37,7 +37,7 @@ extension AppContainer: @retroactive AutoRegistering {
 
         restClient.register {
             let client: RestClient = .init(
-                baseURL: ApiUtils.baseUrl,
+                baseURL: ApiConfiguration.baseUrl,
                 connectivity: self.connectivity.resolve(),
                 userDefaults: self.userDefaultsStore.resolve()
             )

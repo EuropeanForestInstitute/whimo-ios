@@ -51,6 +51,7 @@ extension DatabaseImpl {
                 table.column("name", .text).notNull()
                 table.column("unit", .text).notNull()
                 table.column("balance", .double)
+                table.column("hasRecipe", .boolean).notNull()
                 table.belongsTo(Table.get(.commodityGroup), onDelete: .cascade).notNull()
             }
         }

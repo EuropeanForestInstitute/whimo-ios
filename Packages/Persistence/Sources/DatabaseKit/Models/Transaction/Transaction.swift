@@ -157,6 +157,7 @@ extension Transaction {
     public enum TransactionType: StoreConvertible, Equatable {
         case producer(inviteRecipient: Recipient? = nil)
         case downstream
+        case conversion
 
         // MARK: - Recipient
         public struct Recipient: StoreConvertible, Equatable {

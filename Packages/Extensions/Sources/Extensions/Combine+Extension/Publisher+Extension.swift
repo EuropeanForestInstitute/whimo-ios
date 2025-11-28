@@ -70,3 +70,13 @@ extension Publisher where Failure == Never {
         }
     }
 }
+
+// MARK: - Publisher+DefaultDebounce
+extension Publisher {
+    public func defaultDebounce<S>(
+        scheduler: S = DispatchQueue.main,
+        options: S.SchedulerOptions? = nil
+    ) -> Publishers.Debounce<Self, S> where S: Scheduler {
+        self.debounce(for: .seconds(0.3), scheduler: scheduler)
+    }
+}

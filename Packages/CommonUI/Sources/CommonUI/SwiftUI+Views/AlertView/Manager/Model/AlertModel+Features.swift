@@ -323,4 +323,25 @@ extension AlertModel.Features {
         public static let subtitle: String? = Localization.ContactsPermissionDenied.subtitle
         public static var buttonsAxis: ButtonsAxis { .vertical }
     }
+
+    // MARK: - ConfirmCommodityConversion
+    public struct ConfirmCommodityConversion: AlertFeature {
+        public enum ActionKeys: AlertFeatureActionKeys {
+            case cancel
+            case convert
+
+            public var button: AlertModel.Button {
+                switch self {
+                    case .cancel:
+                            .init(title: Localization.ConfirmCommodityConversion.Button.cancel, style: .bordered)
+                    case .convert:
+                            .init(title: Localization.ConfirmCommodityConversion.Button.convert)
+                }
+            }
+        }
+
+        public static let title: String = Localization.ConfirmCommodityConversion.title
+        public static let subtitle: String? = Localization.ConfirmCommodityConversion.subtitle
+        public static var buttonsAxis: ButtonsAxis { .vertical }
+    }
 }

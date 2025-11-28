@@ -34,36 +34,11 @@ import Foundation
 import RestClient
 
 public struct MockCommoditiesTarget: CommoditiesTarget, MockableTarget {
-    public func commoditiesList(_ model: RequestModels.CommoditiesList) async throws -> ResponseModels.CommodityInfo {
-        try await sleepRequest()
-
-        return .init(data: [.mock])
-    }
-
     public func commodityGroupsList(_ model: RequestModels.CommodityGroupsList) async throws -> ResponseModels.CommodityGroupInfo {
         try await sleepRequest()
 
         return .init(data: [.mock])
     }
-
-    public func commoditiesBalancesList(_ model: RequestModels.CommoditiesBalancesList) async throws -> ResponseModels.CommodityBalanceInfo {
-        try await sleepRequest()
-
-        return .init(data: [])
-    }
-}
-
-private extension ResponseModels.Commodity {
-    static let mock: Self = .init(
-        id: "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-        code: "1801",
-        name: "Cocoa beans, whole or broken, raw or roasted",
-        unit: "kg",
-        group: .init(
-            id: "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-            name: "Cocoa"
-        )
-    )
 }
 
 private extension ResponseModels.CommodityGroup {
@@ -76,25 +51,19 @@ private extension ResponseModels.CommodityGroup {
                 code: "1801",
                 name: "Cocoa beans, whole or broken, raw or roasted",
                 unit: "kg",
-                balance: nil
+                balance: nil,
+                group: .init(id: "1", name: "123"),
+                hasRecipe: true
+            ),
+            .init(
+                id: "3fa85f64-5717-3012-b3fc-2c96vf66afa6",
+                code: "1401",
+                name: "Reasted coffe",
+                unit: "buckets",
+                balance: nil,
+                group: .init(id: "1", name: "123"),
+                hasRecipe: false
             )
         ]
-    )
-}
-
-private extension ResponseModels.CommodityBalance {
-    static let mock: Self = .init(
-        id: "71396c3c-1968-46cb-a772-f1ba7d6a91f6",
-        volume: 200,
-        commodity: .init(
-            id: "f505b79b-e20f-4cba-9236-a4a6079053cd",
-            code: "1401",
-            name: "Coffee beans",
-            unit: "kgs",
-            group: .init(
-                id: "eab07411-6b28-4eee-8973-d57d30c5ee96",
-                name: "Coffee"
-            )
-        )
     )
 }

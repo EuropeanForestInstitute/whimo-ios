@@ -99,6 +99,7 @@ buildServer.json
 
 # Python tooling
 localization_audit/venv/
+localization_audit/*.xlsx
 venv/
 .venv/
 **/__pycache__/

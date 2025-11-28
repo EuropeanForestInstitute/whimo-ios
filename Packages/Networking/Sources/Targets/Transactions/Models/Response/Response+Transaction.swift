@@ -77,7 +77,7 @@ extension ResponseModels {
         public let farmLongitude: Double?
         public let transactionLatitude: Double?
         public let transactionLongitude: Double?
-        public let commodity: Commodity
+        public let commodity: CommodityGroup.Commodity
         public let volume: Double
         public let isBuyingFromFarmer: Bool
         public let isAutomatic: Bool
@@ -122,7 +122,7 @@ extension ResponseModels {
             farmLongitude: Double?,
             transactionLatitude: Double?,
             transactionLongitude: Double?,
-            commodity: Commodity,
+            commodity: CommodityGroup.Commodity,
             volume: Double,
             isBuyingFromFarmer: Bool,
             isAutomatic: Bool,
@@ -167,7 +167,7 @@ extension ResponseModels {
             self.farmLongitude = try container.decodeIfPresent(Double.self, forKey: .farmLongitude)
             self.transactionLatitude = try container.decodeIfPresent(Double.self, forKey: .transactionLatitude)
             self.transactionLongitude = try container.decodeIfPresent(Double.self, forKey: .transactionLongitude)
-            self.commodity = try container.decode(Commodity.self, forKey: .commodity)
+            self.commodity = try container.decode(CommodityGroup.Commodity.self, forKey: .commodity)
 
             if let volume = try? container.decodeIfPresent(Double.self, forKey: .volume) {
                 self.volume = volume
@@ -197,6 +197,7 @@ extension ResponseModels.Transaction {
     public enum TransactionType: String, Decodable {
         case producer
         case downstream
+        case conversion
     }
 }
 

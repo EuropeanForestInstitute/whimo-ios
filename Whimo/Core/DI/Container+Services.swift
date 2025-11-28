@@ -63,142 +63,12 @@ extension AppContainer {
         }
     }
 
-    var authService: Factory<AuthService> {
-        self {
-            AuthServiceImpl(
-                appState: self.appState.resolve(),
-                authRepository: self.authRepository.resolve(),
-                appleAuthService: self.appleAuthService.resolve(),
-                googleAuthService: self.googleAuthService.resolve(),
-                profileRepository: self.profileCachingRepository.resolve(),
-                userDefaultsStore: self.userDefaultsStore.resolve()
-            )
-        }
-    }
-
-    var commoditiesService: Factory<CommodityService> {
-        self {
-            CommodityServiceImpl(
-                appState: self.appState.resolve(),
-                commodityRepository: self.commodityCachingRepository.resolve(),
-                balanceRepository: self.balanceCachingRepository.resolve()
-            )
-        }
-    }
-
-    var transactionService: Factory<TransactionsService> {
-        self {
-            TransactionsServiceImpl(
-                appState: self.appState.resolve(),
-                transactionsRemoteRepository: self.transactionsRemoteRepository.resolve(),
-                transactionsCachingRepository: self.transactionsCachingRepository.resolve()
-            )
-        }
-    }
-
-    var balanceService: Factory<BalanceService> {
-        self {
-            BalanceServiceImpl(
-                appState: self.appState.resolve(),
-                balanceCachingRepository: self.balanceCachingRepository.resolve()
-            )
-        }
-    }
-
-    var balanceCacheService: Factory<BalanceCacheService> {
-        self {
-            BalanceCacheServiceImpl(
-                appState: self.appState.resolve(),
-                localRepo: self.balanceLocalRepository.resolve()
-            )
-        }
-    }
-
-    var transactionsCacheService: Factory<TransactionsCacheService> {
-        self {
-            TransactionsCacheServiceImpl(
-                appState: self.appState.resolve(),
-                localRepo: self.transactionsLocalRepository.resolve()
-            )
-        }
-    }
-
     var transactionDocumentsService: Factory<TransactionDocumentsService> {
         self {
             TransactionDocumentsServiceImpl(
                 transactionsTarget: self.transactionsTarget.resolve(),
                 geojsonMapper: self.geojsonMapper.resolve(),
                 fileStorage: self.fileStorage.resolve()
-            )
-        }
-    }
-
-    var offlineTransactionsSyncService: Factory<OfflineTransactionsSyncService> {
-        self {
-            OfflineTransactionsSyncServiceImpl(
-                appState: self.appState.resolve(),
-                transactionsLocalRepository: self.transactionsLocalRepository.resolve(),
-                transactionsOfflineMapper: self.transactionsOfflineMapper.resolve(),
-                transactionsTarget: self.transactionsTarget.resolve(),
-                transactionsMapper: self.transactionsMapper.resolve()
-            )
-        }
-    }
-
-    var dataCleanerService: Factory<DataCleanerService> {
-        self {
-            DataCleanerServiceImpl(
-                appState: self.appState.resolve(),
-                database: self.database.resolve(),
-                authRepository: self.authRepository.resolve(),
-                profileCachingRepository: self.profileCachingRepository.resolve(),
-                keychainStore: self.keychainStore.resolve(),
-                userDefaultsStore: self.userDefaultsStore.resolve()
-            )
-        }
-    }
-
-    var notificationsService: Factory<NotificationsService> {
-        self {
-            NotificationsServiceImpl(
-                appState: self.appState.resolve(),
-                notificationsCachingRepository: self.notificationsCachingRepository.resolve()
-            )
-        }
-    }
-
-    var notificationsCacheService: Factory<NotificationsCacheService> {
-        self {
-            NotificationsCacheServiceImpl(
-                appState: self.appState.resolve(),
-                localRepo: self.notificationsLocalRepository.resolve()
-            )
-        }
-    }
-
-    var notificationsSettingsService: Factory<NotificationsSettingsService> {
-        self {
-            NotificationsSettingsServiceImpl(
-                appState: self.appState.resolve(),
-                notificationsSettingsRepository: self.notificationsSettingsCachingRepository.resolve()
-            )
-        }
-    }
-
-    var profileService: Factory<ProfileService> {
-        self {
-            ProfileServiceImpl(
-                appState: self.appState.resolve(),
-                profileCachingRepository: self.profileCachingRepository.resolve()
-            )
-        }
-    }
-
-    var profileCacheService: Factory<ProfileCacheService> {
-        self {
-            ProfileCacheServiceImpl(
-                appState: self.appState.resolve(),
-                localRepo: self.profileLocalRepository.resolve()
             )
         }
     }
@@ -238,20 +108,8 @@ extension AppContainer {
         }
     }
 
-    var stateRegistryService: Factory<StateRegistryService> {
-        self {
-            StateRegistryServiceImpl(
-                profileService: self.profileService.resolve(),
-                notificationsSettingsService: self.notificationsSettingsService.resolve(),
-                transactionService: self.transactionService.resolve(),
-                balanceService: self.balanceService.resolve(),
-                notificationsService: self.notificationsService.resolve(),
-                connectivity: self.connectivity.resolve(),
-                profileCacheService: self.profileCacheService.resolve(),
-                transactionsCacheService: self.transactionsCacheService.resolve(),
-                balanceCacheService: self.balanceCacheService.resolve(),
-                notificationsCacheService: self.notificationsCacheService.resolve()
-            )
-        }
+    var emailClientService: Factory<EmailClientService> {
+        self { EmailClientServiceImpl() }
     }
+
 }

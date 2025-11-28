@@ -30,15 +30,15 @@ import StorageKit
 
 extension AppContainer {
     var userDefaultsStore: Factory<AnyStorage<UserDefaultsStore>> {
-        self { .init(state: UserDefaultsStore(suiteName: BundleUtils.appGroupUserDefaultsStore)) }
+        self { .init(state: UserDefaultsStore(suiteName: BundleConfiguration.appGroupUserDefaultsStore)) }
     }
 
     var keychainStore: Factory<AnyStorage<KeychainStore>> {
         self {
             .init(state:
                     KeychainStore(
-                        bundleIdentifier: BundleUtils.bundleIdentifier,
-                        accessGroup: BundleUtils.keychainAccessGroupFullName
+                        bundleIdentifier: BundleConfiguration.bundleIdentifier,
+                        accessGroup: BundleConfiguration.keychainAccessGroupFullName
                     )
             )
         }

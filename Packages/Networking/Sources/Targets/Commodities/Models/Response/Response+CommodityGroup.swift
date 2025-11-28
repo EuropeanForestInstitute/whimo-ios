@@ -55,18 +55,40 @@ extension ResponseModels {
 // MARK: - Commodity
 extension ResponseModels.CommodityGroup {
     public struct Commodity: Decodable {
+        public struct Group: Decodable {
+            public let id: String
+            public let name: String
+
+            public init(id: String, name: String) {
+                self.id = id
+                self.name = name
+            }
+        }
+
         public let id: String
         public let code: String
         public let name: String
         public let unit: String
         public let balance: Double?
+        public let hasRecipe: Bool?
+        public let group: Group
 
-        public init(id: String, code: String, name: String, unit: String, balance: Double?) {
+        public init(
+            id: String,
+            code: String,
+            name: String,
+            unit: String,
+            balance: Double?,
+            group: Group,
+            hasRecipe: Bool?
+        ) {
             self.id = id
             self.code = code
             self.name = name
             self.unit = unit
             self.balance = balance
+            self.group = group
+            self.hasRecipe = hasRecipe
         }
     }
 }

@@ -36,6 +36,7 @@ public struct Commodity: Identifiable, Equatable {
     public var unit: String
     public let balance: Double?
     public var commodityGroupId: String?
+    public var hasRecipe: Bool
 
     public init(
         id: String,
@@ -43,7 +44,8 @@ public struct Commodity: Identifiable, Equatable {
         name: String,
         unit: String,
         balance: Double?,
-        commodityGroupId: String?
+        commodityGroupId: String?,
+        hasRecipe: Bool
     ) {
         self.id = id
         self.code = code
@@ -51,6 +53,7 @@ public struct Commodity: Identifiable, Equatable {
         self.unit = unit
         self.balance = balance
         self.commodityGroupId = commodityGroupId
+        self.hasRecipe = hasRecipe
     }
 }
 
@@ -65,6 +68,7 @@ extension Commodity: StorePersistable {
         public static let unit = Column(CodingKeys.unit)
         public static let balance = Column(CodingKeys.balance)
         public static let commodityGroupId = Column(CodingKeys.commodityGroupId)
+        public static let hasRecipe = Column(CodingKeys.hasRecipe)
     }
 }
 

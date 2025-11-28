@@ -30,7 +30,6 @@ import Utility
 import Resources
 
 private typealias CurrentView = AppTextField
-typealias TextFieldStates = AppTextField.TextFieldStates
 
 public struct AppTextField: View {
     // MARK: - TapDestination
@@ -106,6 +105,13 @@ public struct AppTextField: View {
         }
     }
 
+    // MARK: - TrailingItem
+    public enum TrailingItem {
+        case secureText
+        case custom(content: AnyView)
+        case none
+    }
+
     // MARK: - Public Properties
     let description: String?
     let descriptionAccessory: DescriptionAccessory?
@@ -113,13 +119,13 @@ public struct AppTextField: View {
     let backgroundColor: Color
     let placeholder: String
     let leadingAccessory: Image?
-    let isSecure: Bool
+    let trailingItem: TrailingItem
     let tapDestination: TapDestination
     @Binding var text: String
     var state: TextFieldStates
 
     // MARK: Private Properties
-    @State private var showSecureText: Bool
+    @State private var enableTextMasking: Bool
     @FocusState private var isFieldFocus: FocusField?
 
     // MARK: - Init
@@ -130,7 +136,7 @@ public struct AppTextField: View {
         backgroundColor: Color = AppColors.Gray.gray5.colorSwiftUI,
         placeholder: String = "",
         leadingAccessory: Image? = nil,
-        isSecure: Bool = false,
+        trailingItem: TrailingItem = .none,
         text: Binding<String>,
         state: TextFieldStates = .default,
         tapDestination: TapDestination = .`self`(())
@@ -141,18 +147,18 @@ public struct AppTextField: View {
         self.backgroundColor = backgroundColor
         self.placeholder = placeholder
         self.leadingAccessory = leadingAccessory
-        self.isSecure = isSecure
+        self.trailingItem = trailingItem
         self.tapDestination = tapDestination
         self._text = .init(projectedValue: text)
         self.state = state
-        self.showSecureText = false
+        self.enableTextMasking = true
     }
 
     // MARK: - Body
     public var body: some View {
         content()
-            .onChange(of: showSecureText) { value in
-                isFieldFocus = value ? .textField : .secureField
+            .onChange(of: enableTextMasking) { value in
+                isFieldFocus = value ? .secureField : .textField
             }
             .simultaneousGesture(
                 TapGesture()
@@ -201,8 +207,13 @@ private extension CurrentView {
             textFieldView()
                 .font(font)
                 .disabled(state == .disabled)
-            if self.isSecure {
-                showSecureTextButtonView()
+            switch trailingItem {
+                case .secureText:
+                    showSecureTextButtonView()
+                case .custom(let content):
+                    content
+                case .none:
+                    EmptyView()
             }
         }
         .padding([.horizontal], 16)
@@ -228,21 +239,22 @@ private extension CurrentView {
 
     @ViewBuilder func textFieldView() -> some View {
         VStack {
-            if self.isSecure {
-                secureTextFieldView()
-            } else {
-                TextField(
-                    "Input field",
-                    text: self.$text,
-                    prompt: placeholderText(self.placeholder)
-                )
+            switch trailingItem {
+                case .secureText:
+                    secureTextFieldView()
+                default:
+                    TextField(
+                        "Input field",
+                        text: self.$text,
+                        prompt: placeholderText(self.placeholder)
+                    )
             }
         }
         .foregroundStyle(state.textColor)
     }
 
     @ViewBuilder func secureTextFieldView() -> some View {
-        if !self.showSecureText {
+        if self.enableTextMasking {
             SecureField(
                 "Secure input field",
                 text: self.$text,
@@ -261,13 +273,15 @@ private extension CurrentView {
 
     @ViewBuilder func showSecureTextButtonView() -> some View {
         Button {
-            self.showSecureText.toggle()
+            self.enableTextMasking.toggle()
         } label: {
             VStack {
-                Image(uiImage: AppAssets.Shared.sharedPasswordIcon.image)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 24, height: 24)
+                Image(
+                    uiImage: enableTextMasking ? AppAssets.Shared.sharedShowPasswordIcon.image : AppAssets.Shared.sharedHidePasswordIcon.image
+                )
+                .resizable()
+                .scaledToFit()
+                .frame(width: 20, height: 20)
             }
             .frame(width: 36, height: 36)
         }
@@ -298,7 +312,7 @@ struct AppTextField_Previews: PreviewProvider {
 //            case secureField
         }
 
-        @State private var phone: String = ""
+        @State private var text: String = ""
         @State private var password: String = ""
 
         @FocusState private var isFieldFocus: FocusField?
@@ -310,35 +324,21 @@ struct AppTextField_Previews: PreviewProvider {
                         description: "Username",
                         placeholder: "Enter email, phone number or user ID",
                         leadingAccessory: AppAssets.Shared.sharedUserIcon.imageSwiftUI,
-                        text: $phone,
+                        text: $text,
                         tapDestination: .`self`(isFieldFocus = .textField)
                     )
                     .focused($isFieldFocus, equals: .textField)
                     .padding()
 
                     CurrentView(
+                        description: "Username",
                         placeholder: "Enter email, phone number or user ID",
                         leadingAccessory: AppAssets.Shared.sharedUserIcon.imageSwiftUI,
-                        text: $phone,
+                        text: $text,
+                        state: .disabled,
                         tapDestination: .`self`(isFieldFocus = .textField)
                     )
                     .focused($isFieldFocus, equals: .textField)
-                    .padding()
-
-                    CurrentView(
-                        description: "Phone*",
-                        placeholder: "",
-                        text: $phone,
-                        state: .failed(errorText: "Not phone number")
-                    )
-                    .padding()
-
-                    CurrentView(
-                        description: "Phone*",
-                        placeholder: "",
-                        text: .constant("+380123456789"),
-                        state: .disabled
-                    )
                     .padding()
 
                     CurrentView(
@@ -346,9 +346,18 @@ struct AppTextField_Previews: PreviewProvider {
                         descriptionAccessory: .init(text: "Forgot password?", action: { }),
                         placeholder: "Enter password",
                         leadingAccessory: AppAssets.Shared.sharedPasswordIcon.imageSwiftUI,
-                        isSecure: true,
+                        trailingItem: .secureText,
                         text: $password,
                         tapDestination: .`self`(debugPrint("tapped"))
+                    )
+                    .padding()
+
+                    CurrentView(
+                        trailingItem: .custom(content: AnyView(VStack {
+                            Text("kg")
+                                .padding(.horizontal, 8)
+                        })),
+                        text: $text
                     )
                     .padding()
                 }

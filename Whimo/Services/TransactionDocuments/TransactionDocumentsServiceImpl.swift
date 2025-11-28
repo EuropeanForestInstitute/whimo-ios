@@ -59,22 +59,6 @@ final class TransactionDocumentsServiceImpl: TransactionDocumentsService {
     }
 
     // MARK: - TransactionDocumentsService
-    func downloadGeojson(transactionId: String) async throws -> URLDocument {
-        let request: RequestModels.DownloadGeojson = .init(transactionId: transactionId)
-        let transactionInfo = try await transactionsTarget.downloadGeojson(request)
-        let geojson = geojsonMapper.toGeojson(dto: transactionInfo)
-        let geojsonString = geojson.prettyPrintedJSONString as String
-
-        let tempDirUrl = FileUtils.Downloads.temporaryDirectoryURL
-        let tempFileUrl = tempDirUrl.appending(path: "\("Whimo-\(UUID().uuidString).geojson")")
-        let geojsonData = geojsonString.data(using: .utf8)
-        let success = fileStorage.createFile(at: tempFileUrl, content: geojsonData)
-        guard success else { throw Error.cannotSaveFile }
-
-        let urlDocument: URLDocument = .init(tempFileUrl.path())
-        return urlDocument
-    }
-
     func downloadCSV(transactionId: String) async throws -> URLDocument {
         let request: RequestModels.DownloadCSV = .init(transactionId: transactionId)
         let response = try await transactionsTarget.downloadCSV(request)

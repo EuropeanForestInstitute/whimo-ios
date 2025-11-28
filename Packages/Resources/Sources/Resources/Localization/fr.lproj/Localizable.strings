@@ -69,6 +69,11 @@
 "general.alert.contactsPermissionDenied.button.cancel" = "Annuler";
 "general.alert.contactsPermissionDenied.button.openSettings" = "Ouvrir Réglages";
 
+"general.alert.confirmCommodityConversion.title" = "Convertir une marchandise ?";
+"general.alert.confirmCommodityConversion.subtitle" = "Êtes-vous sûr de vouloir convertir la marchandise ? Veuillez examiner attentivement les données. Cette action ne peut être annulée.";
+"general.alert.confirmCommodityConversion.button.cancel" = "Annuler";
+"general.alert.confirmCommodityConversion.button.convert" = "Convertir";
+
 "general.formatters.phoneNumber.error.generalError" = "Une erreur s'est produite lors de la validation du numéro de téléphone.";
 "general.formatters.phoneNumber.error.invalidCountryCode" = "Le code pays n'est pas valide.";
 "general.formatters.phoneNumber.error.invalidNumber" = "Le numéro fourni n'est pas valide.";
@@ -92,6 +97,8 @@
 "general.networking.errors.unauthorized" = "La session a expiré. Veuillez vous reconnecter.";
 
 "general.services.qrCodeData.errors.cannotRecognizeQRCode" = "Oups. Impossible de reconnaître le code QR fourni.";
+
+"general.services.emailClient.errors.genericError" = "Oups, quelque chose s'est mal passé. Veuillez réessayer plus tard.";
 
 "general.services.auth.GoogleAuthFailedMessage" = "Se connecter avec Google ne répond pas. Veuillez réessayer plus tard.";
 "general.services.auth.AppleAuthFailedMessage" = "Se connecter avec Apple ne répond pas. Veuillez réessayer plus tard.";
@@ -236,7 +243,7 @@
 "notificationsList.row.accepted.title" = "Transaction acceptée";
 "notificationsList.row.rejected.title" = "Transaction rejetée";
 "notificationsList.row.expired.title" = "Transaction expirée";
-"notificationsList.row.geodataMissing.title" = "Demande de localisation manquante";
+"notificationsList.row.geodataMissing.title" = "Demande de géolocalisation manquante";
 
 // MARK: - --- MAIN FLOW ---
 // MARK: - Tab Bar
@@ -302,7 +309,7 @@
 
 "transactionDetails.suppliersHistory.title" = "Historique de mon fournisseur";
 
-"transactionDetails.popups.counterpartyInfo.sellerTitle" = "Informations sur le vendeur";
+"transactionDetails.popups.counterpartyInfo.sellerTitle" = "Informations sur le fournisseur";
 "transactionDetails.popups.counterpartyInfo.buyerTitle" = "Informations sur l'acheteur";
 "transactionDetails.popups.counterpartyInfo.row.userID.title" = "Nom d'utilisateur";
 "transactionDetails.popups.counterpartyInfo.row.email.title" = "Adresse e-mail";
@@ -355,6 +362,7 @@
 "downloadTxDetails.options.downloadFarmLocation" = "Télécharger la géolocalisation de la parcelle";
 
 // MARK: - --- BALANCE FLOW ---
+// MARK: - Balance
 "balance.title" = "Solde";
 
 "balance.emptyState.title" = "Aucun Solde";
@@ -362,15 +370,28 @@
 
 "balance.addTx" = "Ajouter une transaction";
 
+// MARK: - --- CONVERT COMMODITY FLOW ---
+// MARK: - Convert Commodity List
+"convertCommodityList.title" = "Convertir une marchandise";
+"convertCommodityList.subtitle" = "Veuillez sélectionner comment vous souhaitez convertir ce type de marchandise.";
+
+// MARK: - Convert Commodity Details
+"convertCommodityDetails.title" = "Convertir une marchandise";
+"convertCommodityDetails.note.title" = "Les informations sont présentées à l'aide d'équivalents standardisés. Vous pouvez les modifier si nécessaire.";
+"convertCommodityDetails.fromSection.title" = "De";
+"convertCommodityDetails.fromSection.balance" = "Votre solde: %@";
+"convertCommodityDetails.toSection.title" = "Vers";
+"convertCommodityDetails.saveButton" = "Enregistrer la Conversion";
+
 // MARK: - --- ADD TRANSACTION FLOW ---
 // MARK: - Create Transaction Select Type
 "createTxSelectType.title" = "Ajouter une Transaction";
 
-"createTxSelectType.options.buy" = "Acheter une commodité";
-"createTxSelectType.options.sell" = "Vendre une commodité";
+"createTxSelectType.options.buy" = "Acheter ou collecter une marchandise";
+"createTxSelectType.options.sell" = "Vendre ou livrer une marchandise";
 
 // MARK: - Buy Transaction Select Type
-"buyTxSelectType.title" = "Acheter une commodité";
+"buyTxSelectType.title" = "Acheter ou collecter une marchandise";
 "buyTxSelectType.subtitle" = "La personne de qui vous achetez utilise-t-elle l'application ?";
 
 "buyTxSelectType.row.producer.title" = "Transaction initiale";
@@ -383,7 +404,7 @@
 
 // MARK: - Buy Transaction Select Seller
 "buyTxSelectSeller.title" = "Transaction initiale";
-"buyTxSelectSeller.subtitle" = "De qui achetez-vous ?";
+"buyTxSelectSeller.subtitle" = "Auprès de qui vous approvisionnez-vous?";
 "buyTxSelectSeller.infoText" = "Pour une transaction de producteur, vous pouvez acheter auprès de l'producteur qui a produit les biens ou de la coopérative.";
 
 "buyTxSelectSeller.row.farmer.title" = "J'achète auprès de l'producteur";
@@ -403,7 +424,7 @@
 "buyTxOnFarmDialog.row.remoteLocation.title" = "Non, je ne suis pas à la parcelle";
 
 // MARK: - Create Transaction Form
-"createTransactionForm.titleProducer" = "Transaction de producteur";
+"createTransactionForm.titleProducer" = "Transaction initiale";
 "createTransactionForm.titleDownstream" = "Transaction en aval";
 
 "createTransactionForm.note.title" = "Veuillez fournir des informations précises, car c'est essentiel pour assurer la traçabilité.";
@@ -531,6 +552,7 @@
 "settings.list.changePassword" = "Modifier le mot de passe";
 "settings.list.notifications" = "Notifications";
 "settings.list.language" = "Langue";
+"settings.list.feedback" = "Donner des commentaires";
 
 "settings.offlineInfoView.title" = "Vous travaillez maintenant hors ligne.";
 

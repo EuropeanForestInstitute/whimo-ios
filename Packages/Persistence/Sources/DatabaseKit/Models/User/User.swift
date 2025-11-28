@@ -60,10 +60,6 @@ extension User: StorePersistable {
 
 // MARK: - User+Associations
 extension User {
-//    public static let transactions = hasMany(Transaction.self)
-//    public var transactions: QueryInterfaceRequest<Transaction> {
-//        request(for: User.transactions)
-//    }
     public static let soldTransactions = hasMany(
         Transaction.self,
         using: Transaction.sellerForeignKey

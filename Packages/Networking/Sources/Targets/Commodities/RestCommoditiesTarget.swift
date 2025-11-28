@@ -43,15 +43,7 @@ public struct RestCommoditiesTarget: AnyNetworkTarget {
 }
 
 extension RestCommoditiesTarget: CommoditiesTarget {
-    public func commoditiesList(_ model: RequestModels.CommoditiesList) async throws -> ResponseModels.CommodityInfo {
-        try await restClient.makeRequest(RequestRouter.Commodities.commoditiesList(model))
-    }
-
     public func commodityGroupsList(_ model: RequestModels.CommodityGroupsList) async throws -> ResponseModels.CommodityGroupInfo {
         try await restClient.makeRequest(RequestRouter.Commodities.commodityGroupsList(model))
-    }
-
-    public func commoditiesBalancesList(_ model: RequestModels.CommoditiesBalancesList) async throws -> ResponseModels.CommodityBalanceInfo {
-        try await restClient.makeRequest(RequestRouter.Commodities.commoditiesBalancesList(model))
     }
 }

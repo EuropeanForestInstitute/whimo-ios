@@ -50,7 +50,7 @@ extension UserNotificationsService {
         ///}
         ///
         // swiftlint:enable all
-        case transactionUpdate(TransactionUpdate)
+        case transactionUpdate(UserNotificationsService.Event.TransactionUpdate)
         case unknown(value: String?)
 
         // MARK: - CodingKeys
@@ -65,7 +65,7 @@ extension UserNotificationsService {
 
             switch type {
                 case Constants.transactionUpdateKey:
-                    let model = try singleValueContainer.decode(TransactionUpdate.self)
+                    let model = try singleValueContainer.decode(UserNotificationsService.Event.TransactionUpdate.self)
                     self = .transactionUpdate(model)
                 default:
                     self = .unknown(value: type)

@@ -34,8 +34,8 @@ class NotificationService: UNNotificationServiceExtension {
     var bestAttemptContent: UNMutableNotificationContent?
 
     // MARK: - Dependencies
-    private lazy var startupService: StartupService = .init()
-    private lazy var transactionUpdateHandler: TransactionUpdateHandler = .init()
+    private lazy var startupInteractor: StartupInteractor = .init()
+    private lazy var notificationsHandler: NotificationsHandler = .init()
 
     override init() {
         super.init()
@@ -83,7 +83,7 @@ private extension NotificationService {
     func startup() {
         log.debug()
         Task { [weak self] in
-            await self?.startupService.initNetworking()
+            await self?.startupInteractor.initNetworking()
         }
     }
 
@@ -96,7 +96,7 @@ private extension NotificationService {
             case .transactionUpdate(let notification):
                 log.debug("notification: \(notification)")
 
-                let update = await transactionUpdateHandler.handle(notification: notification)
+                let update = await notificationsHandler.handle(notification: notification)
                 bestAttemptContent.title = update.title
                 bestAttemptContent.body = update.body
             case .unknown:

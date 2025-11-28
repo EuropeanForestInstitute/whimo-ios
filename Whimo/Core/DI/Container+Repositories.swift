@@ -95,16 +95,23 @@ extension AppContainer {
         }
     }
 
-    // MARK: - Balance
-    var balanceRemoteRepository: Factory<BalanceRemoteRepository> {
+    // MARK: - Commodity Conversion
+    var commodityConversionRemoteRepository: Factory<CommodityConversionRemoteRepository> {
         self {
-            BalanceRemoteRepositoryImpl(
-                commoditiesTarget: self.commoditiesTarget.resolve(),
-                commodityBalanceMapper: self.commodityBalanceMapper.resolve()
+            CommodityConversionRemoteRepositoryImpl(
+                commodityConversionTarget: self.commodityConversionTarget.resolve(),
+                commodityConversionMapper: self.commodityConversionMapper.resolve()
+            )
+        }
+        .onPreview {
+            CommodityConversionRemoteRepositoryMock(
+                commodityConversionTarget: self.commodityConversionTarget.resolve(),
+                commodityConversionMapper: self.commodityConversionMapper.resolve()
             )
         }
     }
 
+    // MARK: - Balance
     var balanceLocalRepository: Factory<BalanceLocalRepository> {
         self {
             BalanceLocalRepositoryImpl(
@@ -114,23 +121,12 @@ extension AppContainer {
         }
     }
 
-    var balanceCachingRepository: Factory<BalanceCachingRepository> {
-        self {
-            BalanceCachingRepositoryImpl(
-                remoteRepository: self.balanceRemoteRepository.resolve(),
-                localRepository: self.balanceLocalRepository.resolve(),
-                commodityRemoteRepo: self.commodityRemoteRepository.resolve(),
-                commodityLocalRepo: self.commodityLocalRelository.resolve()
-            )
-        }
-    }
-
     // MARK: - Transactions
     var transactionsLocalRepository: Factory<TransactionsLocalRepository> {
         self {
             TransactionsLocalRepositoryImpl(
                 database: self.database.resolve(),
-                commoditiesMapper: self.commoditiesMapper.resolve(),
+                commoditiesGroupsMapper: self.commoditiesGroupsMapper.resolve(),
                 transactionsMapper: self.transactionsMapper.resolve(),
                 transactionsOfflineMapper: self.transactionsOfflineMapper.resolve(),
                 userMapper: self.userMapper.resolve(),

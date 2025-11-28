@@ -44,18 +44,6 @@ public struct MockNotificationsTarget: NotificationsTarget, MockableTarget {
     }
 }
 
-private extension ResponseModels.Commodity {
-    static let mock: Self = .init(
-        id: "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-        code: "1801",
-        name: "Cocoa beans, whole or broken, raw or roasted",
-        unit: "kg",
-        group: .init(
-            id: "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-            name: "Cocoa"
-        )
-    )
-}
 
 private extension ResponseModels.Notification {
     static let mock: Self = .init(
@@ -75,7 +63,15 @@ private extension ResponseModels.Notification {
                 farmLongitude: 0.1,
                 transactionLatitude: nil,
                 transactionLongitude: nil,
-                commodity: .mock,
+                commodity: .init(
+                    id: "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                    code: "1801",
+                    name: "Cocoa beans, whole or broken, raw or roasted",
+                    unit: "kg",
+                    balance: nil,
+                    group: .init(id: "1", name: "123"),
+                    hasRecipe: true
+                ),
                 volume: 300,
                 isBuyingFromFarmer: false,
                 isAutomatic: false,

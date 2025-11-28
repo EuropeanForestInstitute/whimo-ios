@@ -69,6 +69,11 @@
 "general.alert.contactsPermissionDenied.button.cancel" = "Cancel";
 "general.alert.contactsPermissionDenied.button.openSettings" = "Open Settings";
 
+"general.alert.confirmCommodityConversion.title" = "Convert commodity?";
+"general.alert.confirmCommodityConversion.subtitle" = "Are you sure you want to convert commodity? Please review the data carefully. This action cannot be undone.";
+"general.alert.confirmCommodityConversion.button.cancel" = "Cancel";
+"general.alert.confirmCommodityConversion.button.convert" = "Convert";
+
 "general.formatters.phoneNumber.error.generalError" = "An error occured while validating the phone number.";
 "general.formatters.phoneNumber.error.invalidCountryCode" = "The country code is invalid.";
 "general.formatters.phoneNumber.error.invalidNumber" = "The number provided is invalid.";
@@ -92,6 +97,8 @@
 "general.networking.errors.unauthorized" = "Session expired. Please log in again.";
 
 "general.services.qrCodeData.errors.cannotRecognizeQRCode" = "Ooops. Cannot recognize provided QR code.";
+
+"general.services.emailClient.errors.genericError" = "Oops something went wrong. Please try again later.";
 
 "general.services.auth.GoogleAuthFailedMessage" = "Sign in with Google not responding. Please try again later.";
 "general.services.auth.AppleAuthFailedMessage" = "Sign in with Apple not responding. Please try again later.";
@@ -355,6 +362,7 @@
 "downloadTxDetails.options.downloadFarmLocation" = "Download farm geolocation";
 
 // MARK: - --- BALANCE FLOW ---
+// MARK: - Balance
 "balance.title" = "Balance";
 
 "balance.emptyState.title" = "No Balance";
@@ -362,15 +370,28 @@
 
 "balance.addTx" = "Add transaction";
 
+// MARK: - --- CONVERT COMMODITY FLOW ---
+// MARK: - Convert Commodity List
+"convertCommodityList.title" = "Convert commodity";
+"convertCommodityList.subtitle" = "Please select how do you want to convert this commodity type.";
+
+// MARK: - Convert Commodity Details
+"convertCommodityDetails.title" = "Convert commodity";
+"convertCommodityDetails.note.title" = "Information is presented using standardized equivalents. You may edit it as required.";
+"convertCommodityDetails.fromSection.title" = "From";
+"convertCommodityDetails.fromSection.balance" = "Your balance: %@";
+"convertCommodityDetails.toSection.title" = "To";
+"convertCommodityDetails.saveButton" = "Save Conversion";
+
 // MARK: - --- ADD TRANSACTION FLOW ---
 // MARK: - Create Transaction Select Type
 "createTxSelectType.title" = "Add Transaction";
 
-"createTxSelectType.options.buy" = "Buy commodity";
-"createTxSelectType.options.sell" = "Sell commodity";
+"createTxSelectType.options.buy" = "Buy or collect a commodity";
+"createTxSelectType.options.sell" = "Sell or deliver a commodity";
 
 // MARK: - Buy Transaction Select Type
-"buyTxSelectType.title" = "Buy commodity";
+"buyTxSelectType.title" = "Buy or collect a commodity";
 "buyTxSelectType.subtitle" = "Does the person you're buying from use the app?";
 
 "buyTxSelectType.row.producer.title" = "Initial transaction";
@@ -403,7 +424,7 @@
 "buyTxOnFarmDialog.row.remoteLocation.title" = "No, I'm not on the farm";
 
 // MARK: - Create Transaction Form
-"createTransactionForm.titleProducer" = "Producer transaction";
+"createTransactionForm.titleProducer" = "Initial transaction";
 "createTransactionForm.titleDownstream" = "Downstream transaction";
 
 "createTransactionForm.note.title" = "Please provide accurate information, as this is essential for ensuring traceability.";
@@ -531,6 +552,7 @@
 "settings.list.changePassword" = "Change password";
 "settings.list.notifications" = "Notifications";
 "settings.list.language" = "Language";
+"settings.list.feedback" = "Give feedback";
 
 "settings.offlineInfoView.title" = "You're working offline now.";
 

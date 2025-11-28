@@ -42,13 +42,11 @@ struct CreateTransactionState: AnyState {
     var volumeAmount: String = ""
     var transactionType: TransactionType?
     var farmLocation: FarmLocation?
-    var balances: IdentifiedArrayOf<CommodityBalanceModel> = []
 
     mutating func clear() {
         commodityType = .initialState
         volumeAmount = ""
         transactionType = nil
         farmLocation = nil
-        balances = []
     }
 }

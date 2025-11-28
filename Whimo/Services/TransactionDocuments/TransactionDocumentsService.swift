@@ -29,7 +29,6 @@ import Foundation
 import Utility
 
 protocol TransactionDocumentsService: AnyObject {
-    func downloadGeojson(transactionId: String) async throws -> URLDocument
     func downloadCSV(transactionId: String) async throws -> URLDocument
     func downloadDocumentsBundle(transactionId: String) async throws -> URLDocument
 }

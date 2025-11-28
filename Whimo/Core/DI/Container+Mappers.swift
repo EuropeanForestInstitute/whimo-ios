@@ -28,18 +28,8 @@
 import FactoryKit
 
 extension AppContainer {
-    var commoditiesMapper: Factory<CommoditiesMapperProtocol> {
-        self { CommoditiesMapper() }
-    }
-
     var commoditiesGroupsMapper: Factory<CommoditiesGroupsMapperProtocol> {
-        self { CommoditiesGroupsMapper(commoditiesMapper: self.commoditiesMapper.resolve()) }
-    }
-
-    var commodityBalanceMapper: Factory<CommodityBalanceMapperProtocol> {
-        self {
-            CommodityBalanceMapper(commoditiesMapper: self.commoditiesMapper.resolve())
-        }
+        self { CommoditiesGroupsMapper() }
     }
 
     var userMapper: Factory<UserMapperProtocol> {
@@ -53,7 +43,7 @@ extension AppContainer {
     var transactionsMapper: Factory<TransactionsMapperProtocol> {
         self {
             TransactionsMapper(
-                commoditiesMapper: self.commoditiesMapper.resolve(),
+                commoditiesGroupsMapper: self.commoditiesGroupsMapper.resolve(),
                 userMapper: self.userMapper.resolve()
             )
         }
@@ -66,7 +56,7 @@ extension AppContainer {
     var supplierTransactionMapper: Factory<SupplierTransactionMapperProtocol> {
         self {
             SupplierTransactionMapper(
-                commoditiesMapper: self.commoditiesMapper.resolve(),
+                commoditiesGroupsMapper: self.commoditiesGroupsMapper.resolve(),
                 userMapper: self.userMapper.resolve()
             )
         }
@@ -86,5 +76,11 @@ extension AppContainer {
 
     var geojsonMapper: Factory<GeojsonMapperProtocol> {
         self { GeojsonMapper() }
+    }
+
+    var commodityConversionMapper: Factory<CommodityConversionMapperProtocol> {
+        self {
+            CommodityConversionMapper(commoditiesGroupsMapper: self.commoditiesGroupsMapper.resolve())
+        }
     }
 }

@@ -45,6 +45,11 @@ extension AppContainer {
         self { RestCommoditiesTarget(restClient: self.restClient.resolve()) }
     }
 
+    var commodityConversionTarget: Factory<CommodityConversionTarget> {
+        self { RestCommodityConversionTarget(restClient: self.restClient.resolve()) }
+            .onPreview { MockCommodityConversionTarget() }
+    }
+
     var notificationsTarget: Factory<NotificationsTarget> {
         self { RestNotificationsTarget(restClient: self.restClient.resolve()) }
     }

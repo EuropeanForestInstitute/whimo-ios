@@ -35,56 +35,40 @@ import Networking
 import RestClient
 
 public protocol CommoditiesTarget {
-    func commoditiesList(_ model: RequestModels.CommoditiesList) async throws -> ResponseModels.CommodityInfo
     func commodityGroupsList(_ model: RequestModels.CommodityGroupsList) async throws -> ResponseModels.CommodityGroupInfo
-    func commoditiesBalancesList(_ model: RequestModels.CommoditiesBalancesList) async throws -> ResponseModels.CommodityBalanceInfo
 }
 
 extension RequestRouter {
     public enum Commodities {
-        case commoditiesList(RequestModels.CommoditiesList)
         case commodityGroupsList(RequestModels.CommodityGroupsList)
-        case commoditiesBalancesList(RequestModels.CommoditiesBalancesList)
     }
 }
 
 extension RequestRouter.Commodities: AnyNetworkRouter {
     public var path: Endpoint {
         switch self {
-            case .commoditiesList:
-                "/commodities/"
             case .commodityGroupsList:
                 "/commodities/groups/"
-            case .commoditiesBalancesList:
-                "/commodities/balances/"
         }
     }
 
     public var method: HTTPMethod {
         switch self {
-            case .commoditiesList:
-                .get
             case .commodityGroupsList:
-                .get
-            case .commoditiesBalancesList:
                 .get
         }
     }
 
     public var parameters: Encodable? {
         switch self {
-            case .commoditiesList(let data):
-                data
             case .commodityGroupsList(let data):
-                data
-            case .commoditiesBalancesList(let data):
                 data
         }
     }
 
     public var addAuth: Bool {
         switch self {
-            case .commoditiesList, .commodityGroupsList, .commoditiesBalancesList:
+            case .commodityGroupsList:
                 return true
         }
     }

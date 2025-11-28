@@ -39,7 +39,7 @@ extension ResponseModels {
         public let location: Transaction.LocationType?
         public let latitude: Double?
         public let longitude: Double?
-        public let commodity: Commodity
+        public let commodity: CommodityGroup.Commodity
         public let volume: Double
         public let isBuyingFromFarmer: Bool
         public let isAutomatic: Bool
@@ -56,7 +56,7 @@ extension ResponseModels {
             location: Transaction.LocationType?,
             latitude: Double?,
             longitude: Double?,
-            commodity: Commodity,
+            commodity: CommodityGroup.Commodity,
             volume: Double,
             isBuyingFromFarmer: Bool,
             isAutomatic: Bool,

@@ -7,13 +7,17 @@ You are an expert iOS developer using Swift and SwiftUI.
 # Existing Project structure:
 .
 ├── FirebaseSupportingFiles
-│   └── GoogleService-Info-Dev.plist
+│   ├── GoogleService-Info-Dev.plist
+│   ├── GoogleService-Info-Stage.plist
+│   └── GoogleService-Info-Prod.plist
 ├── NotificationService
 │   ├── Core
+│   ├── Domain
+│   │   ├── Models
+│   │   └── Startup
 │   ├── Main
 │   ├── Services
-│   ├── SupportingFiles
-│   └── Targets
+│   └── SupportingFiles
 ├── Packages
 │   ├── CommonUI
 │   ├── Extensions
@@ -23,6 +27,9 @@ You are an expert iOS developer using Swift and SwiftUI.
 │   └── Utility
 ├── README.md
 ├── scripts
+│   ├── add_license_headers.sh
+│   ├── add_license_to_templates.sh
+│   ├── export_and_audit_localizations.sh
 │   ├── install_templates
 │   ├── install_templates.sh
 │   └── project_bootstrap.sh
@@ -32,9 +39,23 @@ You are an expert iOS developer using Swift and SwiftUI.
 ├── Whimo
 │   ├── App
 │   ├── Core
-│   ├── Features
-│   ├── Mappers
-│   ├── Repositories
+│   ├── Data
+│   │   ├── Mappers
+│   │   └── Repositories
+│   ├── Domain
+│   │   ├── Interactors
+│   │   └── Models
+│   ├── Navigation
+│   │   ├── Coordinator
+│   │   └── Screen.swift
+│   ├── Presentation
+│   │   ├── AuthFlow
+│   │   ├── BalanceFlow
+│   │   ├── CommonFlow
+│   │   ├── CreateTransactionFlow
+│   │   ├── MainFlow
+│   │   ├── NavigationBarFlow
+│   │   └── SettingsFlow
 │   ├── Resources
 │   ├── Services
 │   └── SupportingFiles
@@ -45,24 +66,32 @@ You are an expert iOS developer using Swift and SwiftUI.
 │   └── xcuserdata
 └── WhimoTests
     ├── DecimalFormatterTests.swift
-    ├── DecimalNumbersParserTests.swift
     ├── EmailValidatorTests.swift
-    ├── FileCoordinatesParserTests.swift
-    ├── QrCodeDataParserTests.swift
+    ├── PasswordValidatorTests.swift
     └── Whimo Dev.xctestplan
 
 # Tech Stack
 
 - SwiftUI and Swift
-- Alamofire
-- DI Container - FactoryKit(https://github.com/hmlongco/Factory)
-- IdentifiedCollections(https://github.com/pointfreeco/swift-identified-collections)
-- SwiftLint(https://github.com/realm/SwiftLint)
+- Alamofire (Networking)
+- DI Container - Factory (https://github.com/hmlongco/Factory)
+- GRDB (SQLite ORM)
+- Firebase SDK
+- GoogleSignIn
+- JWTDecode, SimpleKeychain
+- PhoneNumberKit
+- UTMConversion
+- SwiftGenPlugin (Resources codegen)
+- IdentifiedCollections
+- FlowStacks (Coordinator-style navigation)
+- WindowOverlay
+- SwiftLint (static analysis)
 
 # Important rules you HAVE TO FOLLOW:
 
 - Always add debug logs & comments in the code for easier debug & readability. Use project logger, you can find one inside Utility package.
 - Every time you choose to apply a rule(s), explicitly state the rule(s) in the output. You can abbreviate the rule description to a single word or phrase
+- If README.md file is changed, you need to update export_open_source.sh script to fix rows deletion from readme file. Be sure that this works correctly.
 
 # Swift specific rules
 
@@ -84,7 +113,7 @@ You are an expert iOS developer using Swift and SwiftUI.
 - Use MVVM architecture with SwiftUI.
 - Do not use @State in the SwiftUI View for view model observation. Instead, use View Model. Apply this rule for MVVM modules.
 - Use `@State` only for local state that is managed by the view itself.
-- Structure: App/, Core/, Features/, Services/, Repositories/, Networking/.
+- Structure: App/, Core/, Data/, Domain/, Presentation/, Navigation/, Services/, Resources/.
 - Follow Apple's Human Interface Guidelines.
 
   
@@ -115,10 +144,9 @@ You are an expert iOS developer using Swift and SwiftUI.
 - Handle all screen sizes and orientations
 - Implement proper keyboard handling
 - Implement view action methods inside view extension, see neighbour modules for examples. To find modules see Whimo/Features folder.
-- Modify NavigationPath cases for navigation if needed.
-- Prefer navigation through ViewModel if needed to pass data.
-- For navigation in ViewModel use next guideline - 1st line: declare screen property of NavigationPath.Screen type, 2nd line: pass it into appState.system[\.navigation]. Search in project for examples.
-- Navigation inside View must use navigator, and navigation inside ViewModel must use appState.system[\.navigation].
+- Use FlowStacks-based Coordinator (see `Whimo/Navigation/Coordinator`) with `Screen` definitions in `Whimo/Navigation/Screen.swift`.
+- Navigation inside View uses injected navigator/coordinator.
+- Navigation inside ViewModel uses app-wide navigation service via `AppState` when needed to pass data.
 
 
 ## 6. Performance

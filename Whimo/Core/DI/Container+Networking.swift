@@ -33,7 +33,7 @@ extension AppContainer {
     var restClient: Factory<RestClient> {
         self {
             let client: RestClient = .init(
-                baseURL: ApiUtils.baseUrl,
+                baseURL: ApiConfiguration.baseUrl,
                 connectivity: self.connectivity.resolve(),
                 userDefaults: self.userDefaultsStore.resolve()
             )

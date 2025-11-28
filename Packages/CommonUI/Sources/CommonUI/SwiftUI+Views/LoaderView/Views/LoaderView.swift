@@ -26,6 +26,7 @@
 //
 
 import SwiftUI
+import Resources
 
 // MARK: - LoaderView
 public struct LoaderView: View {
@@ -33,7 +34,7 @@ public struct LoaderView: View {
         GeometryReader { proxy in
             ZStack {
                 Rectangle()
-                    .fill(.white.opacity(0.001))
+                    .fill(Color.black.opacity(0.25))
                 ProgressView()
                     .controlSize(.large)
                     .scaleEffect(0.8)
