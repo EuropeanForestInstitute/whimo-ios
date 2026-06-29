@@ -22,13 +22,6 @@
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 //  SOFTWARE.
 //
-//
-//  MockTransactionsTarget.swift
-//  Whimo
-//
-//  Created Vyacheslav Razumeenko on 27.05.2025.
-//  Copyright © 2025 ___ORGANIZATIONNAME___. All rights reserved.
-//
 
 import Foundation
 import RestClient
@@ -182,6 +175,7 @@ private extension ResponseModels.SupplierTransaction {
     static let mock: Self = .init(
         id: "3fa85f64-5717-4562-b3fc-2c963f66afa6",
         createdAt: "2025-05-27T11:17:35.614Z",
+        updatedAt: nil,
         type: .producer,
         status: .accepted,
         traceability: .fullTraceability,

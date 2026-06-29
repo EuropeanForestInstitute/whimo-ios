@@ -80,7 +80,6 @@ You are an expert iOS developer using Swift and SwiftUI.
 - GoogleSignIn
 - JWTDecode, SimpleKeychain
 - PhoneNumberKit
-- UTMConversion
 - SwiftGenPlugin (Resources codegen)
 - IdentifiedCollections
 - FlowStacks (Coordinator-style navigation)

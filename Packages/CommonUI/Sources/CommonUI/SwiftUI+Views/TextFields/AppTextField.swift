@@ -118,38 +118,42 @@ public struct AppTextField: View {
     let font: Font
     let backgroundColor: Color
     let placeholder: String
+    let leadingPadding: Double
     let leadingAccessory: Image?
     let trailingItem: TrailingItem
     let tapDestination: TapDestination
-    @Binding var text: String
     var state: TextFieldStates
 
-    // MARK: Private Properties
+    @Binding var text: String
+
+    // MARK: - Private Properties
     @State private var enableTextMasking: Bool
     @FocusState private var isFieldFocus: FocusField?
 
     // MARK: - Init
     public init(
+        text: Binding<String>,
         description: String? = nil,
         descriptionAccessory: DescriptionAccessory? = nil,
         font: Font = FontBuilder.buildRegular(size: 14),
         backgroundColor: Color = AppColors.Gray.gray5.colorSwiftUI,
         placeholder: String = "",
+        leadingPadding: Double = 10,
         leadingAccessory: Image? = nil,
         trailingItem: TrailingItem = .none,
-        text: Binding<String>,
         state: TextFieldStates = .default,
         tapDestination: TapDestination = .`self`(())
     ) {
+        self._text = .init(projectedValue: text)
         self.description = description
         self.descriptionAccessory = descriptionAccessory
         self.font = font
         self.backgroundColor = backgroundColor
         self.placeholder = placeholder
+        self.leadingPadding = leadingPadding
         self.leadingAccessory = leadingAccessory
         self.trailingItem = trailingItem
         self.tapDestination = tapDestination
-        self._text = .init(projectedValue: text)
         self.state = state
         self.enableTextMasking = true
     }
@@ -203,6 +207,12 @@ private extension CurrentView {
             if let leadingAccessory {
                 leadingAccessory
                     .frame(width: 20, height: 20)
+                    .padding(.leading, 16)
+            } else {
+                if leadingPadding > .zero {
+                    Spacer()
+                        .frame(width: leadingPadding)
+                }
             }
             textFieldView()
                 .font(font)
@@ -210,13 +220,13 @@ private extension CurrentView {
             switch trailingItem {
                 case .secureText:
                     showSecureTextButtonView()
+                        .padding(.trailing, 16)
                 case .custom(let content):
                     content
                 case .none:
                     EmptyView()
             }
         }
-        .padding([.horizontal], 16)
         .frame(height: 48)
         .contentShape(Rectangle())
         .background {
@@ -309,11 +319,9 @@ struct AppTextField_Previews: PreviewProvider {
         // MARK: - FocusField
         private enum FocusField {
             case textField
-//            case secureField
         }
 
         @State private var text: String = ""
-        @State private var password: String = ""
 
         @FocusState private var isFieldFocus: FocusField?
 
@@ -321,20 +329,20 @@ struct AppTextField_Previews: PreviewProvider {
             GeometryReader { proxy in
                 VStack {
                     CurrentView(
+                        text: $text,
                         description: "Username",
                         placeholder: "Enter email, phone number or user ID",
                         leadingAccessory: AppAssets.Shared.sharedUserIcon.imageSwiftUI,
-                        text: $text,
                         tapDestination: .`self`(isFieldFocus = .textField)
                     )
                     .focused($isFieldFocus, equals: .textField)
                     .padding()
 
                     CurrentView(
+                        text: $text,
                         description: "Username",
                         placeholder: "Enter email, phone number or user ID",
                         leadingAccessory: AppAssets.Shared.sharedUserIcon.imageSwiftUI,
-                        text: $text,
                         state: .disabled,
                         tapDestination: .`self`(isFieldFocus = .textField)
                     )
@@ -342,24 +350,27 @@ struct AppTextField_Previews: PreviewProvider {
                     .padding()
 
                     CurrentView(
+                        text: $text,
                         description: "Password",
                         descriptionAccessory: .init(text: "Forgot password?", action: { }),
                         placeholder: "Enter password",
                         leadingAccessory: AppAssets.Shared.sharedPasswordIcon.imageSwiftUI,
                         trailingItem: .secureText,
-                        text: $password,
                         tapDestination: .`self`(debugPrint("tapped"))
                     )
                     .padding()
 
                     CurrentView(
+                        text: $text,
                         trailingItem: .custom(content: AnyView(VStack {
                             Text("kg")
                                 .padding(.horizontal, 8)
-                        })),
-                        text: $text
+                        }))
                     )
                     .padding()
+
+                    CurrentView(text: $text, leadingPadding: 0)
+                        .padding()
                 }
                 .frame(width: proxy.size.width, height: proxy.size.height)
             }
@@ -368,7 +379,6 @@ struct AppTextField_Previews: PreviewProvider {
 
     static var previews: some View {
         Container()
-//            .accentColor(AppColors.accentColor.colorSwiftUI)
             .previewDevice(.iPhone15Pro)
     }
 }

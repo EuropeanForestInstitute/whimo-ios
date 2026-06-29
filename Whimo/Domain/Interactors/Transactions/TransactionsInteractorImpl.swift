@@ -158,6 +158,7 @@ final class TransactionsInteractorImpl: TransactionsInteractor {
     func fetchSuppliersTransactions(
         commodityGroupId: String,
         buyerId: String,
+        createdAtTo: String?,
         oldPagination: TransactionsPagination?,
         refresh: Bool
     ) async throws -> (list: IdentifiedArrayOf<SupplierTransactionModel>, pagination: TransactionsPagination) {
@@ -165,20 +166,26 @@ final class TransactionsInteractorImpl: TransactionsInteractor {
 
         if !refresh, let oldPagination {
             pagination = .init(
-                searchData: .byBuyer(.init(
-                    commodityGroupId: commodityGroupId,
-                    buyerId: buyerId
-                )),
+                searchData: .byBuyer(
+                    .init(
+                        commodityGroupId: commodityGroupId,
+                        buyerId: buyerId
+                    ),
+                    createdAtTo: createdAtTo
+                ),
                 pageData: .init(
                     page: oldPagination.pageData.page + 1,
                     pageSize: oldPagination.pageData.pageSize
                 )
             )
         } else {
-            pagination = .supplierInitial(buyerData: .init(
-                commodityGroupId: commodityGroupId,
-                buyerId: buyerId
-            ))
+            pagination = .supplierInitial(
+                buyerData: .init(
+                    commodityGroupId: commodityGroupId,
+                    buyerId: buyerId
+                ),
+                createdAtTo: createdAtTo
+            )
         }
 
         let responseData = try await transactionsCachingRepository.fetchSupplierTransactions(with: pagination)

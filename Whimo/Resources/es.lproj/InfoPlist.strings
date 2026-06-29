@@ -8,6 +8,6 @@
 
 "NSCameraUsageDescription" = "Esta aplicación requiere acceso a tu cámara para escanear códigos QR.";
 "NSContactsUsageDescription" = "Esta aplicación requiere acceso a tus contactos para ayudarte a seleccionar rápidamente números de teléfono al crear transacciones.";
-"NSLocationAlwaysAndWhenInUseUsageDescription" = "Esta aplicación requiere acceso a tu ubicación para seleccionar la granja en el mapa.";
-"NSLocationWhenInUseUsageDescription" = "Esta aplicación requiere acceso a tu ubicación para seleccionar la granja en el mapa.";
+"NSLocationAlwaysAndWhenInUseUsageDescription" = "Esta aplicación requiere acceso a tu ubicación para seleccionar la finca en el mapa.";
+"NSLocationWhenInUseUsageDescription" = "Esta aplicación requiere acceso a tu ubicación para seleccionar la finca en el mapa.";
 "NSUserNotificationsUsageDescription" = "Esta aplicación requiere acceso a las notificaciones para mantenerte actualizado sobre tus transacciones de productos.";

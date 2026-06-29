@@ -74,10 +74,6 @@ extension AppContainer {
         self { NotificationsSettingsMapper() }
     }
 
-    var geojsonMapper: Factory<GeojsonMapperProtocol> {
-        self { GeojsonMapper() }
-    }
-
     var commodityConversionMapper: Factory<CommodityConversionMapperProtocol> {
         self {
             CommodityConversionMapper(commoditiesGroupsMapper: self.commoditiesGroupsMapper.resolve())

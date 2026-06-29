@@ -28,6 +28,7 @@
 import Foundation
 import PhoneNumberKit
 import Resources
+import Utility
 
 struct EmailValidator {
     // MARK: - Static Properties
@@ -45,16 +46,20 @@ struct EmailValidator {
     func isValid(_ email: String) -> Error? {
         let predicate = NSPredicate(format: "SELF MATCHES[c] %@", emailPattern)
         let isValid = predicate.evaluate(with: email)
+        var error: Error?
 
         if email.isEmpty {
-            return .empty
+            error = .empty
         }
 
         if !isValid {
-            return .invalidEmail
+            error = .invalidEmail
         }
 
-        return nil
+        if let error {
+            log.error("Cannot validate email, error: \(error)")
+        }
+        return error
     }
 }
 

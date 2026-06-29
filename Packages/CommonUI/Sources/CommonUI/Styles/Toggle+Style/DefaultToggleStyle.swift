@@ -109,16 +109,19 @@ struct AppToggle_Previews: PreviewProvider {
         @StateObject var state: State = .init()
 
         var body: some View {
-            Toggle("", isOn: $state.isOn)
+            VStack(spacing: 32) {
+                Toggle("", isOn: $state.isOn)
 
-            Toggle("", isOn: $state.isOn)
-                .applyDefaultAppearance()
+                Toggle("", isOn: $state.isOn)
+                    .applyDefaultAppearance()
+            }
         }
     }
 
     static var previews: some View {
-        VStack(spacing: 32) {
+        VStack {
             Container()
+                .frame(width: 100)
         }
         .previewDevice(.iPhone15Pro)
     }

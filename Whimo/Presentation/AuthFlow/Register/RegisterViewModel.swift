@@ -40,7 +40,6 @@ extension Module {
         @Published var enableSelectGadgetAlert: Bool = false
         @Published var enableRegisterButton: Bool = false
 
-        private var keyboardActiveField: KeyboardField?
         private(set) var validationErrors: [KeyboardField: Error] = [:]
 
         // MARK: - Private Properties
@@ -48,6 +47,8 @@ extension Module {
         private let passwordValidator: PasswordValidator = .shared
         private let phoneNumberValidator: PhoneNumberValidator = .shared
         private let emailValidator: EmailValidator = .shared
+
+        private var keyboardActiveField: KeyboardField?
         private var cancellable: CancelBag = .init()
 
         // MARK: - Dependencies
@@ -139,6 +140,8 @@ private extension ViewModel {
                 switch self.keyboardActiveField {
                     case .email:
                         self.validationErrors[.email] = self.emailValidator.isValid(credentials.email)
+                    case .phone:
+                        self.validationErrors[.phone] = self.phoneNumberValidator.isValid(credentials.phone)
                     case .password:
                         self.validationErrors[.password] = self.passwordValidator.isValid(credentials.password)
                         if !credentials.repeatPassword.isEmpty {
@@ -170,13 +173,8 @@ private extension ViewModel {
         password: String,
         repeatPassword: String
     ) -> Bool {
-        let gadgetVerified = !email.isEmpty || phoneNumberValidator.isValid(phone)
-        let passwordError: PasswordValidator.Error? = passwordValidator.isValid(password, repeatPassword: repeatPassword)
-        var passwordVerified = false
-        if passwordError == nil {
-            passwordVerified = true
-        }
-
+        let gadgetVerified = emailValidator.isValid(email) == nil || phoneNumberValidator.isValid(phone) == nil
+        let passwordVerified = passwordValidator.isValid(password, repeatPassword: repeatPassword) == nil
         let success = gadgetVerified && passwordVerified
 
         return success

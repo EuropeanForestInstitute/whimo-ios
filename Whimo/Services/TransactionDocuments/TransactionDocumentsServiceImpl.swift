@@ -44,17 +44,14 @@ final class TransactionDocumentsServiceImpl: TransactionDocumentsService {
 
     // MARK: - Dependencies
     private let transactionsTarget: any TransactionsTarget
-    private let geojsonMapper: any GeojsonMapperProtocol
     private let fileStorage: any FileStorageServiceProtocol
 
     // MARK: - Init
     init(
         transactionsTarget: any TransactionsTarget,
-        geojsonMapper: any GeojsonMapperProtocol,
         fileStorage: any FileStorageServiceProtocol
     ) {
         self.transactionsTarget = transactionsTarget
-        self.geojsonMapper = geojsonMapper
         self.fileStorage = fileStorage
     }
 

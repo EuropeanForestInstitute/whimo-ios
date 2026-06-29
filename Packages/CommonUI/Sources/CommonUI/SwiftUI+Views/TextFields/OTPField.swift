@@ -77,10 +77,11 @@ private extension OTPField {
 
     @ViewBuilder func codeRow(index: Int) -> some View {
         AppTextField(
+            text: $otpArray[index],
             description: "",
             font: FontBuilder.buildSemibold(size: 22),
             backgroundColor: AppColors.Other.white.colorSwiftUI,
-            text: $otpArray[index]
+            leadingPadding: .zero
         )
         .multilineTextAlignment(.center)
         .frame(width: 48)

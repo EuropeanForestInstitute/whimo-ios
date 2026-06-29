@@ -115,22 +115,22 @@ private extension ModuleView {
     @ViewBuilder func passwordForm() -> some View {
         VStack(spacing: 16) {
             AppTextField(
+                text: currentPassword,
                 description: Localization.TextFields.CurrentPassword.description,
                 placeholder: Localization.TextFields.Password.placeholder,
                 leadingAccessory: AppAssets.Shared.sharedPasswordIcon.imageSwiftUI,
                 trailingItem: .secureText,
-                text: currentPassword,
                 tapDestination: .textField(keyboardActiveField = .currentPassword)
             )
             .focused($keyboardActiveField, equals: .currentPassword)
             .textContentType(.password)
             .submitLabel(.next)
             AppTextField(
+                text: password,
                 description: Localization.TextFields.Password.description,
                 placeholder: Localization.TextFields.Password.placeholder,
                 leadingAccessory: AppAssets.Shared.sharedPasswordIcon.imageSwiftUI,
                 trailingItem: .secureText,
-                text: password,
                 state: passwordTextFieldState,
                 tapDestination: .textField(keyboardActiveField = .password)
             )
@@ -138,11 +138,11 @@ private extension ModuleView {
             .textContentType(.newPassword)
             .submitLabel(.next)
             AppTextField(
+                text: repeatPassword,
                 description: Localization.TextFields.ConfirmPassword.description,
                 placeholder: Localization.TextFields.ConfirmPassword.placeholder,
                 leadingAccessory: AppAssets.Shared.sharedPasswordIcon.imageSwiftUI,
                 trailingItem: .secureText,
-                text: repeatPassword,
                 state: confirmPasswordTextFieldState,
                 tapDestination: .textField(keyboardActiveField = .confirmPassword)
             )

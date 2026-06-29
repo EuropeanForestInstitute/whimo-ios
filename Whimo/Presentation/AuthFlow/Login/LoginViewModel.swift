@@ -39,18 +39,23 @@ extension Module {
         // MARK: - Public Properties
         @Published var credentials: Credentials = .email(username: "", password: "")
         @Published private(set) var isLoginButtonEnabled: Bool = false
-        var credentialTypes: IdentifiedArrayOf<Credentials> {
+        var credentialTypes: IdentifiedArrayOf<CredentialsType> {
             .init(uniqueElements: [
-                .email(username: "", password: ""),
-                .phone(username: "", password: "")
+                .email,
+                .phone
             ])
         }
 
-        // MARK: - Private Properties
-        private var cancellable: CancelBag = .init()
+        private(set) var validationErrors: [KeyboardField: Error] = [:]
 
+        // MARK: - Private Properties
         private let phoneNumberFormatter: PhoneNumberFormatter = .flat
+        private let phoneNumberValidator: PhoneNumberValidator = .shared
+        private let emailValidator: EmailValidator = .shared
         private let passwordValidator: PasswordValidator = .shared
+
+        private var cancellable: CancelBag = .init()
+        private var keyboardActiveField: KeyboardField?
 
         // MARK: - Dependencies
         @Inject(\.appState) private var appState
@@ -64,6 +69,10 @@ extension Module {
         }
 
         // MARK: - ViewModelProtocol
+        func setKeyboardActiveField(_ keyboardActiveField: KeyboardField?) {
+            self.keyboardActiveField = keyboardActiveField
+        }
+
         func didTapLogin() async {
             appState.system[\.isLoading] = true
             defer { appState.system[\.isLoading] = false }
@@ -108,6 +117,10 @@ extension Module {
 
             openAuthorizedZone()
         }
+
+        func flushValidations() {
+            validationErrors.removeAll()
+        }
     }
 }
 
@@ -119,23 +132,53 @@ private extension ViewModel {
             .sink { [weak self] credentials in
                 guard let self else { return }
 
-                let success = self.validate(gadget: credentials.username, password: credentials.password)
+                let success: Bool
+                switch credentials {
+                    case .email(let email, let password):
+                        success = self.validateEmailCredentials(email: email, password: password)
+                    case .phone(let phone, let password):
+                        success = self.validatePhoneCredentials(phone: phone, password: password)
+                }
                 Task { @MainActor in
                     self.isLoginButtonEnabled = success
+                }
+            }
+            .store(in: cancellable)
+        $credentials
+            .map { (credentials: $0, keyboardActiveField: self.keyboardActiveField) }
+            .dropFirst()
+            .sink { [weak self] credentials, keyboardActiveField in
+                guard let self else { return }
+
+                switch keyboardActiveField {
+                    case .username:
+                        switch credentials {
+                            case .email(let email, _):
+                                self.validationErrors[.username] = self.emailValidator.isValid(email)
+                            case .phone(let phone, _):
+                                self.validationErrors[.username] = self.phoneNumberValidator.isValid(phone)
+                        }
+                    case .password:
+                        self.validationErrors[.password] = self.passwordValidator.isValid(credentials.password)
+                    default:
+                        return
                 }
             }
             .store(in: cancellable)
     }
 
     // MARK: - Common
-    func validate(gadget: String, password: String) -> Bool {
-        let gadgetVerified = !gadget.isEmpty
-        let passwordError: PasswordValidator.Error? = passwordValidator.isValid(password)
-        var passwordVerified = false
-        if passwordError == nil {
-            passwordVerified = true
-        }
+    func validateEmailCredentials(email: String, password: String) -> Bool {
+        let gadgetVerified = emailValidator.isValid(email) == nil
+        let passwordVerified = passwordValidator.isValid(password) == nil
+        let success = gadgetVerified && passwordVerified
 
+        return success
+    }
+
+    func validatePhoneCredentials(phone: String, password: String) -> Bool {
+        let gadgetVerified = phoneNumberValidator.isValid(phone) == nil
+        let passwordVerified = passwordValidator.isValid(password) == nil
         let success = gadgetVerified && passwordVerified
 
         return success

@@ -13,8 +13,6 @@
 		45066C7F2E2DA32B005C79AB /* NotificationsCachingRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45066C7E2E2DA326005C79AB /* NotificationsCachingRepository.swift */; };
 		45066C812E2DA332005C79AB /* NotificationsCachingRepositoryImpl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45066C802E2DA330005C79AB /* NotificationsCachingRepositoryImpl.swift */; };
 		45066C832E2DA7F6005C79AB /* NotificationsState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45066C822E2DA7F0005C79AB /* NotificationsState.swift */; };
-		45066D572E2DC816005C79AB /* GeojsonMapperProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45066D562E2DC812005C79AB /* GeojsonMapperProtocol.swift */; };
-		45066D592E2DC81B005C79AB /* GeojsonMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45066D582E2DC819005C79AB /* GeojsonMapper.swift */; };
 		45066D692E2F823A005C79AB /* UserOfflineMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45066D682E2F8232005C79AB /* UserOfflineMapper.swift */; };
 		45066D6B2E2F8243005C79AB /* UserOfflineMapperProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45066D6A2E2F823C005C79AB /* UserOfflineMapperProtocol.swift */; };
 		450EFB1E2DD33DE500A1C679 /* TransactionModel+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 450EFB1D2DD33DE300A1C679 /* TransactionModel+Extension.swift */; };
@@ -387,7 +385,7 @@
 		45EDBABF2EB7DAA300647AFA /* LocationServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45EDBA752EB7DAA300647AFA /* LocationServiceProtocol.swift */; };
 		45EDBAC02EB7DAA300647AFA /* OfflineTransactionsSyncInteractorImpl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45EDBAA52EB7DAA300647AFA /* OfflineTransactionsSyncInteractorImpl.swift */; };
 		45EDBAC12EB7DAA300647AFA /* TransactionDocumentsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45EDBA842EB7DAA300647AFA /* TransactionDocumentsService.swift */; };
-		45EDBAC22EB7DAA300647AFA /* QRCodeDataService+GeoJSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45EDBA7E2EB7DAA300647AFA /* QRCodeDataService+GeoJSON.swift */; };
+		45EDBAC22EB7DAA300647AFA /* Encodable+JSONString.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45EDBA7E2EB7DAA300647AFA /* Encodable+JSONString.swift */; };
 		45EDBAC32EB7DAA300647AFA /* GoogleAuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45EDBA6C2EB7DAA300647AFA /* GoogleAuthService.swift */; };
 		45EDBAC42EB7DAA300647AFA /* FileStorageServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45EDBA672EB7DAA300647AFA /* FileStorageServiceProtocol.swift */; };
 		45EDBAC52EB7DAA300647AFA /* BalanceInteractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45EDBA952EB7DAA300647AFA /* BalanceInteractor.swift */; };
@@ -430,6 +428,8 @@
 		45F5425C2E270EA800B4F554 /* Container+Targets.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45F542582E270EA800B4F554 /* Container+Targets.swift */; };
 		45F542602E2716F700B4F554 /* NotificationsHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45F5425F2E2716F600B4F554 /* NotificationsHandler.swift */; };
 		45F542632E27A80000B4F554 /* StartupInteractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45F542622E27A7FC00B4F554 /* StartupInteractor.swift */; };
+		45F616772EE0533600B1A5E3 /* PhoneNumberValidatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45F616762EE0533600B1A5E3 /* PhoneNumberValidatorTests.swift */; };
+		45F616792EE074E600B1A5E3 /* Login+CredentialsType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45F616782EE074E300B1A5E3 /* Login+CredentialsType.swift */; };
 		45FB42412E5F71B00055DFCE /* GadgetDetails+ScreenMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45FB42402E5F71AB0055DFCE /* GadgetDetails+ScreenMode.swift */; };
 		45FF6F5D2E02E35C00B68A59 /* Loadable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45FF6F5C2E02E35B00B68A59 /* Loadable.swift */; };
 /* End PBXBuildFile section */
@@ -472,8 +472,6 @@
 		45066C7E2E2DA326005C79AB /* NotificationsCachingRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationsCachingRepository.swift; sourceTree = "<group>"; };
 		45066C802E2DA330005C79AB /* NotificationsCachingRepositoryImpl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationsCachingRepositoryImpl.swift; sourceTree = "<group>"; };
 		45066C822E2DA7F0005C79AB /* NotificationsState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationsState.swift; sourceTree = "<group>"; };
-		45066D562E2DC812005C79AB /* GeojsonMapperProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeojsonMapperProtocol.swift; sourceTree = "<group>"; };
-		45066D582E2DC819005C79AB /* GeojsonMapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeojsonMapper.swift; sourceTree = "<group>"; };
 		45066D682E2F8232005C79AB /* UserOfflineMapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserOfflineMapper.swift; sourceTree = "<group>"; };
 		45066D6A2E2F823C005C79AB /* UserOfflineMapperProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserOfflineMapperProtocol.swift; sourceTree = "<group>"; };
 		450EFB1D2DD33DE300A1C679 /* TransactionModel+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TransactionModel+Extension.swift"; sourceTree = "<group>"; };
@@ -858,7 +856,7 @@
 		45EDBA792EB7DAA300647AFA /* PermissionsServiceProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionsServiceProtocol.swift; sourceTree = "<group>"; };
 		45EDBA7C2EB7DAA300647AFA /* QRCodeDataService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRCodeDataService.swift; sourceTree = "<group>"; };
 		45EDBA7D2EB7DAA300647AFA /* QRCodeDataService+Error.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "QRCodeDataService+Error.swift"; sourceTree = "<group>"; };
-		45EDBA7E2EB7DAA300647AFA /* QRCodeDataService+GeoJSON.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "QRCodeDataService+GeoJSON.swift"; sourceTree = "<group>"; };
+		45EDBA7E2EB7DAA300647AFA /* Encodable+JSONString.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Encodable+JSONString.swift"; sourceTree = "<group>"; };
 		45EDBA7F2EB7DAA300647AFA /* QRCodeDataServiceImpl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRCodeDataServiceImpl.swift; sourceTree = "<group>"; };
 		45EDBA812EB7DAA300647AFA /* TokenRegistryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenRegistryService.swift; sourceTree = "<group>"; };
 		45EDBA822EB7DAA300647AFA /* TokenRegistryServiceImpl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenRegistryServiceImpl.swift; sourceTree = "<group>"; };
@@ -894,6 +892,8 @@
 		45F542582E270EA800B4F554 /* Container+Targets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Container+Targets.swift"; sourceTree = "<group>"; };
 		45F5425F2E2716F600B4F554 /* NotificationsHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationsHandler.swift; sourceTree = "<group>"; };
 		45F542622E27A7FC00B4F554 /* StartupInteractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartupInteractor.swift; sourceTree = "<group>"; };
+		45F616762EE0533600B1A5E3 /* PhoneNumberValidatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhoneNumberValidatorTests.swift; sourceTree = "<group>"; };
+		45F616782EE074E300B1A5E3 /* Login+CredentialsType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Login+CredentialsType.swift"; sourceTree = "<group>"; };
 		45FB42402E5F71AB0055DFCE /* GadgetDetails+ScreenMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GadgetDetails+ScreenMode.swift"; sourceTree = "<group>"; };
 		45FF6F5C2E02E35B00B68A59 /* Loadable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loadable.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -963,15 +963,6 @@
 				45066C802E2DA330005C79AB /* NotificationsCachingRepositoryImpl.swift */,
 			);
 			path = Caching;
-			sourceTree = "<group>";
-		};
-		45066D552E2DC806005C79AB /* Geojson */ = {
-			isa = PBXGroup;
-			children = (
-				45066D562E2DC812005C79AB /* GeojsonMapperProtocol.swift */,
-				45066D582E2DC819005C79AB /* GeojsonMapper.swift */,
-			);
-			path = Geojson;
 			sourceTree = "<group>";
 		};
 		45066D672E2F8223005C79AB /* Offline */ = {
@@ -1094,7 +1085,6 @@
 				451FAFA02DE0820D00B8BFD2 /* User */,
 				45819D982E0AEB4600292A6E /* Notifications */,
 				454CFC032E15C4C6003BB078 /* NotificationsSettings */,
-				45066D552E2DC806005C79AB /* Geojson */,
 			);
 			path = Mappers;
 			sourceTree = "<group>";
@@ -1178,6 +1168,7 @@
 			isa = PBXGroup;
 			children = (
 				45359FA12EAA68E4007D82DB /* Login+Credentials.swift */,
+				45F616782EE074E300B1A5E3 /* Login+CredentialsType.swift */,
 				45359FA22EAA68E4007D82DB /* Login+KeyboardField.swift */,
 			);
 			path = Models;
@@ -1636,7 +1627,6 @@
 			isa = PBXGroup;
 			children = (
 				45359FD42EAA68E4007D82DB /* AddGpsPoint */,
-				45359FDA2EAA68E4007D82DB /* AddTransactionRecipient */,
 				45359FE22EAA68E4007D82DB /* BuyTxOnFarmDialog */,
 				45359FEA2EAA68E4007D82DB /* BuyTxSelectSeller */,
 				45359FF32EAA68E4007D82DB /* BuyTxSelectType */,
@@ -1646,6 +1636,7 @@
 				4535A0132EAA68E4007D82DB /* CreateTransactionForm */,
 				4535A01C2EAA68E4007D82DB /* CreateTxSelectType */,
 				4535A0222EAA68E4007D82DB /* InviteSeller */,
+				45359FDA2EAA68E4007D82DB /* AddTransactionRecipient */,
 				4535A0262EAA68E4007D82DB /* ScanQR */,
 				4535A0302EAA68E4007D82DB /* UploadFile */,
 			);
@@ -2020,6 +2011,7 @@
 				45E8B6582DFB59C20069AEE3 /* DecimalFormatterTests.swift */,
 				451B4E922E324F3300E15370 /* EmailValidatorTests.swift */,
 				45D997B92E72F4C50052F836 /* PasswordValidatorTests.swift */,
+				45F616762EE0533600B1A5E3 /* PhoneNumberValidatorTests.swift */,
 			);
 			path = WhimoTests;
 			sourceTree = "<group>";
@@ -2130,6 +2122,7 @@
 				451B4E8F2E323F2F00E15370 /* Utils+Presentation */,
 				456AE19A2DDCAA3800549B97 /* FileObject.swift */,
 				453D42592DE9A183000CF3B4 /* FarmLocation.swift */,
+				45EDBA7E2EB7DAA300647AFA /* Encodable+JSONString.swift */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -2878,7 +2871,6 @@
 			children = (
 				45EDBA7C2EB7DAA300647AFA /* QRCodeDataService.swift */,
 				45EDBA7D2EB7DAA300647AFA /* QRCodeDataService+Error.swift */,
-				45EDBA7E2EB7DAA300647AFA /* QRCodeDataService+GeoJSON.swift */,
 				45EDBA7F2EB7DAA300647AFA /* QRCodeDataServiceImpl.swift */,
 			);
 			path = QRCodeData;
@@ -3328,6 +3320,7 @@
 			files = (
 				451B4E932E324F3500E15370 /* EmailValidatorTests.swift in Sources */,
 				45E8B6592DFB59C40069AEE3 /* DecimalFormatterTests.swift in Sources */,
+				45F616772EE0533600B1A5E3 /* PhoneNumberValidatorTests.swift in Sources */,
 				45D997BA2E72F4C50052F836 /* PasswordValidatorTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -3585,7 +3578,6 @@
 				45EDBAE92EB7DAC000647AFA /* Container+Interactors.swift in Sources */,
 				45C95F462E044F0B003321F3 /* CommodityLocalRepository.swift in Sources */,
 				4515ED432E04B0AF001DCF08 /* TransactionsCachingRepositoryImpl.swift in Sources */,
-				45066D572E2DC816005C79AB /* GeojsonMapperProtocol.swift in Sources */,
 				455E31662E0A94A100D48718 /* ProfileRemoteRepositoryImpl.swift in Sources */,
 				456AE19F2DDCAD0200549B97 /* DateTimeFormatter.swift in Sources */,
 				45066C7A2E2DA0A2005C79AB /* NotificationsLocalRepository.swift in Sources */,
@@ -3652,7 +3644,7 @@
 				45EDBABF2EB7DAA300647AFA /* LocationServiceProtocol.swift in Sources */,
 				45EDBAC02EB7DAA300647AFA /* OfflineTransactionsSyncInteractorImpl.swift in Sources */,
 				45EDBAC12EB7DAA300647AFA /* TransactionDocumentsService.swift in Sources */,
-				45EDBAC22EB7DAA300647AFA /* QRCodeDataService+GeoJSON.swift in Sources */,
+				45EDBAC22EB7DAA300647AFA /* Encodable+JSONString.swift in Sources */,
 				45EDBAC32EB7DAA300647AFA /* GoogleAuthService.swift in Sources */,
 				45EDBAC42EB7DAA300647AFA /* FileStorageServiceProtocol.swift in Sources */,
 				45EDBAC52EB7DAA300647AFA /* BalanceInteractor.swift in Sources */,
@@ -3664,6 +3656,7 @@
 				45EDBACB2EB7DAA300647AFA /* QRCodeDataService.swift in Sources */,
 				45EDBACC2EB7DAA300647AFA /* UserNotificationsService.swift in Sources */,
 				45EDBACD2EB7DAA300647AFA /* AppleAuthServiceImpl+Error.swift in Sources */,
+				45F616792EE074E600B1A5E3 /* Login+CredentialsType.swift in Sources */,
 				45EDBACE2EB7DAA300647AFA /* EmailClientServiceImpl.swift in Sources */,
 				45EDBACF2EB7DAA300647AFA /* DataFetcherInteractor.swift in Sources */,
 				45EDBAD02EB7DAA300647AFA /* AuthInteractor.swift in Sources */,
@@ -3741,7 +3734,6 @@
 				45BF136C2EB8F49800C2D097 /* ConvertCommodityDetailsViewModel.swift in Sources */,
 				45BF136D2EB8F49800C2D097 /* ConvertCommodityDetailsView.swift in Sources */,
 				454E841A2DBFD3D50001D233 /* Container+AppState.swift in Sources */,
-				45066D592E2DC81B005C79AB /* GeojsonMapper.swift in Sources */,
 				45D8B9812DBF8FC100A1A295 /* WhimoApp.swift in Sources */,
 				451FAFA52DE083BD00B8BFD2 /* ProfileCachingRepository.swift in Sources */,
 				45C95F4E2E04500F003321F3 /* CommodityCachingRepository.swift in Sources */,
@@ -4169,7 +4161,7 @@
 				BUNDLE_ID_SUFFIX = .dev;
 				CODE_SIGN_ENTITLEMENTS = Whimo/SupportingFiles/WhimoDebug.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 20;
+				CURRENT_PROJECT_VERSION = 30;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 3SUQT77RQD;
 				ENABLE_PREVIEWS = YES;

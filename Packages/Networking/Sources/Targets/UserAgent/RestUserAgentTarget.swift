@@ -22,13 +22,6 @@
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 //  SOFTWARE.
 //
-//
-//  RestUserAgentTarget.swift
-//  Whimo
-//
-//  Created Vyacheslav Razumeenko on 12.07.2025.
-//  Copyright © 2025 ___ORGANIZATIONNAME___. All rights reserved.
-//
 
 import Foundation
 import Networking

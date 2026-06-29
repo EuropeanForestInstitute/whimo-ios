@@ -36,6 +36,9 @@ private typealias Localization = AppLocale.AddTransactionRecipient
 // MARK: - MainView
 extension Module {
     struct MainView: View {
+        private enum Constants {
+            static let scrollViewBottomKey = "KScrollViewBottomKey"
+        }
         // MARK: - Dependencies
         @StateObject var viewModel: ViewModel
         @EnvironmentObject var navigator: AppFlowNavigator
@@ -103,14 +106,16 @@ extension Module {
             }
         }
 
-        private var isConfirmButtonEnabled: Bool {
-            !(viewModel.recipient.recipientContact ?? "")
-                .trimmingCharacters(in: .whitespacesAndNewlines)
-                .isEmpty
-        }
-
         private var emailTextFieldState: AppTextField.TextFieldStates {
             if let error = viewModel.validationErrors[.email] {
+                return .failed(errorText: error.localizedDescription)
+            }
+
+            return .default
+        }
+
+        private var phoneTextFieldState: AppPhoneNumberTextField.TextFieldStates {
+            if let error = viewModel.validationErrors[.phone] {
                 return .failed(errorText: error.localizedDescription)
             }
 
@@ -132,7 +137,7 @@ extension Module {
                 }
                 .keyboardDefaultToolbar(action: self.keyboardActiveField = .none)
                 .onChange(of: keyboardActiveField) { newValue in
-                    viewModel.setKeyboardActiveField(newValue)
+                    viewModel.keyboardActiveField = newValue
                 }
         }
     }
@@ -142,13 +147,25 @@ extension Module {
 private extension ModuleView {
     @ViewBuilder func content() -> some View {
         ZStack {
-            ScrollView {
-                VStack(spacing: 16) {
-                    subtitle()
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    textFields()
+            ScrollViewReader { proxy in
+                ScrollView {
+                    VStack(spacing: 16) {
+                        subtitle()
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        textFields()
+                        Spacer()
+                            .frame(height: 16)
+                            .id(Constants.scrollViewBottomKey)
+                    }
+                    .padding(16)
                 }
-                .padding(16)
+                .onReceive(viewModel.$validationErrors) { value in
+                    if value[.phone] != nil {
+                        withAnimation(.snappy) {
+                            proxy.scrollTo(Constants.scrollViewBottomKey, anchor: .bottom)
+                        }
+                    }
+                }
             }
             .padding(.bottom, 72)
             VStack {
@@ -181,23 +198,24 @@ private extension ModuleView {
         VStack(spacing: 16) {
             // recipient
             AppTextField(
+                text: recipientID,
                 description: recipientDescriptionText,
                 placeholder: recipientPlaceholderText,
                 leadingAccessory: AppAssets.Shared.sharedUserIcon.imageSwiftUI,
-                text: recipientID,
                 tapDestination: .textField(keyboardActiveField = .recipientID)
             )
             .focused($keyboardActiveField, equals: .recipientID)
             .submitLabel(.next)
 
             // email
-            AppTextField(
+            EmailTextField(
+                text: email,
                 description: Localization.TextFields.Email.description,
                 placeholder: Localization.TextFields.Email.placeholder,
                 leadingAccessory: AppAssets.Shared.sharedEmailIcon.imageSwiftUI,
-                text: email,
                 state: emailTextFieldState,
-                tapDestination: .textField(keyboardActiveField = .email)
+                tapDestination: .textField(keyboardActiveField = .email),
+                permissionsProvider: viewModel.permissionsProvider
             )
             .focused($keyboardActiveField, equals: .email)
             .textContentType(.emailAddress)
@@ -207,8 +225,9 @@ private extension ModuleView {
 
             // phone
             AppPhoneNumberTextField(
-                description: Localization.TextFields.PhoneNumber.description,
                 text: phone,
+                description: Localization.TextFields.PhoneNumber.description,
+                state: phoneTextFieldState,
                 trailingItem: .phonebook(permissionsProvider: viewModel.permissionsProvider)
             )
             .focused($keyboardActiveField, equals: .phone)
@@ -221,10 +240,10 @@ private extension ModuleView {
     @ViewBuilder func confirmButtton() -> some View {
         AppButton(
             title: Localization.Buttons.confirm,
-            isEnabled: isConfirmButtonEnabled,
+            isEnabled: viewModel.isSaveButtonEnabled,
             action: didTapConfirm
         )
-        .animation(.snappy, value: isConfirmButtonEnabled)
+        .animation(.snappy, value: viewModel.isSaveButtonEnabled)
     }
 }
 

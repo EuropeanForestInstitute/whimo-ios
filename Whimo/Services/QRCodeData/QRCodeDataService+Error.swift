@@ -34,11 +34,14 @@ private typealias Localization = AppLocale.General.Services.QrCodeData.Errors
 extension QRCodeDataServiceImpl {
     enum Error: LocalizedError {
         case cannotRecognizeQRCode
+        case unsupportedQRCode
 
         var errorDescription: String? {
             switch self {
                 case .cannotRecognizeQRCode:
                     Localization.cannotRecognizeQRCode
+                case .unsupportedQRCode:
+                    "Unspported QR Code. Please contact the support."
             }
         }
     }

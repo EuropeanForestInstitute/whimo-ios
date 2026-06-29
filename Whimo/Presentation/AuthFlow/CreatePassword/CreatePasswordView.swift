@@ -85,22 +85,22 @@ private extension ModuleView {
     @ViewBuilder func passwordForm() -> some View {
         VStack(spacing: 16) {
             AppTextField(
+                text: $viewModel.password,
                 description: Localization.TextFields.Password.description,
                 placeholder: Localization.TextFields.Password.placeholder,
                 leadingAccessory: AppAssets.Shared.sharedPasswordIcon.imageSwiftUI,
                 trailingItem: .secureText,
-                text: $viewModel.password,
                 tapDestination: .textField(keyboardActiveField = .password)
             )
             .focused($keyboardActiveField, equals: .password)
             .textContentType(.newPassword)
             .submitLabel(.next)
             AppTextField(
+                text: $viewModel.repeatPassword,
                 description: Localization.TextFields.ConfirmPassword.description,
                 placeholder: Localization.TextFields.ConfirmPassword.placeholder,
                 leadingAccessory: AppAssets.Shared.sharedPasswordIcon.imageSwiftUI,
                 trailingItem: .secureText,
-                text: $viewModel.repeatPassword,
                 tapDestination: .textField(keyboardActiveField = .confirmPassword)
             )
             .focused($keyboardActiveField, equals: .confirmPassword)

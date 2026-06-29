@@ -37,12 +37,21 @@ public struct KeyboardDefaultToolbar: ViewModifier {
     public func body(content: Content) -> some View {
         content
             .toolbar {
-                ToolbarItem(placement: .keyboard) {
-                    HStack {
+                if #available(iOS 26.0, *) {
+                    ToolbarItemGroup(placement: .keyboard) {
                         Spacer()
                         Button(Localization.Toolbar.done, role: .cancel, action: action)
                             .appFontMediumSize16()
                             .foregroundStyle(AppColors.Gray.gray90.colorSwiftUI)
+                    }
+                } else {
+                    ToolbarItem(placement: .keyboard) {
+                        HStack {
+                            Spacer()
+                            Button(Localization.Toolbar.done, role: .cancel, action: action)
+                                .appFontMediumSize16()
+                                .foregroundStyle(AppColors.Gray.gray90.colorSwiftUI)
+                        }
                     }
                 }
             }

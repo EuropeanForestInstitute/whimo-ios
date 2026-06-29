@@ -40,7 +40,7 @@ let package = Package(
         .package(path: "../Extensions"),
         .package(url: "https://github.com/pointfreeco/swift-identified-collections?tab=readme-ov-file", exact: "1.1.1"),
         .package(url: "https://github.com/hmlongco/Factory.git", exact: "2.5.3"),
-        .package(url: "https://github.com/wtw-software/UTMConversion", exact: "1.4.0")
+        .package(url: "https://github.com/guykogus/CodableGeoJSON", exact: "4.0.0")
     ],
     targets: [
         .target(
@@ -49,7 +49,7 @@ let package = Package(
                 "Extensions",
                 .product(name: "IdentifiedCollections", package: "swift-identified-collections?tab=readme-ov-file"),
                 .product(name: "FactoryKit", package: "Factory"),
-                .product(name: "UTMConversion", package: "UTMConversion")
+                .product(name: "CodableGeoJSON", package: "CodableGeoJSON")
             ],
         ),
         .testTarget(

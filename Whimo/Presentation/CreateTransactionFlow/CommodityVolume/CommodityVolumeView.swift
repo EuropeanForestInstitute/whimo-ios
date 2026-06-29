@@ -129,9 +129,9 @@ private extension ModuleView {
     @ViewBuilder func textFields() -> some View {
         HStack(spacing: 12) {
             AppTextField(
+                text: $viewModel.volumeText,
                 description: Localization.TextFields.Weight.description,
-                placeholder: Localization.TextFields.Weight.placeholder,
-                text: $viewModel.volumeText
+                placeholder: Localization.TextFields.Weight.placeholder
             )
             .onChange(of: viewModel.volumeText, perform: { [oldValue = viewModel.volumeText] newValue in
                 let formatted = decimalParser.format(value: newValue)
@@ -146,8 +146,8 @@ private extension ModuleView {
             .keyboardType(.decimalPad)
             .submitLabel(.done)
             AppTextField(
-                description: Localization.TextFields.Unit.description,
                 text: .constant(viewModel.commodityType.unit),
+                description: Localization.TextFields.Unit.description,
                 state: .disabled,
                 tapDestination: .textField(keyboardActiveField = .amount),
             )

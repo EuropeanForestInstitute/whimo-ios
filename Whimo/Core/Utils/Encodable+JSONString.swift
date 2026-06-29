@@ -1,6 +1,8 @@
 //
-//  RestCommoditiesTarget.swift
+//  Encodable+JSONString.swift
 //  Whimo
+//
+//  Created by Vyacheslav Razumeenko on 14.07.2025.
 //
 //  Copyright (c) 2025 EFI https://efi.int/
 //
@@ -24,19 +26,14 @@
 //
 
 import Foundation
-import Networking
-import RestClient
+import Utility
 
-public struct RestCommoditiesTarget: AnyNetworkTarget {
-    public let restClient: RestClientProtocol
+// MARK: - Encodable+JSONString
 
-    public init(restClient: RestClientProtocol) {
-        self.restClient = restClient
-    }
-}
-
-extension RestCommoditiesTarget: CommoditiesTarget {
-    public func commodityGroupsList(_ model: RequestModels.CommodityGroupsList) async throws -> ResponseModels.CommodityGroupInfo {
-        try await restClient.makeRequest(RequestRouter.Commodities.commodityGroupsList(model))
+extension Encodable {
+    var prettyPrintedJSONString: NSString {
+        let data = (try? JSONEncoder().encode(self)) ?? .init()
+        let jsonString = data.prettyPrintedJSONString ?? .init()
+        return jsonString
     }
 }

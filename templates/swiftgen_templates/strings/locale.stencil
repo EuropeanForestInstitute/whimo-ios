@@ -56,8 +56,10 @@ import SwiftUI
         public static let defaultTable: String = "Localizable"
     }
 
-    @AppStorage("currentLocalize")
-    private static var currentLocalize: LocalizeKeys = .english
+    public static var currentLocalize: LocalizeKeys {
+        let key = UserDefaults.standard.string(forKey: "currentLocalize") ?? "en"
+        return .init(rawValue: key) ?? .english
+    }
 
     public static var currentLanguageCode: String { currentLocalize.code }
 

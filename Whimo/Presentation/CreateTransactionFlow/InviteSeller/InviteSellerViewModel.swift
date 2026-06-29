@@ -42,12 +42,14 @@ extension Module {
     final class ViewModel: ViewModelProtocol {
         // MARK: - Public Properties
         @Published var recipient: TransactionType.Recipient = .empty
+        @Published private(set) var isSaveButtonEnabled: Bool = false
         private(set) var validationErrors: [KeyboardField: Error] = [:]
 
         var permissionsProvider: ContactsPermissionsProvider { permissionsService }
 
         // MARK: - Private Properties
         private let emailValidator: EmailValidator = .shared
+        private let phoneNumberValidator: PhoneNumberValidator = .shared
         private var cancellable: CancelBag = .init()
         private var keyboardActiveField: KeyboardField?
 
@@ -124,17 +126,48 @@ private extension ViewModel {
             .animatedAssign(on: self, to: \.recipient)
             .store(in: cancellable)
         $recipient
-            .map(\.email)
-            .sink { [weak self] email in
-                guard
-                    let self,
-                    self.keyboardActiveField == .email
-                else { return }
+            .sink { [weak self] recipient in
+                guard let self else { return }
 
-                if !email.isEmpty {
-                    self.validationErrors[.email] = self.emailValidator.isValid(email)
-                } else {
-                    self.validationErrors[.email] = nil
+                let fieldsSuccess = self.validate(
+                    email: recipient.email,
+                    phone: recipient.phone
+                )
+                let success = fieldsSuccess
+                Task { @MainActor in
+                    self.isSaveButtonEnabled = success
+                }
+            }
+            .store(in: cancellable)
+        $recipient
+            .map { (recipient: $0, keyboardActiveField: self.keyboardActiveField) }
+            .sink { [weak self] recipient, keyboardActiveField in
+                guard let self else { return }
+
+                func validateEmail(recipient: TransactionType.Recipient) {
+                    let email = recipient.email
+
+                    self.validationErrors[.email] = email.isEmpty
+                    ? nil
+                    : self.emailValidator.isValid(email)
+                }
+
+                func validatePhone(recipient: TransactionType.Recipient) {
+                    let phone = recipient.phone
+
+                    self.validationErrors[.phone] = phone.isEmpty
+                    ? nil
+                    : self.phoneNumberValidator.isValid(phone)
+                }
+
+                switch keyboardActiveField {
+                    case .email:
+                        validateEmail(recipient: recipient)
+                    case .phone:
+                        validatePhone(recipient: recipient)
+                    default:
+                        validateEmail(recipient: recipient)
+                        validatePhone(recipient: recipient)
                 }
             }
             .store(in: cancellable)
@@ -178,5 +211,13 @@ private extension ViewModel {
             }
         }
         appState.navigation[\.path].removeLast()
+    }
+
+    func validate(email: String, phone: String) -> Bool {
+        let emailVerified = emailValidator.isValid(email) == nil
+        let phoneVerified = phoneNumberValidator.isValid(phone) == nil
+        let success = emailVerified || phoneVerified
+
+        return success
     }
 }

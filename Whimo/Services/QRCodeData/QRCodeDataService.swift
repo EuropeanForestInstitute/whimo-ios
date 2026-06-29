@@ -27,8 +27,8 @@
 
 import Foundation
 import Utility
+import CoreLocation
 
 protocol QRCodeDataService: AnyObject {
-    func getFarmInfo(from rawString: String) throws -> QRCodeDataServiceImpl.FarmInfo
-    func createFile(geojson: GeoJSON<PolygonGeometry>) -> FileObject?
+    func saveGroundFarmInfo(from rawString: String) throws -> (coordinates: CLLocationCoordinate2D, selectedFile: FileObject?)
 }

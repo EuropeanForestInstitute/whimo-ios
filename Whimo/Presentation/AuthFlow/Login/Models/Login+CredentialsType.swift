@@ -1,6 +1,8 @@
 //
-//  RestCommoditiesTarget.swift
+//  Login+CredentialsType.swift
 //  Whimo
+//
+//  Created by Vyacheslav Razumeenko on 03.12.2025.
 //
 //  Copyright (c) 2025 EFI https://efi.int/
 //
@@ -24,19 +26,36 @@
 //
 
 import Foundation
-import Networking
-import RestClient
+import Utility
+import enum Resources.AppLocale
 
-public struct RestCommoditiesTarget: AnyNetworkTarget {
-    public let restClient: RestClientProtocol
+private typealias Module = LoginModule
+private typealias Localization = AppLocale.Login.LoginType
 
-    public init(restClient: RestClientProtocol) {
-        self.restClient = restClient
-    }
-}
+// MARK: - CredentialsType
+extension Module {
+    enum CredentialsType: Identifiable {
+        case email
+        case phone
 
-extension RestCommoditiesTarget: CommoditiesTarget {
-    public func commodityGroupsList(_ model: RequestModels.CommodityGroupsList) async throws -> ResponseModels.CommodityGroupInfo {
-        try await restClient.makeRequest(RequestRouter.Commodities.commodityGroupsList(model))
+        var id: Self { self }
+
+        var titleText: String {
+            switch self {
+                case .email:
+                    Localization.email
+                case .phone:
+                    Localization.phone
+            }
+        }
+
+        func credentails() -> Credentials {
+            switch self {
+                case .email:
+                    return .email(username: "", password: "")
+                case .phone:
+                    return .phone(username: "", password: "")
+            }
+        }
     }
 }

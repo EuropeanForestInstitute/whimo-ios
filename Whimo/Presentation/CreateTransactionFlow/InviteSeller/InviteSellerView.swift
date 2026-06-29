@@ -60,14 +60,16 @@ extension Module {
             }
         }
 
-        private var isConfirmButtonEnabled: Bool {
-            !(viewModel.recipient.recipientContact ?? "")
-                .trimmingCharacters(in: .whitespacesAndNewlines)
-                .isEmpty
-        }
-
         private var emailTextFieldState: AppTextField.TextFieldStates {
             if let error = viewModel.validationErrors[.email] {
+                return .failed(errorText: error.localizedDescription)
+            }
+
+            return .default
+        }
+
+        private var phoneTextFieldState: AppPhoneNumberTextField.TextFieldStates {
+            if let error = viewModel.validationErrors[.phone] {
                 return .failed(errorText: error.localizedDescription)
             }
 
@@ -120,13 +122,14 @@ private extension ModuleView {
     @ViewBuilder func textFields() -> some View {
         VStack(spacing: 16) {
             // email
-            AppTextField(
+            EmailTextField(
+                text: email,
                 description: Localization.TextFields.Email.description,
                 placeholder: Localization.TextFields.Email.placeholder,
                 leadingAccessory: AppAssets.Shared.sharedEmailIcon.imageSwiftUI,
-                text: email,
                 state: emailTextFieldState,
-                tapDestination: .textField(keyboardActiveField = .email)
+                tapDestination: .textField(keyboardActiveField = .email),
+                permissionsProvider: viewModel.permissionsProvider
             )
             .focused($keyboardActiveField, equals: .email)
             .textContentType(.emailAddress)
@@ -138,8 +141,9 @@ private extension ModuleView {
 
             // phone
             AppPhoneNumberTextField(
-                description: Localization.TextFields.PhoneNumber.description,
                 text: phone,
+                description: Localization.TextFields.PhoneNumber.description,
+                state: phoneTextFieldState,
                 trailingItem: .phonebook(permissionsProvider: viewModel.permissionsProvider)
             )
             .focused($keyboardActiveField, equals: .phone)
@@ -172,10 +176,10 @@ private extension ModuleView {
     @ViewBuilder func confirmButtton() -> some View {
         AppButton(
             title: Localization.Buttons.confirm,
-            isEnabled: isConfirmButtonEnabled,
+            isEnabled: viewModel.isSaveButtonEnabled,
             action: didTapConfirm
         )
-        .animation(.snappy, value: isConfirmButtonEnabled)
+        .animation(.snappy, value: viewModel.isSaveButtonEnabled)
     }
 
     @ViewBuilder func textFieldsDivider() -> some View {

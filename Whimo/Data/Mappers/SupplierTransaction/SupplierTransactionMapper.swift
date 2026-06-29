@@ -107,6 +107,7 @@ struct SupplierTransactionMapper: SupplierTransactionMapperProtocol {
         .init(
             id: dto.id,
             createdAt: dto.createdAt,
+            updatedAt: dto.updatedAt,
             type: toDomain(from: dto.type),
             status: toDomain(from: dto),
             traceability: toDomain(from: dto.traceability),

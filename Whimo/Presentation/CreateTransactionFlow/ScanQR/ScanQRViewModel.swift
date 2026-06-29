@@ -66,9 +66,8 @@ private extension ViewModel {
                 guard let self else { return }
 
                 do {
-                    let farmInfo = try self.qrCodeDataService.getFarmInfo(from: code)
-                    let file = self.qrCodeDataService.createFile(geojson: farmInfo.geojson)
-                    self.saveData(farmInfo.locationPoint, selectedFile: file)
+                    let farmData = try self.qrCodeDataService.saveGroundFarmInfo(from: code)
+                    self.saveData(farmData.coordinates, selectedFile: farmData.selectedFile)
                 } catch {
                     appState.showError(message: error.localizedDescription)
                 }

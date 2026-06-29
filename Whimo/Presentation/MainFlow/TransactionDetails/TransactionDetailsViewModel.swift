@@ -290,6 +290,7 @@ private extension ViewModel {
         let transactions = try await transactionsInteractor.fetchSuppliersTransactions(
             commodityGroupId: transaction.commodity.group.id,
             buyerId: sellerId,
+            createdAtTo: transaction.updatedAt,
             oldPagination: nil,
             refresh: false
         )

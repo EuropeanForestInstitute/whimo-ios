@@ -22,7 +22,6 @@ WHIMO is an iOS application for tracking commodities and managing transactions i
 | [PhoneNumberKit](https://github.com/marmelroy/PhoneNumberKit) | 4.1.3 | Phone number parsing and validation |
 | [Firebase](https://github.com/firebase/firebase-ios-sdk) | 12.0.0 | Firebase SDK |
 | [GoogleSignIn](https://github.com/google/GoogleSignIn-iOS) | 9.0.0 | Google Sign In SDK |
-| [UTMConversion](https://github.com/wtw-software/UTMConversion) | 1.4.0 | UTM coordinate conversion |
 | [IdentifiedCollections](https://github.com/pointfreeco/swift-identified-collections) | 1.1.1 | Identifiable collections |
 | [FlowStacks](https://github.com/slawaDnC/FlowStacks) | 0.1.0 | Coordinator-style navigation |
 | [WindowOverlay](https://github.com/sunghyun-k/swiftui-window-overlay) | 1.0.2 | Window-level overlays |
@@ -182,7 +181,7 @@ Configuration files are located in `Whimo/Core/Utils/Utils+Configuration/`:
 - `AppConstants.swift` - App-level constants (email, URLs, etc.)
 - `BundleConfiguration.swift` - Bundle metadata helpers (bundle identifiers)
 
-## 🌍 Localization
+## 🔄 Workflow
 
 The application supports three languages:
 

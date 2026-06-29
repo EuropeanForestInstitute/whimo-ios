@@ -108,9 +108,9 @@ private extension ModuleView {
     @ViewBuilder func navigationToolbar() -> some View {
         HStack(spacing: 12) {
             AppTextField(
+                text: $viewModel.searchText,
                 placeholder: Localization.SerchField.placeholder,
                 leadingAccessory: AppAssets.Home.searchIcon.imageSwiftUI,
-                text: $viewModel.searchText,
                 tapDestination: .textField(keyboardActiveField = .search)
             )
             .focused($keyboardActiveField, equals: .search)

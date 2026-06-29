@@ -51,9 +51,9 @@ extension RequestModels {
             )
         }
 
-        public static func supplierInitial(buyerData: BuyerData) -> Self {
+        public static func supplierInitial(buyerData: BuyerData, createdAtTo: String? = nil) -> Self {
             .init(
-                searchData: .byBuyer(buyerData),
+                searchData: .byBuyer(buyerData, createdAtTo: createdAtTo),
                 pageData: .initial
             )
         }
@@ -116,11 +116,11 @@ extension RequestModels.TransactionsList {
             buyerData: nil
         )
 
-        public static func byBuyer(_ buyerData: BuyerData?) -> Self {
+        public static func byBuyer(_ buyerData: BuyerData?, createdAtTo: String? = nil) -> Self {
             .init(
                 search: nil,
                 createdAtFrom: nil,
-                createdAtTo: nil,
+                createdAtTo: createdAtTo,
                 action: nil,
                 buyerData: buyerData
             )

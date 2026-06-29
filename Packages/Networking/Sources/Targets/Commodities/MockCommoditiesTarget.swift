@@ -22,13 +22,6 @@
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 //  SOFTWARE.
 //
-//
-//  MockCommoditiesTarget.swift
-//  Whimo
-//
-//  Created Vyacheslav Razumeenko on 28.05.2025.
-//  Copyright © 2025 ___ORGANIZATIONNAME___. All rights reserved.
-//
 
 import Foundation
 import RestClient

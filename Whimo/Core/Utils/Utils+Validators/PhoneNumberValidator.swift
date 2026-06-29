@@ -27,6 +27,8 @@
 
 import Foundation
 import PhoneNumberKit
+import Resources
+import Utility
 
 struct PhoneNumberValidator {
     // MARK: - Static Properties
@@ -39,7 +41,70 @@ struct PhoneNumberValidator {
     private init() { }
 
     // MARK: - Methods
-    func isValid(_ phoneNumber: String) -> Bool {
-        phoneNumberUtility.isValidPhoneNumber(phoneNumber)
+    func isValid(_ phoneNumber: String) -> Error? {
+        do {
+            _ = try phoneNumberUtility.parse(phoneNumber)
+            return nil
+        } catch {
+            guard let error = error as? PhoneNumberError else {
+                return .invalidNumber
+            }
+
+            log.error("Cannot validate phone number, error: \(error)")
+            return Error(from: error)
+        }
+    }
+}
+
+private typealias Localization = AppLocale.General.Formatters.PhoneNumber.Error
+
+// MARK: - Error
+extension PhoneNumberValidator {
+    public enum Error: Equatable {
+        case generalError
+        case invalidCountryCode
+        case invalidNumber
+        case tooLong
+        case tooShort
+        case deprecated
+        case metadataNotFound
+        case ambiguousNumber(phoneNumbers: Set<PhoneNumber>)
+
+        init(from case: PhoneNumberError) {
+            switch `case` {
+                case .generalError:
+                    self = .generalError
+                case .invalidCountryCode:
+                    self = .invalidCountryCode
+                case .invalidNumber:
+                    self = .invalidNumber
+                case .tooLong:
+                    self = .tooLong
+                case .tooShort:
+                    self = .tooShort
+                case .deprecated:
+                    self = .deprecated
+                case .metadataNotFound:
+                    self = .metadataNotFound
+                case .ambiguousNumber(let phoneNumbers):
+                    self = .ambiguousNumber(phoneNumbers: phoneNumbers)
+            }
+        }
+    }
+}
+
+// MARK: - PhoneNumberValidator.Error+LocalizedError
+extension PhoneNumberValidator.Error: LocalizedError {
+    public var errorDescription: String? {
+        switch self {
+            case .generalError: Localization.generalError
+            case .invalidCountryCode: Localization.invalidCountryCode
+            case .invalidNumber: Localization.invalidNumber
+            case .tooLong: Localization.tooLong
+            case .tooShort: Localization.tooShort
+            case .deprecated: Localization.deprecated
+            case .metadataNotFound: Localization.metadataNotFound
+            case .ambiguousNumber: Localization.ambiguousNumber
+        }
     }
 }

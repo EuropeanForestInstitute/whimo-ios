@@ -28,6 +28,7 @@
 import SwiftUI
 import Utility
 import Resources
+import PhoneNumberKit
 
 private typealias CurrentView = AppPhoneNumberTextField
 private typealias Assets = AppAssets.Shared
@@ -96,41 +97,44 @@ public struct AppPhoneNumberTextField: View {
     let placeholder: String
     let tapDestination: TapDestination
     let trailingItem: TrailingItem
-    @Binding var text: String
     var state: TextFieldStates
 
-    @StateObject private var viewModel: AppPhoneNumberTextFieldViewModel
+    @Binding var text: String
+
+    // MARK: - Private Properties
+    @StateObject private var viewModel: ContactsTextFieldViewModel
+    private let phoneNumberUtility: PhoneNumberUtility = .init()
 
     // MARK: - Init
 
     /// Initializes the phone number text field with optional contacts integration
     /// - Parameters:
+    ///   - text: Binding to the phone number string value
     ///   - description: Field description text displayed above the text field
     ///   - placeholder: Placeholder text shown when field is empty (default: "")
-    ///   - text: Binding to the phone number string value
     ///   - state: Current state of the text field (default: .default)
     ///   - trailingItem: Trailing item configuration
     ///   - tapDestination: Defines where tap gestures are handled (default: .self)
     public init(
+        text: Binding<String>,
         description: String,
         placeholder: String = "",
-        text: Binding<String>,
         state: TextFieldStates = .default,
         trailingItem: TrailingItem = .none,
         tapDestination: TapDestination = .`self`(()),
     ) {
+        self._text = .init(projectedValue: text)
         self.description = description
         self.placeholder = placeholder
         self.tapDestination = tapDestination
-        self._text = .init(projectedValue: text)
         self.state = state
         self.trailingItem = trailingItem
 
         switch trailingItem {
             case .phonebook(let permissionsProvider):
-                self._viewModel = StateObject(wrappedValue: AppPhoneNumberTextFieldViewModel(permissionsProvider: permissionsProvider))
+                self._viewModel = StateObject(wrappedValue: ContactsTextFieldViewModel(permissionsProvider: permissionsProvider))
             case .none:
-                self._viewModel = StateObject(wrappedValue: AppPhoneNumberTextFieldViewModel(permissionsProvider: nil))
+                self._viewModel = StateObject(wrappedValue: ContactsTextFieldViewModel(permissionsProvider: nil))
         }
     }
 
@@ -147,10 +151,10 @@ public struct AppPhoneNumberTextField: View {
             )
             .installAppAlert(manager: viewModel.alertManager)
             .sheet(isPresented: $viewModel.isShowingContactPicker) {
-                ContactPicker(
-                    didPickPhoneNumber: { phone in text = phone; viewModel.isShowingContactPicker = false },
-                    didCancel: { viewModel.isShowingContactPicker = false }
-                )
+                ContactPicker { phone in
+                    let formatted = formatPickerProperty(phone)
+                    text = formatted
+                }
             }
     }
 }
@@ -180,9 +184,9 @@ private extension CurrentView {
     @ViewBuilder func styledTextFieldView() -> some View {
         HStack(spacing: 6) {
             textFieldView()
-                .overlay(content: trailingItemView)
+                .padding(.leading, 16)
+            trailingItemView()
         }
-        .padding([.horizontal], 16)
         .frame(height: 48)
         .contentShape(Rectangle())
         .background {
@@ -235,9 +239,25 @@ private extension CurrentView {
                             .aspectRatio(contentMode: .fit)
                             .frame(width: 20, height: 20)
                     }
+                    .padding(16)
+                    .contentShape(.rect)
                 }
             case .none:
                 EmptyView()
+        }
+    }
+}
+
+// MARK: - Private Methods
+private extension CurrentView {
+    func formatPickerProperty(_ phone: String) -> String {
+        do {
+            let phoneNumber = try phoneNumberUtility.parse(phone)
+            let formatted = phoneNumberUtility.format(phoneNumber, toType: .international)
+            return formatted
+        } catch {
+            log.error("An error occured: \(error)")
+            return phone
         }
     }
 }
@@ -267,23 +287,23 @@ struct AppPhoneNumberTextField_Previews: PreviewProvider {
             GeometryReader { proxy in
                 VStack {
                     CurrentView(
+                        text: $phone,
                         description: "Username",
                         placeholder: "Enter email, phone number or user ID",
-                        text: $phone,
                         tapDestination: .`self`({ isFieldFocus = .textField }())
                     )
                     .padding()
                     CurrentView(
+                        text: $phone,
                         description: "Phone*",
                         placeholder: "",
-                        text: $phone,
                         state: .failed(errorText: "Not phone number")
                     )
                     .padding()
                     CurrentView(
+                        text: $phone,
                         description: "Phone*",
                         placeholder: "",
-                        text: $phone,
                         trailingItem: .phonebook(permissionsProvider: ContactsPermissionsProviderMock())
                     )
                     .padding()

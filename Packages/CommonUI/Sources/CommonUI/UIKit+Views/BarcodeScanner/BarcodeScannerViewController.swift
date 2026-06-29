@@ -89,7 +89,7 @@ private extension BarcodeScannerViewController {
 
     /// Start video capture.
     func startCaptureSession() {
-        Task(priority: .background) { [weak self] in
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             self?.captureSession.startRunning()
         }
     }

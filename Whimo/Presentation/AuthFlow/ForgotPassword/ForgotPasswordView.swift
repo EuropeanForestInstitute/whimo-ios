@@ -85,10 +85,10 @@ private extension ModuleView {
         switch viewModel.textFieldType {
             case .email:
                 AppTextField(
+                    text: $viewModel.gadgetIdentifier,
                     description: viewModel.textFieldType.description,
                     placeholder: viewModel.textFieldType.placeholder,
-                    leadingAccessory: viewModel.textFieldType.leadingAccessory,
-                    text: $viewModel.gadgetIdentifier
+                    leadingAccessory: viewModel.textFieldType.leadingAccessory
                 )
                 .focused($keyboardActiveField, equals: .username)
                 .textContentType(.emailAddress)
@@ -97,8 +97,8 @@ private extension ModuleView {
                 .submitLabel(.done)
             case .phone:
                 AppPhoneNumberTextField(
-                    description: viewModel.textFieldType.description,
-                    text: $viewModel.gadgetIdentifier
+                    text: $viewModel.gadgetIdentifier,
+                    description: viewModel.textFieldType.description
                 )
                 .focused($keyboardActiveField, equals: .username)
                 .textContentType(.telephoneNumber)

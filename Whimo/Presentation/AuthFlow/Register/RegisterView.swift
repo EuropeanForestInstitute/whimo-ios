@@ -28,7 +28,6 @@
 import SwiftUI
 import Resources
 import CommonUI
-import struct Utility.AttributedStringBuilder
 
 private typealias Module = RegisterModule
 private typealias ModuleView = Module.MainView
@@ -44,19 +43,7 @@ extension Module {
         // MARK: - Private Properties
         @AppStorage(.currentLocalize) private var currentLocalize: LocalizeKeys = .english
         @FocusState private var keyboardActiveField: KeyboardField?
-
-        private var termsAttributedText: AttributedString {
-            AttributedStringBuilder.build(from: [
-                (
-                    Localization.AcceptTerms.title1,
-                    .init([.font: AppFonts.FiraSans.regular.font(size: 16)])
-                ),
-                (
-                    Localization.AcceptTerms.title2,
-                    .init([.font: AppFonts.FiraSans.medium.font(size: 16)])
-                ),
-            ])
-        }
+        @Environment(\.openURL) private var openURL
 
         private var email: Binding<String> {
             .init {
@@ -100,6 +87,14 @@ extension Module {
 
         private var emailTextFieldState: AppTextField.TextFieldStates {
             if let error = viewModel.validationErrors[.email] {
+                return .failed(errorText: error.localizedDescription)
+            }
+
+            return .default
+        }
+
+        private var phoneTextFieldState: AppPhoneNumberTextField.TextFieldStates {
+            if let error = viewModel.validationErrors[.phone] {
                 return .failed(errorText: error.localizedDescription)
             }
 
@@ -160,9 +155,18 @@ private extension ModuleView {
                 }
                 HStack(spacing: 12) {
                     AppCheckBox(isSelected: isTermsAccepted)
-                    Text(termsAttributedText)
-                        .appFontRegularSize16()
-                        .foregroundStyle(AppColors.Gray.gray90.colorSwiftUI)
+                    HStack(spacing: 0) {
+                        Text(Localization.AcceptTerms.title1)
+                            .appFontRegularSize16()
+                            .foregroundStyle(AppColors.Gray.gray90.colorSwiftUI)
+                        Button {
+                            didTapTermsOfUse()
+                        } label: {
+                            Text(Localization.AcceptTerms.title2)
+                                .appFontMediumSize16()
+                                .foregroundStyle(AppColors.Primary.primarySeaBlue.colorSwiftUI)
+                        }
+                    }
                     Spacer()
                 }
                 .padding(.horizontal, 16)
@@ -183,10 +187,10 @@ private extension ModuleView {
         VStack(spacing: 16) {
             // email
             AppTextField(
+                text: email,
                 description: Localization.TextFields.Email.description,
                 placeholder: Localization.TextFields.Email.placeholder,
                 leadingAccessory: AppAssets.Shared.sharedEmailIcon.imageSwiftUI,
-                text: email,
                 state: emailTextFieldState,
                 tapDestination: .textField(keyboardActiveField = .email)
             )
@@ -198,8 +202,9 @@ private extension ModuleView {
 
             // phone
             AppPhoneNumberTextField(
+                text: phone,
                 description: Localization.TextFields.PhoneNumber.description,
-                text: phone
+                state: phoneTextFieldState
             )
             .focused($keyboardActiveField, equals: .phone)
             .textContentType(.telephoneNumber)
@@ -207,11 +212,11 @@ private extension ModuleView {
 
             // pass
             AppTextField(
+                text: password,
                 description: Localization.TextFields.Password.description,
                 placeholder: Localization.TextFields.Password.placeholder,
                 leadingAccessory: AppAssets.Shared.sharedPasswordIcon.imageSwiftUI,
                 trailingItem: .secureText,
-                text: password,
                 state: passwordTextFieldState,
                 tapDestination: .textField(keyboardActiveField = .password)
             )
@@ -222,11 +227,11 @@ private extension ModuleView {
 
             // repeat pass
             AppTextField(
+                text: repeatPassword,
                 description: Localization.TextFields.ConfirmPassword.description,
                 placeholder: Localization.TextFields.ConfirmPassword.placeholder,
                 leadingAccessory: AppAssets.Shared.sharedPasswordIcon.imageSwiftUI,
                 trailingItem: .secureText,
-                text: repeatPassword,
                 state: confirmPasswordTextFieldState,
                 tapDestination: .textField(keyboardActiveField = .confirmPassword)
             )
@@ -324,6 +329,11 @@ private extension ModuleView {
             case .none:
                 break
         }
+    }
+
+    func didTapTermsOfUse() {
+        guard let url = URL(string: AppConstants.termsOfUseURL) else { return }
+        openURL(url)
     }
 
     func didTapRegister() {

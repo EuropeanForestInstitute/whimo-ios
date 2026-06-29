@@ -76,6 +76,22 @@ extension Module {
             }
         }
 
+        private var emailTextFieldState: AppTextField.TextFieldStates {
+            if let error = viewModel.validationErrors[.gadgetId] {
+                return .failed(errorText: error.localizedDescription)
+            }
+
+            return .default
+        }
+
+        private var phoneTextFieldState: AppPhoneNumberTextField.TextFieldStates {
+            if let error = viewModel.validationErrors[.gadgetId] {
+                return .failed(errorText: error.localizedDescription)
+            }
+
+            return .default
+        }
+
         private var title: String {
             switch textFieldType {
                 case .email:
@@ -88,9 +104,9 @@ extension Module {
         private var enableOTPButton: Bool {
             switch viewModel.screenMode {
                 case .addGadget, .verifyGadget:
-                    return !gadgetId.wrappedValue.isEmpty && !viewModel.newGadget.isVerified
+                    return viewModel.isSaveButtonEnabled && !viewModel.newGadget.isVerified
                 case .editGadget:
-                    return !gadgetId.wrappedValue.isEmpty && viewModel.canEditGadget
+                    return viewModel.isSaveButtonEnabled && viewModel.canEditGadget
             }
         }
 
@@ -113,6 +129,9 @@ extension Module {
             content()
                 .applyNavigationBar(title: title)
                 .keyboardDefaultToolbar(action: self.keyboardActiveField = .none)
+                .onChange(of: keyboardActiveField) { newValue in
+                    viewModel.setKeyboardActiveField(newValue)
+                }
         }
     }
 }
@@ -144,12 +163,12 @@ private extension ModuleView {
         switch textFieldType {
             case .email:
                 AppTextField(
+                    text: gadgetId,
                     description: textFieldType.description,
                     placeholder: textFieldType.placeholder,
                     leadingAccessory: textFieldType.leadingAccessory,
-                    text: gadgetId,
                     state: viewModel.screenMode == .addGadget ? .default :
-                           viewModel.screenMode == .editGadget && viewModel.canEditGadget ? .default : .disabled
+                           viewModel.screenMode == .editGadget && viewModel.canEditGadget ? emailTextFieldState : .disabled
                 )
                 .focused($keyboardActiveField, equals: .gadgetId)
                 .textContentType(.emailAddress)
@@ -158,10 +177,10 @@ private extension ModuleView {
                 .submitLabel(.done)
             case .phone:
                 AppPhoneNumberTextField(
-                    description: textFieldType.description,
                     text: gadgetId,
+                    description: textFieldType.description,
                     state: viewModel.screenMode == .addGadget ? .default :
-                           viewModel.screenMode == .editGadget && viewModel.canEditGadget ? .default : .disabled
+                           viewModel.screenMode == .editGadget && viewModel.canEditGadget ? phoneTextFieldState : .disabled
                 )
                 .focused($keyboardActiveField, equals: .gadgetId)
                 .textContentType(.telephoneNumber)
@@ -177,6 +196,8 @@ private extension ModuleView {
                 action: didTapSendOTP
             )
             .animation(.snappy(duration: 0.23), value: enableOTPButton)
+            .animation(.snappy(duration: 0.23), value: emailTextFieldState)
+            .animation(.snappy(duration: 0.23), value: phoneTextFieldState)
         }
     }
 }

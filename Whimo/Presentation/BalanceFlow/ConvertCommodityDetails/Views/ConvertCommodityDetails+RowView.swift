@@ -151,8 +151,8 @@ private extension RowView {
                 .frame(width: proxy.size.width * 0.7)
                 .disabled(true)
             AppTextField(
-                trailingItem: .custom(content: .init(unitText(units: units))),
-                text: $balanceValue
+                text: $balanceValue,
+                trailingItem: .custom(content: .init(unitText(units: units)))
             )
             .focused(keyboardActiveField, equals: keyboardField)
             .keyboardType(.decimalPad)
@@ -164,6 +164,7 @@ private extension RowView {
         Text(units)
             .appFontRegularSize14()
             .foregroundStyle(AppColors.Gray.gray60.colorSwiftUI)
+            .padding(.trailing, 16)
     }
 }
 

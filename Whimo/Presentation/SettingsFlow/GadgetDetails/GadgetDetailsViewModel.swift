@@ -36,6 +36,9 @@ extension Module {
     final class ViewModel: ViewModelProtocol {
         // MARK: - Public Properties
         @Published var newGadget: UserModel.GadgetModel
+        @Published private(set) var isSaveButtonEnabled: Bool = false
+
+        private(set) var validationErrors: [KeyboardField: Error] = [:]
 
         let screenMode: ScreenMode
 
@@ -59,7 +62,12 @@ extension Module {
 
         // MARK: - Private Properties
         private let gadgets: NonEmptyArray<UserModel.GadgetModel>
+        private let phoneNumberFormatter: PhoneNumberFormatter = .flat
+        private let phoneNumberValidator: PhoneNumberValidator = .shared
+        private let emailValidator: EmailValidator = .shared
+
         private var cancellable: CancelBag = .init()
+        private var keyboardActiveField: KeyboardField?
 
         // MARK: - Dependencies
         @Inject(\.appState) private var appState
@@ -70,9 +78,15 @@ extension Module {
             self.gadgets = gadgets
             self.newGadget = ViewModel.getPrimaryGadget(gadgets: gadgets)
             self.screenMode = .init(from: gadgets)
+
+            setupBinding()
         }
 
         // MARK: - ViewModelProtocol
+        func setKeyboardActiveField(_ keyboardActiveField: KeyboardField?) {
+            self.keyboardActiveField = keyboardActiveField
+        }
+
         func didTapVerifyGadget() async {
             switch screenMode {
                 case .addGadget:
@@ -102,6 +116,50 @@ extension Module {
 
 // MARK: - Private Methods
 private extension ViewModel {
+    func setupBinding() {
+        $newGadget
+            .sink { [weak self] newGadget in
+                guard let self else { return }
+
+                let success: Bool
+                let hasChanges: Bool
+                let primaryGadget = ViewModel.getPrimaryGadget(gadgets: gadgets)
+                switch newGadget.type {
+                    case .email:
+                        hasChanges = primaryGadget.identifier != newGadget.identifier
+                        success = self.emailValidator.isValid(newGadget.identifier) == nil
+                    case .phone:
+                        let primaryFormatted = (try? phoneNumberFormatter.string(from: primaryGadget.identifier)) ?? ""
+                        let newFormatted = (try? phoneNumberFormatter.string(from: newGadget.identifier)) ?? ""
+                        hasChanges = primaryFormatted != newFormatted
+                        success = self.phoneNumberValidator.isValid(newGadget.identifier) == nil
+                }
+                Task { @MainActor in
+                    self.isSaveButtonEnabled = success && hasChanges
+                }
+            }
+            .store(in: cancellable)
+        $newGadget
+            .map { (newGadget: $0, keyboardActiveField: self.keyboardActiveField) }
+            .dropFirst()
+            .sink { [weak self] newGadget, keyboardActiveField in
+                guard let self else { return }
+
+                switch keyboardActiveField {
+                    case .gadgetId:
+                        switch newGadget.type {
+                            case .email:
+                                self.validationErrors[.gadgetId] = self.emailValidator.isValid(newGadget.identifier)
+                            case .phone:
+                                self.validationErrors[.gadgetId] = self.phoneNumberValidator.isValid(newGadget.identifier)
+                        }
+                    default:
+                        return
+                }
+            }
+            .store(in: cancellable)
+    }
+
     // MARK: - Common
     func verifyGadget(gadget: UserModel.GadgetModel) async {
         let screen: Screen = .otp(parrentFlow: .manualVerification(removeLastValue: 2), gadgets: NonEmptyArray(gadget))

@@ -27,10 +27,8 @@
 
 import Foundation
 import Utility
-import enum Resources.AppLocale
 
 private typealias Module = LoginModule
-private typealias Localization = AppLocale.Login.LoginType
 
 // MARK: - Credentials
 extension Module {
@@ -39,15 +37,6 @@ extension Module {
         case phone(username: String, password: String)
 
         var id: Self { self }
-
-        var titleText: String {
-            switch self {
-                case .email:
-                    Localization.email
-                case .phone:
-                    Localization.phone
-            }
-        }
 
         var username: String {
             switch self {

@@ -162,7 +162,7 @@
 "register.loginField.button" = "Log In";
 
 "register.acceptTerms.title1" = "I accept ";
-"register.acceptTerms.title2" = "Terms & Conditions";
+"register.acceptTerms.title2" = "Terms of Use";
 
 "register.or" = "or";
 
@@ -530,6 +530,9 @@
 "addTransactionRecipient.textFields.phoneNumber.placeholder" = "000 000 00";
 
 "addTransactionRecipient.buttons.confirm" = "Confirm";
+
+"addTransactionRecipient.error.phoneNumberNotExists" = "The user with this phone number does not exist.";
+"addTransactionRecipient.error.emailNotExists" = "The user with this email does not exist.";
 
 // MARK: - Invite Seller
 "inviteSeller.title" = "Supplier information";

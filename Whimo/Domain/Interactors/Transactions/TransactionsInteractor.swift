@@ -45,6 +45,7 @@ protocol TransactionsInteractor: AnyObject {
     func fetchSuppliersTransactions(
         commodityGroupId: String,
         buyerId: String,
+        createdAtTo: String?,
         oldPagination: TransactionsPagination?,
         refresh: Bool
     ) async throws -> (list: IdentifiedArrayOf<SupplierTransactionModel>, pagination: TransactionsPagination)

@@ -81,6 +81,7 @@ struct TransactionDetailsSuppliersHistoryList_Previews: PreviewProvider {
     private static var transaction: SupplierTransactionModel = .init(
         id: "621bfc60-9950-41ee-954c-96ee7970b493",
         createdAt: "2025-06-07T23:15:42.205456Z",
+        updatedAt: nil,
         type: .producer,
         status: .accepted,
         traceability: .fullTraceability,
@@ -116,6 +117,7 @@ struct TransactionDetailsSuppliersHistoryList_Previews: PreviewProvider {
     private static var transaction2: SupplierTransactionModel = .init(
         id: "621bfc60-9950-41ee-954c-96ee7970a223",
         createdAt: "2025-06-07T23:15:42.205456Z",
+        updatedAt: nil,
         type: .producer,
         status: .accepted,
         traceability: .fullTraceability,

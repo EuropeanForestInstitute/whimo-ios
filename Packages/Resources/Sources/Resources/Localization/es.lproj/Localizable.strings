@@ -36,7 +36,7 @@
 "general.alert.requestMissingLocation.button.request" = "Solicitar";
 
 "general.alert.buyerExists.title" = "El usuario ya existe";
-"general.alert.buyerExists.subtitle" = "Te recomendamos crear una transacción descendente y recuperaremos la información de trazabilidad de tu proveedor.\n\nPuedes proceder con la transacción inicial y convertirte en el primer punto de la cadena, sin embargo perderás la información de ubicaciones de tu proveedor.";
+"general.alert.buyerExists.subtitle" = "Te recomendamos crear una transacción posterior y recuperaremos la información de trazabilidad de tu proveedor.\n\nPuedes proceder con la transacción inicial y convertirte en el primer punto de la cadena, sin embargo perderás la información de ubicaciones de tu proveedor.";
 "general.alert.buyerExists.button.continueInitial" = "Continuar Inicial";
 "general.alert.buyerExists.button.continueDownstream" = "Continuar Descendente";
 
@@ -162,7 +162,7 @@
 "register.loginField.button" = "Iniciar sesión";
 
 "register.acceptTerms.title1" = "Acepto ";
-"register.acceptTerms.title2" = "Términos y Condiciones";
+"register.acceptTerms.title2" = "los Términos de Uso";
 
 "register.or" = "o";
 
@@ -332,7 +332,7 @@
 
 "transactionDetails.popups.traceabilityStatus.part3.description" = "La cadena está completa, las transacciones fueron validadas por vendedor y comprador, pero falta la geolocalización.";
 
-"transactionDetails.popups.traceabilityStatus.part4.description" = "La primera transacción fue una transacción descendente (no una transacción de productor) y los geodatos no fueron añadidos después.";
+"transactionDetails.popups.traceabilityStatus.part4.description" = "La primera transacción fue una transacción posterior (no una transacción de productor) y los geodatos no fueron añadidos después.";
 
 "transactionDetails.forMe.buttons.reject" = "Rechazar transacción";
 "transactionDetails.forMe.buttons.accept" = "Aceptar transacción";
@@ -387,8 +387,8 @@
 // MARK: - Create Transaction Select Type
 "createTxSelectType.title" = "Añadir Transacción";
 
-"createTxSelectType.options.buy" = "Comprar commodity";
-"createTxSelectType.options.sell" = "Vender commodity";
+"createTxSelectType.options.buy" = "Comprar o adquirir";
+"createTxSelectType.options.sell" = "Vender o entregar";
 
 // MARK: - Buy Transaction Select Type
 "buyTxSelectType.title" = "Comprar commodity";
@@ -398,7 +398,7 @@
 "buyTxSelectType.row.producer.subtitle" = "El vendedor no está usando esta aplicación";
 "buyTxSelectType.row.producer.infoText" = "Elige esto si el vendedor no tiene una cuenta en WHIMO.";
 
-"buyTxSelectType.row.downstream.title" = "Transacción descendente";
+"buyTxSelectType.row.downstream.title" = "Transacción posterior";
 "buyTxSelectType.row.downstream.subtitle" = "El vendedor está usando esta aplicación";
 "buyTxSelectType.row.downstream.infoText" = "Elige esto si el vendedor tiene una cuenta en WHIMO.";
 
@@ -425,7 +425,7 @@
 
 // MARK: - Create Transaction Form
 "createTransactionForm.titleProducer" = "Transacción inicial";
-"createTransactionForm.titleDownstream" = "Transacción descendente";
+"createTransactionForm.titleDownstream" = "Transacción posterior";
 
 "createTransactionForm.note.title" = "Por favor, proporciona información precisa, ya que esto es esencial para asegurar la trazabilidad.";
 
@@ -530,6 +530,9 @@
 "addTransactionRecipient.textFields.phoneNumber.placeholder" = "000 000 00";
 
 "addTransactionRecipient.buttons.confirm" = "Confirmar";
+
+"addTransactionRecipient.error.phoneNumberNotExists" = "El usuario con este número de teléfono no existe.";
+"addTransactionRecipient.error.emailNotExists" = "El usuario con este correo electrónico no existe.";
 
 // MARK: - Invite Seller
 "inviteSeller.title" = "Información del proveedor";

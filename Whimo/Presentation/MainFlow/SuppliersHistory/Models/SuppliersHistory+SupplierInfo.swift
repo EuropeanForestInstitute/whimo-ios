@@ -36,6 +36,7 @@ extension Module {
         // MARK: - Properties
         let transactionId: String
         let commodityGroupId: String
+        let updatedAt: String?
         let supplier: UserModel
         let supplierType: SupplierType
         let traceability: TransactionModel.Traceability?
@@ -46,6 +47,7 @@ extension Module {
 
             self.transactionId = model.id
             self.commodityGroupId = model.commodity.group.id
+            self.updatedAt = model.updatedAt
             self.supplier = seller
             self.supplierType = .mySupplier
             self.traceability = model.traceability
@@ -56,6 +58,7 @@ extension Module {
 
             self.transactionId = model.id
             self.commodityGroupId = model.commodity.group.id
+            self.updatedAt = model.updatedAt
             self.supplier = seller
             self.supplierType = .other
             self.traceability = model.traceability

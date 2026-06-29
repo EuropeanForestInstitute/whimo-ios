@@ -84,7 +84,8 @@ extension Module {
         }
 
         func didTapLegalInformation() {
-            alertManager.show(feature: AlertManager.AlertModel.Features.InDevelopment.self) { _ in nil }
+            guard let url = URL(string: AppConstants.termsOfUseURL) else { return }
+            UIApplication.shared.open(url)
         }
     }
 }

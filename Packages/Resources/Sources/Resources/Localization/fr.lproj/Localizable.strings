@@ -162,7 +162,7 @@
 "register.loginField.button" = "Connexion";
 
 "register.acceptTerms.title1" = "J'accepte ";
-"register.acceptTerms.title2" = "les Termes et Conditions";
+"register.acceptTerms.title2" = "les Conditions d'utilisation";
 
 "register.or" = "ou";
 
@@ -530,6 +530,9 @@
 "addTransactionRecipient.textFields.phoneNumber.placeholder" = "000 000 00";
 
 "addTransactionRecipient.buttons.confirm" = "Confirmer";
+
+"addTransactionRecipient.error.phoneNumberNotExists" = "L'utilisateur avec ce numéro de téléphone n'existe pas.";
+"addTransactionRecipient.error.emailNotExists" = "L'utilisateur avec cet email n'existe pas.";
 
 // MARK: - Invite Seller
 "inviteSeller.title" = "Informations sur le fournisseur";

@@ -28,18 +28,14 @@
 import Foundation
 import struct CoreLocation.CLLocationCoordinate2D
 import Utility
+import CodableGeoJSON
 
 // MARK: - QRCodeDataServiceImpl
 final class QRCodeDataServiceImpl: QRCodeDataService {
-    struct FarmInfo {
-        let locationPoint: CLLocationCoordinate2D
-        let geojson: GeoJSON<PolygonGeometry>
-    }
-
     // MARK: - Dependencies
-    private let utmDataGeometryParser: UTMDataGeometryParser = .init()
-    private let latLonGeometryParser: LatLonDataGeometryParser = .init()
     private let fileStorage: any FileStorageServiceProtocol
+
+    private let decoder: JSONDecoder = .init()
 
     // MARK: - Init
     init(fileStorage: any FileStorageServiceProtocol) {
@@ -47,33 +43,75 @@ final class QRCodeDataServiceImpl: QRCodeDataService {
     }
 
     // MARK: - QRCodeDataService
-    func getFarmInfo(from rawString: String) throws -> FarmInfo {
-        let farmInfoStack = [
-            _getFarmInfo(utmRawString:),
-            _getFarmInfo(latLonRawString:)
-        ]
-        var farmInfo: FarmInfo?
-        for getFarmInfoFunc in farmInfoStack where farmInfo == nil {
-            log.debug("--> started get farm info function")
-            let result = getFarmInfoFunc(rawString)
-            switch result {
-                case .success(let success):
-                    farmInfo = success
-                case .failure(let error):
-                    log.error(error.localizedDescription)
-            }
-            log.debug("<-- ended get farm info function")
-        }
-        guard let farmInfo else { throw Error.cannotRecognizeQRCode }
+    func saveGroundFarmInfo(from rawString: String) throws -> (coordinates: CLLocationCoordinate2D, selectedFile: FileObject?) {
+        let geojson = try parseGeojsonFarmInfo(from: rawString)
+        log.debug("parsed geojson: \(geojson)")
 
-        return farmInfo
+        let farmCoordinates = try parseFarmLocation(from: geojson)
+        let geojsonData = (geojson.prettyPrintedJSONString as String).data(using: .utf8)
+        let file = createFile(data: geojsonData)
+
+        return (coordinates: farmCoordinates, selectedFile: file)
+    }
+}
+
+// MARK: - Private Methods
+private extension QRCodeDataServiceImpl {
+    func parseGeojsonFarmInfo(from rawString: String) throws -> GeoJSON {
+        let data: Data = rawString.data(using: .utf8) ?? .init()
+
+        do {
+            return try decoder.decode(GeoJSON.self, from: data)
+        } catch {
+            log.error("Cannot parse geojson raw data: \(error.localizedDescription)")
+            throw Error.cannotRecognizeQRCode
+        }
     }
 
-    func createFile(geojson: GeoJSON<PolygonGeometry>) -> FileObject? {
+    func parseFarmLocation(from geojson: GeoJSON) throws -> CLLocationCoordinate2D {
+        func handleGeometry(_ geometry: GeoJSON.Geometry?) -> CLLocationCoordinate2D? {
+            guard let geometry = geometry else { return nil }
+
+            switch geometry {
+                case .point(let coordinates):
+                    return .init(from: coordinates)
+                case .multiPoint(let coordinates):
+                    return nil
+                case .lineString(let coordinates):
+                    return nil
+                case .multiLineString(let coordinates):
+                    return nil
+                case .polygon(let coordinates):
+                    guard let coordinates = coordinates.first?.first else { return nil }
+
+                    return .init(from: coordinates)
+                case .multiPolygon(let coordinates):
+                    return nil
+                case .geometryCollection(let geometries):
+                    return nil
+            }
+        }
+
+        let coordinate: CLLocationCoordinate2D?
+        switch geojson {
+            case .feature(let feature, let boundingBox):
+                coordinate = handleGeometry(feature.geometry)
+            case .featureCollection(let featureCollection, let boundingBox):
+                coordinate = nil
+            case .geometry(let geometry, let boundingBox):
+                coordinate = handleGeometry(geometry)
+        }
+
+        guard let coordinate else {
+            throw Error.unsupportedQRCode
+        }
+
+        return coordinate
+    }
+
+    func createFile(data: Data?) -> FileObject? {
         // [1]
         let fileURL = FileUtils.QRCodeFiles.temporaryFileURL
-        let stringData: String = (geojson.prettyPrintedJSONString) as String
-        let data = stringData.data(using: .utf8)
         let success = fileStorage.createFile(at: fileURL, content: data)
         guard success else { return nil }
 
@@ -94,65 +132,9 @@ final class QRCodeDataServiceImpl: QRCodeDataService {
 
                 return files.first
             case .failure(let error):
-                log.debug("error: \(error)")
+                log.error("Cannot create file: \(error.localizedDescription)")
 
                 return nil
         }
-    }
-}
-
-// MARK: - Private Methods
-private extension QRCodeDataServiceImpl {
-    func _getFarmInfo(utmRawString: String) -> Result<FarmInfo, Swift.Error> {
-        log.debug("Try to parse utm coordinates from raw string")
-        do {
-            let point = try utmDataGeometryParser.parsePoint(utmRawString)
-            let polygonCoordinates = try utmDataGeometryParser.parsePolygon(utmRawString)
-            let geojson = createGeoJson(polygonCoordinates: polygonCoordinates)
-            let farmInfo: FarmInfo = .init(locationPoint: point, geojson: geojson)
-            return .success(farmInfo)
-        } catch let error as UTMDataGeometryParser.Error {
-            switch error {
-                case .cannotRecognize:
-                    return .failure(Error.cannotRecognizeQRCode)
-            }
-        } catch {
-            return .failure(error)
-        }
-    }
-
-    func _getFarmInfo(latLonRawString: String) -> Result<FarmInfo, Swift.Error> {
-        log.debug("Try to parse lat lon coordinates from raw string")
-        do {
-            let point = try latLonGeometryParser.parsePoint(latLonRawString)
-            let polygonCoordinates = try latLonGeometryParser.parsePolygon(latLonRawString)
-            let geojson = createGeoJson(polygonCoordinates: polygonCoordinates)
-            let farmInfo: FarmInfo = .init(locationPoint: point, geojson: geojson)
-            return .success(farmInfo)
-        } catch let error as LatLonDataGeometryParser.Error {
-            switch error {
-                case .cannotRecognize:
-                    return .failure(Error.cannotRecognizeQRCode)
-            }
-        } catch {
-            return .failure(error)
-        }
-    }
-
-    func createGeoJson(polygonCoordinates: [CLLocationCoordinate2D]) -> GeoJSON<PolygonGeometry> {
-        let featureCoordinates: [GeoJSONPosition] = polygonCoordinates.map { .init(from: $0) }
-        let featureProperties: GeoJSON<PolygonGeometry>.Feature<PolygonGeometry>.Properties = .empty()
-        let geoJsonModel: GeoJSON<PolygonGeometry> = .init(
-            type: .featureCollection,
-            features: [
-                .init(
-                    geometry: .init(coordinates: [featureCoordinates]),
-                    properties: featureProperties
-                )
-            ]
-        )
-        log.debug("geoJsonModel: \(geoJsonModel.prettyPrintedJSONString)")
-
-        return geoJsonModel
     }
 }

@@ -41,24 +41,34 @@ public extension ContactPicker {
         }
 
         // MARK: - CNContactPickerDelegate
-
         public func contactPicker(
             _ picker: CNContactPickerViewController,
             didSelect contactProperty: CNContactProperty
         ) {
-            guard let phoneNumber = contactProperty.value as? CNPhoneNumber else {
-                log.error("Failed to extract phone number from contact")
-                return
-            }
+            switch parent.pickerType {
+                case .phoneNumber:
+                    guard let phoneNumber = contactProperty.value as? CNPhoneNumber else {
+                        log.error("Failed to extract phone number from contact")
+                        return
+                    }
 
-            let formattedNumber = phoneNumber.stringValue
-            log.debug("Selected phone number: \(formattedNumber)")
-            parent.didPickPhoneNumber(formattedNumber)
+                    let formattedNumber = phoneNumber.stringValue
+                    log.debug("Selected phone number: \(formattedNumber)")
+                    parent.didPickProperty(formattedNumber)
+                case .emailAddress:
+                    guard let emailAddress = contactProperty.value as? String else {
+                        log.error("Failed to extract email address from contact")
+                        return
+                    }
+
+                    log.debug("Selected email address: \(emailAddress)")
+                    parent.didPickProperty(emailAddress)
+            }
         }
 
         public func contactPickerDidCancel(_ picker: CNContactPickerViewController) {
             log.debug("Contact picker cancelled")
-            parent.didCancel()
+            parent.dismiss()
         }
     }
 }

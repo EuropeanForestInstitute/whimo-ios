@@ -33,6 +33,7 @@ extension ResponseModels {
     public struct SupplierTransaction: Decodable {
         public let id: String
         public let createdAt: String
+        public let updatedAt: String?
         public let type: Transaction.TransactionType
         public let status: Transaction.Status
         public let traceability: Transaction.Traceability?
@@ -50,6 +51,7 @@ extension ResponseModels {
         public init(
             id: String,
             createdAt: String,
+            updatedAt: String?,
             type: Transaction.TransactionType,
             status: Transaction.Status,
             traceability: Transaction.Traceability?,
@@ -66,6 +68,7 @@ extension ResponseModels {
         ) {
             self.id = id
             self.createdAt = createdAt
+            self.updatedAt = updatedAt
             self.type = type
             self.status = status
             self.traceability = traceability

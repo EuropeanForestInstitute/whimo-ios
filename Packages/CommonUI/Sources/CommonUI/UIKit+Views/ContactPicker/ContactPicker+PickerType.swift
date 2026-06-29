@@ -1,6 +1,8 @@
 //
-//  RestCommoditiesTarget.swift
-//  Whimo
+//  ContactPicker+PickerType.swift
+//  CommonUI
+//
+//  Created by Vyacheslav Razumeenko on 03.12.2025.
 //
 //  Copyright (c) 2025 EFI https://efi.int/
 //
@@ -23,20 +25,40 @@
 //  SOFTWARE.
 //
 
-import Foundation
-import Networking
-import RestClient
+import SwiftUI
+import ContactsUI
 
-public struct RestCommoditiesTarget: AnyNetworkTarget {
-    public let restClient: RestClientProtocol
+// MARK: - PickerType
+extension ContactPicker {
+    public enum PickerType {
+        case phoneNumber
+        case emailAddress
 
-    public init(restClient: RestClientProtocol) {
-        self.restClient = restClient
-    }
-}
+        var displayedPropertyKeys: [String]? {
+            switch self {
+                case .phoneNumber:
+                    [CNContactPhoneNumbersKey]
+                case .emailAddress:
+                    [CNContactEmailAddressesKey]
+            }
+        }
 
-extension RestCommoditiesTarget: CommoditiesTarget {
-    public func commodityGroupsList(_ model: RequestModels.CommodityGroupsList) async throws -> ResponseModels.CommodityGroupInfo {
-        try await restClient.makeRequest(RequestRouter.Commodities.commodityGroupsList(model))
+        var predicateForEnablingContact: NSPredicate? {
+            switch self {
+                case .phoneNumber:
+                    NSPredicate(format: "phoneNumbers.@count > 0")
+                case .emailAddress:
+                    NSPredicate(format: "emailAddresses.@count > 0")
+            }
+        }
+
+        var predicateForSelectionOfProperty: NSPredicate? {
+            switch self {
+                case .phoneNumber:
+                    NSPredicate(format: "key == 'phoneNumbers'")
+                case .emailAddress:
+                    NSPredicate(format: "key == 'emailAddresses'")
+            }
+        }
     }
 }

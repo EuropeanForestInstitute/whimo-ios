@@ -32,6 +32,7 @@ import Utility
 struct SupplierTransactionModel: DomainModel, AutoStringConvertible {
     let id: String
     let createdAt: String
+    let updatedAt: String?
     let type: TransactionModel.TransactionType
     let status: TransactionModel.Status
     let traceability: TransactionModel.Traceability?

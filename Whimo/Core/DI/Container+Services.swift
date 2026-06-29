@@ -67,7 +67,6 @@ extension AppContainer {
         self {
             TransactionDocumentsServiceImpl(
                 transactionsTarget: self.transactionsTarget.resolve(),
-                geojsonMapper: self.geojsonMapper.resolve(),
                 fileStorage: self.fileStorage.resolve()
             )
         }

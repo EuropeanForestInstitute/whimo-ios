@@ -75,18 +75,42 @@ extension Module {
             }
         }
 
-        private var selectedCredentials: Binding<Credentials> {
+        private var selectedCredentialsType: Binding<CredentialsType> {
             .init {
                 let credentials = viewModel.credentials
                 switch credentials {
                     case .email:
-                        return .email(username: "", password: "")
+                        return .email
                     case .phone:
-                        return .phone(username: "", password: "")
+                        return .phone
                 }
             } set: { newValue in
-                viewModel.credentials = newValue
+                toggleSection(newValue: newValue)
             }
+        }
+
+        private var usernameTextFieldState: AppTextField.TextFieldStates {
+            if let error = viewModel.validationErrors[.username] {
+                return .failed(errorText: error.localizedDescription)
+            }
+
+            return .default
+        }
+
+        private var usernamePhoneTextFieldState: AppPhoneNumberTextField.TextFieldStates {
+            if let error = viewModel.validationErrors[.username] {
+                return .failed(errorText: error.localizedDescription)
+            }
+
+            return .default
+        }
+
+        private var passwordTextFieldState: AppTextField.TextFieldStates {
+            if let error = viewModel.validationErrors[.password] {
+                return .failed(errorText: error.localizedDescription)
+            }
+
+            return .default
         }
 
         // MARK: - Body
@@ -102,6 +126,9 @@ extension Module {
                         .ignoresSafeArea()
                 }
                 .keyboardDefaultToolbar(action: self.keyboardActiveField = .none)
+                .onChange(of: keyboardActiveField) { newValue in
+                    viewModel.setKeyboardActiveField(newValue)
+                }
         }
     }
 }
@@ -115,7 +142,7 @@ private extension ModuleView {
                     subtitle()
                     SegmentedPicker(
                         items: viewModel.credentialTypes,
-                        selection: selectedCredentials,
+                        selection: selectedCredentialsType,
                         title: { $0.titleText }
                     )
                     loginForm()
@@ -147,10 +174,11 @@ private extension ModuleView {
     @ViewBuilder func emailLoginForm() -> some View {
         VStack(spacing: 16) {
             AppTextField(
+                text: emailName,
                 description: Localization.TextFields.Email.description,
                 placeholder: Localization.TextFields.Email.placeholder,
                 leadingAccessory: AppAssets.Shared.sharedEmailIcon.imageSwiftUI,
-                text: emailName,
+                state: usernameTextFieldState,
                 tapDestination: .textField(keyboardActiveField = .username)
             )
             .focused($keyboardActiveField, equals: .username)
@@ -159,6 +187,7 @@ private extension ModuleView {
             .textInputAutocapitalization(.never)
             .submitLabel(.next)
             AppTextField(
+                text: password,
                 description: Localization.TextFields.Password.description,
                 descriptionAccessory: .init(
                     text: Localization.TextFields.Password.descriptionAccessory,
@@ -167,7 +196,7 @@ private extension ModuleView {
                 placeholder: Localization.TextFields.Password.placeholder,
                 leadingAccessory: AppAssets.Shared.sharedPasswordIcon.imageSwiftUI,
                 trailingItem: .secureText,
-                text: password,
+                state: passwordTextFieldState,
                 tapDestination: .textField(keyboardActiveField = .password)
             )
             .focused($keyboardActiveField, equals: .password)
@@ -181,13 +210,15 @@ private extension ModuleView {
     @ViewBuilder func phoneLoginForm() -> some View {
         VStack(spacing: 16) {
             AppPhoneNumberTextField(
+                text: phoneName,
                 description: Localization.TextFields.PhoneNumber.description,
-                text: phoneName
+                state: usernamePhoneTextFieldState
             )
             .focused($keyboardActiveField, equals: .username)
             .textContentType(.telephoneNumber)
             .submitLabel(.next)
             AppTextField(
+                text: password,
                 description: Localization.TextFields.Password.description,
                 descriptionAccessory: .init(
                     text: Localization.TextFields.Password.descriptionAccessory,
@@ -196,7 +227,7 @@ private extension ModuleView {
                 placeholder: Localization.TextFields.Password.placeholder,
                 leadingAccessory: AppAssets.Shared.sharedPasswordIcon.imageSwiftUI,
                 trailingItem: .secureText,
-                text: password,
+                state: passwordTextFieldState,
                 tapDestination: .textField(keyboardActiveField = .password)
             )
             .focused($keyboardActiveField, equals: .password)
@@ -288,6 +319,12 @@ private extension ModuleView {
             case .none:
                 break
         }
+    }
+
+    func toggleSection(newValue: LoginModule.CredentialsType) {
+        viewModel.setKeyboardActiveField(nil)
+        viewModel.flushValidations()
+        viewModel.credentials = newValue.credentails()
     }
 
     func didTapForgotPassword() {
