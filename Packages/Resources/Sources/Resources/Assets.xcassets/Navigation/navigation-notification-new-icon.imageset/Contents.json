@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "navigation-notification-new-icon.pdf",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}
