@@ -1,0 +1,57 @@
+{
+  "configurations" : [
+    {
+      "id" : "1B3EE188-3ABE-4FA7-B21B-41DA25AC38F3",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "targetForVariableExpansion" : {
+      "containerPath" : "container:Whimo.xcodeproj",
+      "identifier" : "45D8B96D2DBF8FB600A1A295",
+      "name" : "Whimo"
+    }
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:Packages\/Utility",
+        "identifier" : "UtilityTests",
+        "name" : "UtilityTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Packages\/Resources",
+        "identifier" : "ResourcesTests",
+        "name" : "ResourcesTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Packages\/Persistence",
+        "identifier" : "DatabaseTests",
+        "name" : "DatabaseTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Packages\/CommonUI",
+        "identifier" : "CommonUITests",
+        "name" : "CommonUITests"
+      }
+    },
+    {
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:Whimo.xcodeproj",
+        "identifier" : "454E83D42DBF995F0001D233",
+        "name" : "WhimoTests"
+      }
+    }
+  ],
+  "version" : 1
+}
