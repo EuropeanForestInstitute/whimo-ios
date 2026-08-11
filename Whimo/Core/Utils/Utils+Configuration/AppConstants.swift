@@ -38,15 +38,6 @@ enum AppConstants {
     static let privacyPolicy: String = "https://privacy/policy/url"
     #endif
 
-    // MARK: - Terms of Use
-    #if DEBUG
-    static let termsOfUseURL: String = "https://terms/url"
-    #elseif STAGE
-    static let termsOfUseURL: String = "https://terms/url"
-    #elseif RELEASE
-    static let termsOfUseURL: String = "https://terms/url"
-    #endif
-
     // MARK: - Email
     static let feedbackEmail: String = "whimoapp@gmail.com"
 }

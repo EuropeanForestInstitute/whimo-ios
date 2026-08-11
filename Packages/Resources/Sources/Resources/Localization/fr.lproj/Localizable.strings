@@ -140,7 +140,10 @@
 
 // MARK: - Register
 "register.title" = "S'inscrire";
-"register.subtitle" = "Entrez votre adresse e-mail ou numéro de téléphone ou les deux pour créer votre compte.";
+"register.contactIdentifierType.email" = "E-mail";
+"register.contactIdentifierType.phone" = "Téléphone";
+"register.contactIdentifierSubtitle.email" = "Entrez votre adresse e-mail pour créer votre compte.";
+"register.contactIdentifierSubtitle.phone" = "Entrez votre numéro de téléphone pour créer votre compte.";
 
 "register.textFields.email.description" = "Courriel";
 "register.textFields.email.placeholder" = "Entrez votre email";
@@ -166,8 +169,7 @@
 
 "register.or" = "ou";
 
-"register.chooseVerifyMethod.email" = "Obtenir le code de vérification par email";
-"register.chooseVerifyMethod.phone" = "Obtenir le code de vérification par téléphone";
+"phone_verification_unavailable_registration" = "La vérification par téléphone n'est pas encore disponible dans votre pays. Veuillez utiliser votre adresse e-mail à la place.";
 
 // MARK: - Forgot Password
 "forgotPassword.title" = "Mot de passe oublié";
@@ -591,6 +593,8 @@
 
 "gadgetDetails.buttons.verify" = "Vérifier";
 "gadgetDetails.buttons.change" = "Modifier";
+
+"phone_verification_unavailable_settings" = "La vérification par téléphone n'est pas encore disponible dans votre pays.";
 
 // MARK: - Notifications
 "notifications.title" = "Notifications";

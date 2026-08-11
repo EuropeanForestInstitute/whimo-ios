@@ -52,6 +52,8 @@ public class PhoneNumberTextFieldOverriding: PhoneNumberTextField {
     }
     public var enableToolbar: Bool {
         didSet {
+            guard enableToolbar != oldValue || (enableToolbar && inputAccessoryView == nil) else { return }
+
             if enableToolbar {
                 setupToolbar()
             } else {
@@ -74,6 +76,9 @@ public class PhoneNumberTextFieldOverriding: PhoneNumberTextField {
         font: UIFont? = AppFonts.FiraSans.regular.font(size: 14),
         enableToolbar: Bool = true
     ) {
+        // Keep the picker out of the host navigation controller because it manages
+        // the navigation bar visibility while it is presented.
+        CountryCodePicker.forceModalPresentation = true
         self._defaultRegion = defaultRegion
         self.placeholderColor = placeholderColor
         self.enableToolbar = enableToolbar
@@ -111,12 +116,7 @@ private extension PhoneNumberTextFieldOverriding {
             .foregroundColor: AppColors.Gray.gray90.color,
             .font: AppFonts.FiraSans.medium.font(size: 16)
         ]
-        for state in [UIControl.State]([.normal, .selected]) {
-            doneButton.setTitleTextAttributes(
-                doneButtonAttributes,
-                for: state
-            )
-        }
+        doneButton.setTitleTextAttributes(doneButtonAttributes, for: .normal)
 
         let items = [spacer, doneButton, fixedSpacer]
         toolbar.items = items

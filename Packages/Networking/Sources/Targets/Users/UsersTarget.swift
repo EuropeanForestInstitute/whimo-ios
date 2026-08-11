@@ -55,7 +55,7 @@ extension RequestRouter.Users: AnyNetworkRouter {
             case .changePassword:
                 "/users/profile/password/"
             case .deleteProfile:
-                "/users/profile/delete/"
+                "/users/profile/"
             case .checkGadgetExists:
                 "/users/gadgets/exists/"
             case .addGadget:

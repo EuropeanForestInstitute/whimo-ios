@@ -1,7 +1,7 @@
 # WHIMO iOS
 
 ![Swift Version](https://img.shields.io/badge/swift-5-flat?style=flat&logo=Swift&logoColor=white&color=midgreen)
-![Xcode Version](https://img.shields.io/badge/Xcode-16.0-midgreen?logo=Xcode&logoColor=white)
+![Xcode Version](https://img.shields.io/badge/Xcode-16.3+-midgreen?logo=Xcode&logoColor=white)
 ![iOS Versions](https://img.shields.io/badge/iOS-16.4+-midgreen?logo=apple&logoColor=white&color=midgreen)
 [![LICENSE](https://img.shields.io/badge/license-MIT-blue?logo=opensource)](LICENSE)
 
@@ -31,7 +31,7 @@ WHIMO is an iOS application for tracking commodities and managing transactions i
 ### Requirements
 
 - iOS 16.4+
-- Xcode 16.0+
+- Xcode 16.3+ (last verified with Xcode 26.6)
 - Swift 5
 
 ### Bootstrap
@@ -123,8 +123,7 @@ The project uses a layered structure based on the ideas of **Clean Architecture*
 Install custom Xcode templates:
 
 ```bash
-cd scripts
-bash install_templates.sh
+bash scripts/install_templates.sh
 ```
 
 **Usage**: In Xcode, navigate to **File** → **New** → **File from Template**:
@@ -181,7 +180,7 @@ Configuration files are located in `Whimo/Core/Utils/Utils+Configuration/`:
 - `AppConstants.swift` - App-level constants (email, URLs, etc.)
 - `BundleConfiguration.swift` - Bundle metadata helpers (bundle identifiers)
 
-## 🔄 Workflow
+## 🌍 Localization
 
 The application supports three languages:
 

@@ -88,6 +88,7 @@ public struct PhoneTextField: UIViewRepresentable {
         let textField: UIViewType = .init(defaultRegion: defaultRegion)
 
         textField.addTarget(context.coordinator, action: #selector(context.coordinator.textChanged), for: .editingChanged)
+        context.coordinator.observe(textField)
 
         return textField
     }
@@ -110,6 +111,6 @@ private extension CurrentView {
         uiView.withFlag = withFlag
         uiView.withPrefix = withPrefix
         uiView.withExamplePlaceholder = withExamplePlaceholder
-        if !text.isEmpty { uiView.text = text }
+        context.coordinator.applyBindingText(text, to: uiView)
     }
 }

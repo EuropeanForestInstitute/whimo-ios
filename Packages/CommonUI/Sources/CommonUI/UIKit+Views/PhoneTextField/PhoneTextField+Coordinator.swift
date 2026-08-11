@@ -25,21 +25,72 @@
 //  SOFTWARE.
 //
 
+import Foundation
 import SwiftUI
 
 // MARK: - Coordinator
 extension PhoneTextField {
     public final class Coordinator: NSObject, PhoneNumberTextFieldOverriding.Delegate {
         private var text: Binding<String>
+        private weak var observedTextField: UITextField?
+        private var isApplyingBindingText: Bool = false
+        private var lastAppliedBindingText: String?
 
         // MARK: - Init
         public init(text: Binding<String>) {
             self.text = text
         }
 
+        deinit {
+            NotificationCenter.default.removeObserver(self)
+        }
+
         // MARK: - Internal Methods
         @objc func textChanged(_ sender: UITextField) {
-            guard let text = sender.text else { return }
+            syncText(from: sender)
+        }
+
+        func observe(_ textField: UITextField) {
+            if let observedTextField, observedTextField === textField { return }
+
+            NotificationCenter.default.removeObserver(
+                self,
+                name: UITextField.textDidChangeNotification,
+                object: observedTextField
+            )
+            observedTextField = textField
+            lastAppliedBindingText = nil
+            NotificationCenter.default.addObserver(
+                self,
+                selector: #selector(textDidChangeNotification(_:)),
+                name: UITextField.textDidChangeNotification,
+                object: textField
+            )
+        }
+
+        func applyBindingText(_ text: String, to textField: UITextField) {
+            guard lastAppliedBindingText != text else { return }
+
+            lastAppliedBindingText = text
+            guard textField.text != text else { return }
+
+            isApplyingBindingText = true
+            defer { isApplyingBindingText = false }
+            textField.text = text
+        }
+
+        // MARK: - Private Methods
+        @objc private func textDidChangeNotification(_ notification: Notification) {
+            guard let textField = notification.object as? UITextField else { return }
+
+            syncText(from: textField)
+        }
+
+        private func syncText(from textField: UITextField) {
+            guard !isApplyingBindingText, let text = textField.text else { return }
+
+            lastAppliedBindingText = text
+            guard text != self.text.wrappedValue else { return }
 
             self.text.wrappedValue = text
         }

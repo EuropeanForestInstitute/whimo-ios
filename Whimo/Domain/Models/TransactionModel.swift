@@ -53,7 +53,7 @@ struct TransactionModel: DomainModel, AutoStringConvertible {
     var persistingData: PersistingData
 }
 
-// MARK: - TransactionType
+// MARK: - Transaction
 extension TransactionModel {
     enum TransactionType: String, DomainModel {
         case producer

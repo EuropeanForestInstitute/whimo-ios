@@ -111,7 +111,6 @@
 		4535A0CE2EAA68E4007D82DB /* CreateTxSelectTypeViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4535A01B2EAA68E4007D82DB /* CreateTxSelectTypeViewModel.swift */; };
 		4535A0CF2EAA68E4007D82DB /* AddTransactionRecipientViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45359FD92EAA68E4007D82DB /* AddTransactionRecipientViewModel.swift */; };
 		4535A0D02EAA68E4007D82DB /* DownloadTxDetails+FarmLocationsPopup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4535A0352EAA68E4007D82DB /* DownloadTxDetails+FarmLocationsPopup.swift */; };
-		4535A0D12EAA68E4007D82DB /* Register+ChooseVerifyMethodView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45359FB62EAA68E4007D82DB /* Register+ChooseVerifyMethodView.swift */; };
 		4535A0D22EAA68E4007D82DB /* NavBar+ViewModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4535A06D2EAA68E4007D82DB /* NavBar+ViewModifier.swift */; };
 		4535A0D32EAA68E4007D82DB /* NavBarModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4535A06F2EAA68E4007D82DB /* NavBarModule.swift */; };
 		4535A0D42EAA68E4007D82DB /* NotificationsList+RowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4535A0752EAA68E4007D82DB /* NotificationsList+RowView.swift */; };
@@ -247,7 +246,6 @@
 		455E31662E0A94A100D48718 /* ProfileRemoteRepositoryImpl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 455E31652E0A949E00D48718 /* ProfileRemoteRepositoryImpl.swift */; };
 		455F59A42DDF1F03004217B6 /* AuthRepositoryImpl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 455F59A32DDF1F01004217B6 /* AuthRepositoryImpl.swift */; };
 		455F59A62DDF1F07004217B6 /* AuthRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 455F59A52DDF1F05004217B6 /* AuthRepository.swift */; };
-		455F59A82DDF3EAD004217B6 /* Authrepository+AuthMethod.swift in Sources */ = {isa = PBXBuildFile; fileRef = 455F59A72DDF3EA6004217B6 /* Authrepository+AuthMethod.swift */; };
 		455F59AA2DDF4A08004217B6 /* PhoneNumberFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 455F59A92DDF4A05004217B6 /* PhoneNumberFormatter.swift */; };
 		455F59AC2DDF4C31004217B6 /* PhoneNumberFormatter+LocalizedError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 455F59AB2DDF4C30004217B6 /* PhoneNumberFormatter+LocalizedError.swift */; };
 		456AC2C62EBB4E1A00253FC8 /* ConvertCommodityDetails+MutableConversionRule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 456AC2C52EBB4E0F00253FC8 /* ConvertCommodityDetails+MutableConversionRule.swift */; };
@@ -432,6 +430,17 @@
 		45F616792EE074E600B1A5E3 /* Login+CredentialsType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45F616782EE074E300B1A5E3 /* Login+CredentialsType.swift */; };
 		45FB42412E5F71B00055DFCE /* GadgetDetails+ScreenMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45FB42402E5F71AB0055DFCE /* GadgetDetails+ScreenMode.swift */; };
 		45FF6F5D2E02E35C00B68A59 /* Loadable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45FF6F5C2E02E35B00B68A59 /* Loadable.swift */; };
+		4F1E00112F00000100A11C01 /* RemoteConfigService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F1E00012F00000100A11C01 /* RemoteConfigService.swift */; };
+		4F1E00122F00000100A11C01 /* RemoteConfigDefinitions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F1E00022F00000100A11C01 /* RemoteConfigDefinitions.swift */; };
+		4F1E00132F00000100A11C01 /* FirebaseRemoteConfigService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F1E00032F00000100A11C01 /* FirebaseRemoteConfigService.swift */; };
+		4F1E00142F00000100A11C01 /* RemoteConfigServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F1E00052F00000100A11C01 /* RemoteConfigServiceTests.swift */; };
+		4F1E00152F00000100A11C01 /* GadgetDetailsViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F1E00062F00000100A11C01 /* GadgetDetailsViewModelTests.swift */; };
+		A10200012F10000100A11C01 /* RegisterViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10200002F10000100A11C01 /* RegisterViewModelTests.swift */; };
+		A10300012F10000100A11C01 /* AuthRepositoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10300002F10000100A11C01 /* AuthRepositoryTests.swift */; };
+		A10200032F10000100A11C01 /* Register+ContactIdentifierType.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10200022F10000100A11C01 /* Register+ContactIdentifierType.swift */; };
+		EFB80F03229142CC929ACBD3 /* ContactIdentifierTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4562E6DDFF04035A812C806 /* ContactIdentifierTests.swift */; };
+		F9ADE09F3B75469894CD23BE /* ContactIdentifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4BC876C30E0458080989E02 /* ContactIdentifier.swift */; };
+		4F1E00222F00000100A11C01 /* FirebaseRemoteConfig in Frameworks */ = {isa = PBXBuildFile; productRef = 4F1E00212F00000100A11C01 /* FirebaseRemoteConfig */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -526,7 +535,6 @@
 		45359FB12EAA68E4007D82DB /* OTPViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OTPViewModel.swift; sourceTree = "<group>"; };
 		45359FB32EAA68E4007D82DB /* Register+Credentials.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Register+Credentials.swift"; sourceTree = "<group>"; };
 		45359FB42EAA68E4007D82DB /* Register+KeyboardField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Register+KeyboardField.swift"; sourceTree = "<group>"; };
-		45359FB62EAA68E4007D82DB /* Register+ChooseVerifyMethodView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Register+ChooseVerifyMethodView.swift"; sourceTree = "<group>"; };
 		45359FB82EAA68E4007D82DB /* RegisterModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegisterModule.swift; sourceTree = "<group>"; };
 		45359FB92EAA68E4007D82DB /* RegisterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegisterView.swift; sourceTree = "<group>"; };
 		45359FBA2EAA68E4007D82DB /* RegisterViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegisterViewModel.swift; sourceTree = "<group>"; };
@@ -704,7 +712,6 @@
 		455E31652E0A949E00D48718 /* ProfileRemoteRepositoryImpl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileRemoteRepositoryImpl.swift; sourceTree = "<group>"; };
 		455F59A32DDF1F01004217B6 /* AuthRepositoryImpl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthRepositoryImpl.swift; sourceTree = "<group>"; };
 		455F59A52DDF1F05004217B6 /* AuthRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthRepository.swift; sourceTree = "<group>"; };
-		455F59A72DDF3EA6004217B6 /* Authrepository+AuthMethod.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Authrepository+AuthMethod.swift"; sourceTree = "<group>"; };
 		455F59A92DDF4A05004217B6 /* PhoneNumberFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhoneNumberFormatter.swift; sourceTree = "<group>"; };
 		455F59AB2DDF4C30004217B6 /* PhoneNumberFormatter+LocalizedError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PhoneNumberFormatter+LocalizedError.swift"; sourceTree = "<group>"; };
 		456AC2C52EBB4E0F00253FC8 /* ConvertCommodityDetails+MutableConversionRule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ConvertCommodityDetails+MutableConversionRule.swift"; sourceTree = "<group>"; };
@@ -896,6 +903,16 @@
 		45F616782EE074E300B1A5E3 /* Login+CredentialsType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Login+CredentialsType.swift"; sourceTree = "<group>"; };
 		45FB42402E5F71AB0055DFCE /* GadgetDetails+ScreenMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GadgetDetails+ScreenMode.swift"; sourceTree = "<group>"; };
 		45FF6F5C2E02E35B00B68A59 /* Loadable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loadable.swift; sourceTree = "<group>"; };
+		4F1E00012F00000100A11C01 /* RemoteConfigService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteConfigService.swift; sourceTree = "<group>"; };
+		4F1E00022F00000100A11C01 /* RemoteConfigDefinitions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteConfigDefinitions.swift; sourceTree = "<group>"; };
+		4F1E00032F00000100A11C01 /* FirebaseRemoteConfigService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseRemoteConfigService.swift; sourceTree = "<group>"; };
+		4F1E00052F00000100A11C01 /* RemoteConfigServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteConfigServiceTests.swift; sourceTree = "<group>"; };
+		4F1E00062F00000100A11C01 /* GadgetDetailsViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GadgetDetailsViewModelTests.swift; sourceTree = "<group>"; };
+		A10200002F10000100A11C01 /* RegisterViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegisterViewModelTests.swift; sourceTree = "<group>"; };
+		A10300002F10000100A11C01 /* AuthRepositoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthRepositoryTests.swift; sourceTree = "<group>"; };
+		A10200022F10000100A11C01 /* Register+ContactIdentifierType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Register+ContactIdentifierType.swift"; sourceTree = "<group>"; };
+		D4562E6DDFF04035A812C806 /* ContactIdentifierTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactIdentifierTests.swift; sourceTree = "<group>"; };
+		F4BC876C30E0458080989E02 /* ContactIdentifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactIdentifier.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -921,6 +938,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				4545692A2E2271C300B15011 /* FirebaseMessaging in Frameworks */,
+				4F1E00222F00000100A11C01 /* FirebaseRemoteConfig in Frameworks */,
 				454E83F42DBFA1AB0001D233 /* Resources in Frameworks */,
 				454E83FD2DBFB6CC0001D233 /* Utility in Frameworks */,
 				452B4FA82E31421B00A18F4E /* FirebaseAnalytics in Frameworks */,
@@ -1228,23 +1246,15 @@
 			children = (
 				45359FB32EAA68E4007D82DB /* Register+Credentials.swift */,
 				45359FB42EAA68E4007D82DB /* Register+KeyboardField.swift */,
+				A10200022F10000100A11C01 /* Register+ContactIdentifierType.swift */,
 			);
 			path = Models;
-			sourceTree = "<group>";
-		};
-		45359FB72EAA68E4007D82DB /* Views */ = {
-			isa = PBXGroup;
-			children = (
-				45359FB62EAA68E4007D82DB /* Register+ChooseVerifyMethodView.swift */,
-			);
-			path = Views;
 			sourceTree = "<group>";
 		};
 		45359FBB2EAA68E4007D82DB /* Register */ = {
 			isa = PBXGroup;
 			children = (
 				45359FB52EAA68E4007D82DB /* Models */,
-				45359FB72EAA68E4007D82DB /* Views */,
 				45359FB82EAA68E4007D82DB /* RegisterModule.swift */,
 				45359FB92EAA68E4007D82DB /* RegisterView.swift */,
 				45359FBA2EAA68E4007D82DB /* RegisterViewModel.swift */,
@@ -2008,10 +2018,15 @@
 			isa = PBXGroup;
 			children = (
 				454E83E32DBF99AE0001D233 /* Whimo Dev.xctestplan */,
+				A10300002F10000100A11C01 /* AuthRepositoryTests.swift */,
+				D4562E6DDFF04035A812C806 /* ContactIdentifierTests.swift */,
 				45E8B6582DFB59C20069AEE3 /* DecimalFormatterTests.swift */,
 				451B4E922E324F3300E15370 /* EmailValidatorTests.swift */,
 				45D997B92E72F4C50052F836 /* PasswordValidatorTests.swift */,
 				45F616762EE0533600B1A5E3 /* PhoneNumberValidatorTests.swift */,
+				4F1E00052F00000100A11C01 /* RemoteConfigServiceTests.swift */,
+				4F1E00062F00000100A11C01 /* GadgetDetailsViewModelTests.swift */,
+				A10200002F10000100A11C01 /* RegisterViewModelTests.swift */,
 			);
 			path = WhimoTests;
 			sourceTree = "<group>";
@@ -2188,7 +2203,6 @@
 			children = (
 				455F59A52DDF1F05004217B6 /* AuthRepository.swift */,
 				455F59A32DDF1F01004217B6 /* AuthRepositoryImpl.swift */,
-				455F59A72DDF3EA6004217B6 /* Authrepository+AuthMethod.swift */,
 			);
 			path = Auth;
 			sourceTree = "<group>";
@@ -2471,6 +2485,7 @@
 		45B35BB32DEEF32F0070A086 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				F4BC876C30E0458080989E02 /* ContactIdentifier.swift */,
 				451AEFF22DC502EC00C15CBB /* TabBarKeys.swift */,
 				45B35BB42DEEF3780070A086 /* TransactionType.swift */,
 				451FAF9B2DE0814A00B8BFD2 /* UserModel.swift */,
@@ -2920,6 +2935,7 @@
 				45EDBA642EB7DAA300647AFA /* EmailClient */,
 				45EDBA682EB7DAA300647AFA /* FileStorage */,
 				45EDBA6B2EB7DAA300647AFA /* Firebase */,
+				4F1E00042F00000100A11C01 /* RemoteConfig */,
 				45EDBA6F2EB7DAA300647AFA /* GoogleAuth */,
 				45EDBA732EB7DAA300647AFA /* HapticsEngine */,
 				45EDBA762EB7DAA300647AFA /* Location */,
@@ -3068,6 +3084,16 @@
 			path = Startup;
 			sourceTree = "<group>";
 		};
+		4F1E00042F00000100A11C01 /* RemoteConfig */ = {
+			isa = PBXGroup;
+			children = (
+				4F1E00012F00000100A11C01 /* RemoteConfigService.swift */,
+				4F1E00022F00000100A11C01 /* RemoteConfigDefinitions.swift */,
+				4F1E00032F00000100A11C01 /* FirebaseRemoteConfigService.swift */,
+			);
+			path = RemoteConfig;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -3142,6 +3168,7 @@
 				4575BB022E1D708F00EDF522 /* FirebaseCrashlytics */,
 				4575BB082E1D7C4300EDF522 /* GoogleSignInSwift */,
 				454569292E2271C300B15011 /* FirebaseMessaging */,
+				4F1E00212F00000100A11C01 /* FirebaseRemoteConfig */,
 				452B4FA72E31421B00A18F4E /* FirebaseAnalytics */,
 				451AD2C42E54F51F009CAE5F /* DatabaseKit */,
 				454CA12E2E54F7D000579250 /* StorageKit */,
@@ -3158,7 +3185,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1630;
-				LastUpgradeCheck = 1630;
+				LastUpgradeCheck = 2660;
 				TargetAttributes = {
 					454E83D42DBF995F0001D233 = {
 						CreatedOnToolsVersion = 16.3;
@@ -3318,10 +3345,15 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A10300012F10000100A11C01 /* AuthRepositoryTests.swift in Sources */,
+				EFB80F03229142CC929ACBD3 /* ContactIdentifierTests.swift in Sources */,
 				451B4E932E324F3500E15370 /* EmailValidatorTests.swift in Sources */,
 				45E8B6592DFB59C40069AEE3 /* DecimalFormatterTests.swift in Sources */,
 				45F616772EE0533600B1A5E3 /* PhoneNumberValidatorTests.swift in Sources */,
 				45D997BA2E72F4C50052F836 /* PasswordValidatorTests.swift in Sources */,
+				4F1E00142F00000100A11C01 /* RemoteConfigServiceTests.swift in Sources */,
+				4F1E00152F00000100A11C01 /* GadgetDetailsViewModelTests.swift in Sources */,
+				A10200012F10000100A11C01 /* RegisterViewModelTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3350,6 +3382,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F9ADE09F3B75469894CD23BE /* ContactIdentifier.swift in Sources */,
 				45C4433B2DFC79750087AF33 /* TransactionTraceabilityModel.swift in Sources */,
 				454CFC002E15C439003BB078 /* NotificationsSettingsRemoteRepository.swift in Sources */,
 				45066C7F2E2DA32B005C79AB /* NotificationsCachingRepository.swift in Sources */,
@@ -3427,7 +3460,6 @@
 				4535A0CE2EAA68E4007D82DB /* CreateTxSelectTypeViewModel.swift in Sources */,
 				4535A0CF2EAA68E4007D82DB /* AddTransactionRecipientViewModel.swift in Sources */,
 				4535A0D02EAA68E4007D82DB /* DownloadTxDetails+FarmLocationsPopup.swift in Sources */,
-				4535A0D12EAA68E4007D82DB /* Register+ChooseVerifyMethodView.swift in Sources */,
 				4535A0D22EAA68E4007D82DB /* NavBar+ViewModifier.swift in Sources */,
 				4535A0D32EAA68E4007D82DB /* NavBarModule.swift in Sources */,
 				4535A0D42EAA68E4007D82DB /* NotificationsList+RowView.swift in Sources */,
@@ -3499,6 +3531,7 @@
 				4535A1112EAA68E4007D82DB /* CommodityVolume+KeyboardField.swift in Sources */,
 				4535A1122EAA68E4007D82DB /* SuppliersHistory+TraceabilityStatusPopup.swift in Sources */,
 				4535A1132EAA68E4007D82DB /* Register+KeyboardField.swift in Sources */,
+				A10200032F10000100A11C01 /* Register+ContactIdentifierType.swift in Sources */,
 				4535A1142EAA68E4007D82DB /* CreateTransactionFormViewModel.swift in Sources */,
 				4535A1152EAA68E4007D82DB /* SuppliersHistoryView.swift in Sources */,
 				45BF13622EB8E62A00C2D097 /* ConvertCommodityList+RowView.swift in Sources */,
@@ -3546,7 +3579,6 @@
 				454E842C2DBFD5FE0001D233 /* SystemState.swift in Sources */,
 				45B35BB52DEEF37E0070A086 /* TransactionType.swift in Sources */,
 				45C95F4C2E04500B003321F3 /* CommodityCachingRepositoryImpl.swift in Sources */,
-				455F59A82DDF3EAD004217B6 /* Authrepository+AuthMethod.swift in Sources */,
 				4515ED3F2E04AD2E001DCF08 /* TransactionsRemoteRepositoryImpl.swift in Sources */,
 				454CFC022E15C440003BB078 /* NotificationsSettingsRemoteRepositoryImpl.swift in Sources */,
 				45D073282EBA5C3100EDB832 /* ConversionRuleModel.swift in Sources */,
@@ -3632,6 +3664,9 @@
 				45EDBAB22EB7DAA300647AFA /* QRCodeDataService+Error.swift in Sources */,
 				45EDBAB32EB7DAA300647AFA /* FirebaseServiceImpl.swift in Sources */,
 				45EDBAB42EB7DAA300647AFA /* FirebaseService.swift in Sources */,
+				4F1E00112F00000100A11C01 /* RemoteConfigService.swift in Sources */,
+				4F1E00122F00000100A11C01 /* RemoteConfigDefinitions.swift in Sources */,
+				4F1E00132F00000100A11C01 /* FirebaseRemoteConfigService.swift in Sources */,
 				45EDBAB62EB7DAA300647AFA /* OfflineTransactionsSyncInteractor.swift in Sources */,
 				45EDBAB72EB7DAA300647AFA /* FileStorageService+Error.swift in Sources */,
 				45EDBAB82EB7DAA300647AFA /* UserNotificationsService+Event.swift in Sources */,
@@ -3774,6 +3809,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
@@ -3804,7 +3840,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
-				DEVELOPMENT_TEAM = 2HTH4FBG4Z;
+				DEVELOPMENT_TEAM = "";
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -3828,6 +3864,7 @@
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -3844,12 +3881,13 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = 3SUQT77RQD;
+				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Whimo/SupportingFiles/InfoStage.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "${APP_DISPLAY_NAME}";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.business";
 				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -3882,7 +3920,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 3SUQT77RQD;
+				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
 				MARKETING_VERSION = 1.0;
@@ -3901,7 +3939,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 3SUQT77RQD;
+				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
 				MARKETING_VERSION = 1.0;
@@ -3920,7 +3958,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 3SUQT77RQD;
+				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
 				MARKETING_VERSION = 1.0;
@@ -3940,7 +3978,7 @@
 				CODE_SIGN_ENTITLEMENTS = NotificationService/SupportingFiles/NotificationServiceDebug.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 20;
-				DEVELOPMENT_TEAM = 3SUQT77RQD;
+				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = NotificationService/SupportingFiles/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = NotificationService;
@@ -3972,7 +4010,7 @@
 				CODE_SIGN_ENTITLEMENTS = NotificationService/SupportingFiles/NotificationServiceStage.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 20;
-				DEVELOPMENT_TEAM = 3SUQT77RQD;
+				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = NotificationService/SupportingFiles/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = NotificationService;
@@ -4005,7 +4043,7 @@
 				CODE_SIGN_ENTITLEMENTS = NotificationService/SupportingFiles/NotificationServiceRelease.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 20;
-				DEVELOPMENT_TEAM = 3SUQT77RQD;
+				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = NotificationService/SupportingFiles/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = NotificationService;
@@ -4036,6 +4074,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
@@ -4066,7 +4105,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
-				DEVELOPMENT_TEAM = 2HTH4FBG4Z;
+				DEVELOPMENT_TEAM = "";
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -4090,6 +4129,7 @@
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -4100,6 +4140,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
@@ -4130,7 +4171,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = 2HTH4FBG4Z;
+				DEVELOPMENT_TEAM = "";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -4147,6 +4188,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				VALIDATE_PRODUCT = YES;
 			};
@@ -4163,12 +4205,13 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 30;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = 3SUQT77RQD;
+				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Whimo/SupportingFiles/InfoDev.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "${APP_DISPLAY_NAME}";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.business";
 				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -4205,12 +4248,13 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = 3SUQT77RQD;
+				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Whimo/SupportingFiles/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "${APP_DISPLAY_NAME}";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.business";
 				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -4374,6 +4418,11 @@
 		45CF766F2E255ACC0018AAC1 /* Resources */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = Resources;
+		};
+		4F1E00212F00000100A11C01 /* FirebaseRemoteConfig */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 4575BAFF2E1D708F00EDF522 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseRemoteConfig;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

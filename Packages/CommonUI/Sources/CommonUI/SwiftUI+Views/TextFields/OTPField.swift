@@ -26,13 +26,24 @@
 //
 
 import SwiftUI
+import UIKit
 import Combine
 import Resources
 
 // MARK: - OTPField
 public struct OTPField: View {
+    private enum HorizontalDistribution {
+        case fixedSpacing
+        case fillAvailableWidth
+    }
+
     private enum Constants {
+        static let fixedSpacing: CGFloat = 8
         static let nullCharacter = "\u{200B}"
+    }
+
+    private var otpHorizontalDistribution: HorizontalDistribution {
+        UIDevice.current.userInterfaceIdiom == .phone ? .fillAvailableWidth : .fixedSpacing
     }
 
     // MARK: - Properties
@@ -68,11 +79,29 @@ public struct OTPField: View {
 // MARK: - Private Layout
 private extension OTPField {
     @ViewBuilder func content() -> some View {
-        HStack(spacing: 8) {
-            ForEach(0..<Int(lenght), id: \.self) { index in
-                codeRow(index: index)
-            }
+        switch otpHorizontalDistribution {
+            case .fixedSpacing:
+                HStack(spacing: Constants.fixedSpacing) {
+                    ForEach(0..<Int(lenght), id: \.self) { index in
+                        codeRow(index: index)
+                    }
+                }
+            case .fillAvailableWidth:
+                HStack(spacing: .zero) {
+                    ForEach(0..<flexibleItemCount, id: \.self) { index in
+                        if index.isMultiple(of: 2) {
+                            codeRow(index: index / 2)
+                        } else {
+                            Spacer(minLength: .zero)
+                        }
+                    }
+                }
+                .frame(maxWidth: .infinity)
         }
+    }
+
+    var flexibleItemCount: Int {
+        max(.zero, Int(lenght) * 2 - 1)
     }
 
     @ViewBuilder func codeRow(index: Int) -> some View {

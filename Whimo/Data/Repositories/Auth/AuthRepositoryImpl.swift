@@ -26,8 +26,8 @@
 //
 
 import Foundation
-import StorageKit
 import class Networking.TokenManager
+import protocol Networking.TokenManagerProtocol
 import RestClient
 import Targets
 
@@ -35,48 +35,31 @@ import Targets
 final class AuthRepositoryImpl: AuthRepository {
     // MARK: - Dependencies
     private let authTarget: AuthTarget
-    private let tokenManager: TokenManager
-    private let userDefaultsStore: AnyStorage<UserDefaultsStore>
+    private let tokenManager: TokenManagerProtocol
 
     // MARK: - Init
     init(
         authTarget: AuthTarget,
-        tokenManager: TokenManager,
-        userDefaultsStore: AnyStorage<UserDefaultsStore>
+        tokenManager: TokenManagerProtocol
     ) {
         self.authTarget = authTarget
         self.tokenManager = tokenManager
-        self.userDefaultsStore = userDefaultsStore
     }
 
     // MARK: - AuthRepository
-    func signUp(authMethods: Set<AuthMethod>, password: String) async throws {
-        var email: String?
-        var phone: String?
-        for authMethod in authMethods {
-            switch authMethod {
-                case .email:
-                    email = authMethod.identifier
-                case .phone:
-                    phone = authMethod.identifier
-            }
+    func signUp(contactIdentifier: ContactIdentifier, password: String) async throws {
+        let request: RequestModels.Register
+        switch contactIdentifier {
+            case .email(let email):
+                request = .init(email: email, password: password)
+            case .phone(let phone):
+                request = .init(phone: phone, password: password)
         }
-
-        let request: RequestModels.Register = .init(email: email, phone: phone, password: password)
         try await authTarget.register(request)
     }
 
-    func signIn(authMethod: AuthMethod, password: String) async throws {
-        var email: String?
-        var phone: String?
-        switch authMethod {
-            case .email:
-                email = authMethod.identifier
-            case .phone:
-                phone = authMethod.identifier
-        }
-
-        let request: RequestModels.Login = .init(username: email ?? phone ?? "", password: password)
+    func signIn(contactIdentifier: ContactIdentifier, password: String) async throws {
+        let request: RequestModels.Login = .init(username: contactIdentifier.identifier, password: password)
         let response = try await authTarget.login(request)
         let tokenData = response.data
         let tokenModel: TokenManager.TokensModel = .init(

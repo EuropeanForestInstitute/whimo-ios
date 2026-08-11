@@ -157,7 +157,6 @@ private extension ResponseModels.Transaction {
     )
 }
 
-
 private extension ResponseModels.TransactionTraceabilityInfo {
     static let mock: Self = .init(
         data: .init(

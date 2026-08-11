@@ -80,6 +80,10 @@ extension AppContainer {
         self { FirebaseServiceImpl() }
     }
 
+    var remoteConfigService: Factory<RemoteConfigService> {
+        self { FirebaseRemoteConfigService() }
+    }
+
     var appleAuthService: Factory<AppleAuthService> {
         self {
             AppleAuthServiceImpl()

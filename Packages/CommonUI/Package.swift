@@ -56,7 +56,10 @@ let package = Package(
         ),
         .testTarget(
             name: "CommonUITests",
-            dependencies: ["CommonUI"]
+            dependencies: [
+                "CommonUI",
+                .product(name: "PhoneNumberKit", package: "PhoneNumberKit")
+            ]
         )
     ],
     swiftLanguageModes: [.v5]

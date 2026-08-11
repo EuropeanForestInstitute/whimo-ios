@@ -54,6 +54,50 @@ struct PhoneNumberValidator {
             return Error(from: error)
         }
     }
+
+    func verificationAvailability(
+        for phoneNumber: String,
+        policy: RegistrationPhoneRegionPolicy
+    ) -> PhoneVerificationAvailability {
+        guard policy.enabled else { return .available }
+
+        let supportedRegions = Set(
+            policy.allowedRegions
+                .map(\.regionCode)
+                .map { $0.trimmingCharacters(in: .whitespacesAndNewlines).uppercased() }
+                .filter { !$0.isEmpty }
+        )
+        // An enabled policy is an allowlist; an empty allowlist permits no phone verification.
+        guard !supportedRegions.isEmpty else { return .unavailable }
+
+        guard
+            let parsedPhoneNumber = try? phoneNumberUtility.parse(phoneNumber),
+            let countryRegion = phoneNumberUtility.getRegionCode(of: parsedPhoneNumber)?.uppercased()
+        else {
+            return .unavailable
+        }
+
+        return supportedRegions.contains(countryRegion) ? .available : .unavailable
+    }
+}
+
+enum PhoneVerificationAvailability: Equatable {
+    case available
+    case unavailable
+}
+
+enum PhoneVerificationError: LocalizedError {
+    case registrationUnavailable
+    case settingsUnavailable
+
+    var errorDescription: String? {
+        switch self {
+            case .registrationUnavailable:
+                AppLocale.phoneVerificationUnavailableRegistration
+            case .settingsUnavailable:
+                AppLocale.phoneVerificationUnavailableSettings
+        }
+    }
 }
 
 private typealias Localization = AppLocale.General.Formatters.PhoneNumber.Error

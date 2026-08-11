@@ -1,10 +1,8 @@
 //
-//  Request+Register.swift
+//  Register+ContactIdentifierType.swift
 //  Whimo
 //
-//  Created by Vyacheslav Razumeenko on 05.05.2025.
-//
-//  Copyright (c) 2025 EFI https://efi.int/
+//  Copyright (c) 2026 EFI https://efi.int/
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a copy
 //  of this software and associated documentation files (the "Software"), to deal
@@ -26,25 +24,35 @@
 //
 
 import Foundation
-import RestClient
+import typealias Utility.DomainModel
+import enum Resources.AppLocale
 
-// MARK: - Register
-extension RequestModels {
-    public struct Register: Encodable {
-        public let email: String?
-        public let phone: String?
-        public let password: String
+private typealias Module = RegisterModule
 
-        public init(email: String, password: String) {
-            self.email = email
-            self.phone = nil
-            self.password = password
+// MARK: - ContactIdentifierType
+extension Module {
+    enum ContactIdentifierType: DomainModel, CaseIterable {
+        case email
+        case phone
+
+        var id: Self { self }
+
+        var titleText: String {
+            switch self {
+                case .email:
+                    AppLocale.Register.ContactIdentifierType.email
+                case .phone:
+                    AppLocale.Register.ContactIdentifierType.phone
+            }
         }
 
-        public init(phone: String, password: String) {
-            self.email = nil
-            self.phone = phone
-            self.password = password
+        var subtitleText: String {
+            switch self {
+                case .email:
+                    AppLocale.Register.ContactIdentifierSubtitle.email
+                case .phone:
+                    AppLocale.Register.ContactIdentifierSubtitle.phone
+            }
         }
     }
 }
