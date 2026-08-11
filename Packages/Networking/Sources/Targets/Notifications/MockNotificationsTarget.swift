@@ -37,7 +37,6 @@ public struct MockNotificationsTarget: NotificationsTarget, MockableTarget {
     }
 }
 
-
 private extension ResponseModels.Notification {
     static let mock: Self = .init(
         id: "0cf37e60-002d-40a6-b498-1dac41b7f41a",

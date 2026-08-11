@@ -41,6 +41,83 @@ final class PhoneNumberValidatorTests: XCTestCase {
         validator = nil
     }
 
+    // MARK: - Phone Verification Availability Tests
+
+    func testVerificationAvailabilityAllowsNumbersWhenPolicyIsDisabled() {
+        let availability = validator.verificationAvailability(
+            for: "+1 202 555 1234",
+            policy: registrationPhoneRegionPolicy(
+                enabled: false,
+                allowedRegionCodes: ["KG"]
+            )
+        )
+
+        XCTAssertEqual(availability, .available)
+    }
+
+    func testVerificationAvailabilityNormalizesAllowedRegionCodes() {
+        let availability = validator.verificationAvailability(
+            for: "+1 202 555 1234",
+            policy: registrationPhoneRegionPolicy(
+                enabled: true,
+                allowedRegionCodes: [" us "]
+            )
+        )
+
+        XCTAssertEqual(availability, .available)
+    }
+
+    func testVerificationAvailabilityRejectsUnsupportedCountryRegion() {
+        let availability = validator.verificationAvailability(
+            for: "+1 202 555 1234",
+            policy: registrationPhoneRegionPolicy(
+                enabled: true,
+                allowedRegionCodes: ["KG"]
+            )
+        )
+
+        XCTAssertEqual(availability, .unavailable)
+    }
+
+    func testVerificationAvailabilityRejectsNumbersWhenEnabledPolicyHasNoAllowedRegions() {
+        let availability = validator.verificationAvailability(
+            for: "+1 202 555 1234",
+            policy: registrationPhoneRegionPolicy(
+                enabled: true,
+                allowedRegionCodes: []
+            )
+        )
+
+        XCTAssertEqual(availability, .unavailable)
+    }
+
+    func testVerificationAvailabilityRejectsNumbersWhenDefaultPolicyIsUsed() {
+        let availability = validator.verificationAvailability(
+            for: "+1 202 555 1234",
+            policy: RemoteConfigDefaults.registrationPhoneRegionPolicy
+        )
+
+        XCTAssertEqual(availability, .unavailable)
+    }
+
+    private func registrationPhoneRegionPolicy(
+        enabled: Bool,
+        allowedRegionCodes: [String]
+    ) -> RegistrationPhoneRegionPolicy {
+        .init(
+            schemaVersion: RegistrationPhoneRegionPolicy.supportedSchemaVersion,
+            enabled: enabled,
+            allowedRegions: allowedRegionCodes.map {
+                .init(
+                    regionCode: $0,
+                    regionName: "",
+                    callingCode: 0,
+                    e164Prefix: ""
+                )
+            }
+        )
+    }
+
     // MARK: - Valid Phone Numbers Tests (Positive Cases)
 
     func testValidPhoneNumbersE164Format() {

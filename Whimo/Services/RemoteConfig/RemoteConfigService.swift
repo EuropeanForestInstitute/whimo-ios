@@ -1,10 +1,8 @@
 //
-//  Request+Register.swift
+//  RemoteConfigService.swift
 //  Whimo
 //
-//  Created by Vyacheslav Razumeenko on 05.05.2025.
-//
-//  Copyright (c) 2025 EFI https://efi.int/
+//  Copyright (c) 2026 EFI https://efi.int/
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a copy
 //  of this software and associated documentation files (the "Software"), to deal
@@ -26,25 +24,21 @@
 //
 
 import Foundation
-import RestClient
 
-// MARK: - Register
-extension RequestModels {
-    public struct Register: Encodable {
-        public let email: String?
-        public let phone: String?
-        public let password: String
+// MARK: - RemoteConfigService
+protocol RemoteConfigService: AnyObject {
+    var registrationPhoneRegionPolicy: RegistrationPhoneRegionPolicy { get }
 
-        public init(email: String, password: String) {
-            self.email = email
-            self.phone = nil
-            self.password = password
-        }
+    func configure()
+    func fetchAndActivate() async
+}
 
-        public init(phone: String, password: String) {
-            self.email = nil
-            self.phone = phone
-            self.password = password
-        }
-    }
+// MARK: - RemoteConfigClient
+protocol RemoteConfigClient: AnyObject {
+    func configure(
+        defaults: [String: NSObject],
+        minimumFetchInterval: TimeInterval
+    )
+    func fetchAndActivate() async throws
+    func stringValue(for key: String) -> String
 }

@@ -32,13 +32,24 @@ import Resources
 private typealias Module = RegisterModule
 private typealias ViewModel = Module.ViewModel
 
+// MARK: - RegistrationContactIdentifier
+private struct RegistrationContactIdentifier {
+    let submittedValue: ContactIdentifier
+    let otpGadget: UserModel.GadgetModel
+}
+
 // MARK: - ViewModel
 extension Module {
     final class ViewModel: ViewModelProtocol {
         // MARK: - Public Properties
         @Published var credentials: Credentials = .empty
-        @Published var enableSelectGadgetAlert: Bool = false
         @Published var enableRegisterButton: Bool = false
+        @Published private(set) var selectedContactIdentifierType: ContactIdentifierType = .email
+        @Published private(set) var phoneVerificationError: PhoneVerificationError?
+
+        var contactIdentifierTypes: IdentifiedArrayOf<ContactIdentifierType> {
+            .init(uniqueElements: ContactIdentifierType.allCases)
+        }
 
         private(set) var validationErrors: [KeyboardField: Error] = [:]
 
@@ -53,8 +64,8 @@ extension Module {
 
         // MARK: - Dependencies
         @Inject(\.appState) private var appState
-        @Inject(\.alertManager) private var alertManager
         @Inject(\.authInteractor) private var authInteractor
+        @Inject(\.remoteConfigService) private var remoteConfigService
         @Inject(\.tokenRegistryService) private var tokenRegistryService
 
         // MARK: - Init
@@ -63,27 +74,69 @@ extension Module {
         }
 
         // MARK: - ViewModelProtocol
+        @MainActor
         func setKeyboardActiveField(_ keyboardActiveField: KeyboardField?) {
             self.keyboardActiveField = keyboardActiveField
         }
 
+        @MainActor
+        func selectContactIdentifierType(_ contactIdentifierType: ContactIdentifierType) {
+            guard selectedContactIdentifierType != contactIdentifierType else { return }
+
+            selectedContactIdentifierType = contactIdentifierType
+            keyboardActiveField = nil
+
+            switch contactIdentifierType {
+                case .email:
+                    validationErrors[.phone] = nil
+                    phoneVerificationError = nil
+                case .phone:
+                    validationErrors[.email] = nil
+            }
+
+            updatePhoneVerificationValidation(credentials)
+            updateRegisterButton(credentials)
+        }
+
+        @MainActor
         func didTapSignUp() async {
+            let credentials = credentials
+            let contactIdentifierType = selectedContactIdentifierType
+            guard
+                validate(credentials, for: contactIdentifierType),
+                credentials.isTermsAccepted
+            else {
+                updatePhoneVerificationValidation(credentials)
+                return
+            }
+
+            let contactIdentifier: RegistrationContactIdentifier
+            do {
+                contactIdentifier = try makeRegistrationContactIdentifier(
+                    credentials: credentials,
+                    for: contactIdentifierType
+                )
+            } catch {
+                await reportRegistrationError(error)
+                return
+            }
+
             appState.system[\.isLoading] = true
             defer { appState.system[\.isLoading] = false }
 
-            let success = await signUpRequest(credentials: credentials)
+            let success = await signUpRequest(
+                contactIdentifier: contactIdentifier.submittedValue,
+                password: credentials.password
+            )
             guard success else { return }
 
-            let enableSelectGadgetAlert = showOTPAlert(credentials: credentials)
-            await MainActor.run {
-                self.enableSelectGadgetAlert = enableSelectGadgetAlert
-            }
-
-            guard !enableSelectGadgetAlert else { return }
-
-            openOTPScreen(credentials: credentials)
+            openOTPScreen(
+                password: credentials.password,
+                gadget: contactIdentifier.otpGadget
+            )
         }
 
+        @MainActor
         func didTapGoogleAuth() async {
             let success = await signInWithGoogleRequest()
             guard success else { return }
@@ -91,23 +144,12 @@ extension Module {
             openAuthorizedZone()
         }
 
+        @MainActor
         func didTapAppleAuth() async {
             let success = await signInWithAppleRequest()
             guard success else { return }
 
             openAuthorizedZone()
-        }
-
-        @MainActor
-        func didTapVerifyEmail() {
-            enableSelectGadgetAlert = false
-            openOTPScreen(credentials: credentials)
-        }
-
-        @MainActor
-        func didTapVerifyPhone() {
-            enableSelectGadgetAlert = false
-            openOTPScreen(credentials: credentials, reversed: true)
         }
     }
 }
@@ -117,23 +159,17 @@ private extension ViewModel {
     // MARK: - Setup
     func setupBindings() {
         $credentials
+            .receive(on: DispatchQueue.main)
             .sink { [weak self] credentials in
                 guard let self else { return }
 
-                let fieldsSuccess = self.validate(
-                    email: credentials.email,
-                    phone: credentials.phone,
-                    password: credentials.password,
-                    repeatPassword: credentials.repeatPassword
-                )
-                let success = fieldsSuccess && credentials.isTermsAccepted
-                Task { @MainActor in
-                    self.enableRegisterButton = success
-                }
+                self.updatePhoneVerificationValidation(credentials)
+                self.updateRegisterButton(credentials)
             }
             .store(in: cancellable)
         $credentials
             .dropFirst()
+            .receive(on: DispatchQueue.main)
             .sink { [weak self] credentials in
                 guard let self else { return }
 
@@ -168,41 +204,98 @@ private extension ViewModel {
 
     // MARK: - Common
     func validate(
-        email: String,
-        phone: String,
-        password: String,
-        repeatPassword: String
+        _ credentials: Module.Credentials,
+        for contactIdentifierType: Module.ContactIdentifierType
     ) -> Bool {
-        let gadgetVerified = emailValidator.isValid(email) == nil || phoneNumberValidator.isValid(phone) == nil
-        let passwordVerified = passwordValidator.isValid(password, repeatPassword: repeatPassword) == nil
-        let success = gadgetVerified && passwordVerified
+        let isContactIdentifierValid: Bool
+        switch contactIdentifierType {
+            case .email:
+                isContactIdentifierValid = emailValidator.isValid(credentials.email) == nil
+            case .phone:
+                let isPhoneValid = phoneNumberValidator.isValid(credentials.phone) == nil
+                isContactIdentifierValid = isPhoneValid && !isPhoneVerificationUnavailable(credentials.phone)
+        }
 
-        return success
+        let isPasswordValid = passwordValidator.isValid(credentials.password) == nil
+        let isConfirmationValid = passwordValidator.isValid(
+            credentials.password,
+            repeatPassword: credentials.repeatPassword
+        ) == nil
+
+        return isContactIdentifierValid && isPasswordValid && isConfirmationValid
     }
 
-    func signUpRequest(credentials: Module.Credentials) async -> Bool {
-        do {
-            let email = credentials.email
-            let phone = credentials.phone
-            var authMethods: Set<AuthRepositoryImpl.AuthMethod> = .init()
-            if !email.isEmpty {
-                authMethods.insert(.email(email))
-            }
-            if !phone.isEmpty {
-                let formattedPhone = try phoneNumberFormatter.string(from: phone)
-                let trimmedPhone = formattedPhone.trimmingCharacters(in: .symbols)
-                authMethods.insert(.phone(trimmedPhone))
-            }
+    func updateRegisterButton(_ credentials: Module.Credentials) {
+        let isEnabled = validate(
+            credentials,
+            for: selectedContactIdentifierType
+        ) && credentials.isTermsAccepted
+        enableRegisterButton = isEnabled
+    }
 
-            try await authInteractor.signUp(authMethods: authMethods, password: credentials.password)
+    func updatePhoneVerificationValidation(_ credentials: Module.Credentials) {
+        guard
+            selectedContactIdentifierType == .phone,
+            isPhoneVerificationUnavailable(credentials.phone)
+        else {
+            phoneVerificationError = nil
+            return
+        }
+
+        phoneVerificationError = .registrationUnavailable
+    }
+
+    func isPhoneVerificationUnavailable(_ phone: String) -> Bool {
+        guard !phone.isEmpty, phoneNumberValidator.isValid(phone) == nil else { return false }
+
+        let availability = phoneNumberValidator.verificationAvailability(
+            for: phone,
+            policy: remoteConfigService.registrationPhoneRegionPolicy
+        )
+        return availability == .unavailable
+    }
+
+    func signUpRequest(
+        contactIdentifier: ContactIdentifier,
+        password: String
+    ) async -> Bool {
+        do {
+            try await authInteractor.signUp(
+                contactIdentifier: contactIdentifier,
+                password: password
+            )
 
             return true
         } catch {
-            log.debug("error: \(error). \nlocalizedDescription:\(error.localizedDescription)")
-            await appState.showError(message: error.localizedDescription)
+            await reportRegistrationError(error)
         }
 
         return false
+    }
+
+    func makeRegistrationContactIdentifier(
+        credentials: Module.Credentials,
+        for contactIdentifierType: Module.ContactIdentifierType
+    ) throws -> RegistrationContactIdentifier {
+        switch contactIdentifierType {
+            case .email:
+                return .init(
+                    submittedValue: .email(credentials.email),
+                    otpGadget: .unverified(identifier: credentials.email, type: .email)
+                )
+            case .phone:
+                let formattedPhone = try phoneNumberFormatter.string(from: credentials.phone)
+                let trimmedPhone = formattedPhone.trimmingCharacters(in: .symbols)
+                return .init(
+                    submittedValue: .phone(trimmedPhone),
+                    otpGadget: .unverified(identifier: credentials.phone, type: .phone)
+                )
+        }
+    }
+
+    func reportRegistrationError(_ error: Error) async {
+        log.debug("error: \(error). \nlocalizedDescription:\(error.localizedDescription)")
+        await appState.showError(message: error.localizedDescription)
     }
 
     func signInWithGoogleRequest() async -> Bool {
@@ -237,35 +330,10 @@ private extension ViewModel {
         return false
     }
 
-    func showOTPAlert(credentials: Module.Credentials) -> Bool {
-        let email: String = credentials.email
-        let phone: String = credentials.phone
-
-        return !email.isEmpty && !phone.isEmpty
-    }
-
-    func openOTPScreen(credentials: Module.Credentials, reversed: Bool = false) {
-        let email = credentials.email
-        let phone = credentials.phone
-        var gadgets: [UserModel.GadgetModel] = []
-
-        if !email.isEmpty {
-            let emailGadget: UserModel.GadgetModel = .unverified(identifier: email, type: .email)
-            gadgets.append(emailGadget)
-        }
-
-        if !phone.isEmpty {
-            let phoneGadget: UserModel.GadgetModel = .unverified(identifier: phone, type: .phone)
-            gadgets.append(phoneGadget)
-        }
-
-        if reversed {
-            gadgets = gadgets.reversed()
-        }
-
+    func openOTPScreen(password: String, gadget: UserModel.GadgetModel) {
         let screen: Screen = .otp(
-            parrentFlow: .singUp(credentials: .password(credentials.password)),
-            gadgets: NonEmptyArray(gadgets) ?? NonEmptyArray(.unverified(identifier: "", type: .email))
+            parrentFlow: .singUp(credentials: .password(password)),
+            gadgets: NonEmptyArray(gadget)
         )
         appState.navigation[\.path].append(.push(screen))
     }

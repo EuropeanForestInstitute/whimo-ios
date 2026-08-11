@@ -168,15 +168,15 @@ private extension ViewModel {
     // MARK: - Common
     func signInRequest(gadget: UserModel.GadgetModel, password: String) async -> Bool {
         do {
-            let authMethod: AuthRepositoryImpl.AuthMethod
+            let contactIdentifier: ContactIdentifier
             switch gadget.type {
                 case .email:
-                    authMethod = .email(gadget.identifier)
+                    contactIdentifier = .email(gadget.identifier)
                 case .phone:
-                    authMethod = .phone(gadget.identifier)
+                    contactIdentifier = .phone(gadget.identifier)
             }
 
-            _ = try await authInteractor.signIn(authMethod: authMethod, password: password)
+            _ = try await authInteractor.signIn(contactIdentifier: contactIdentifier, password: password)
 
             return true
         } catch {

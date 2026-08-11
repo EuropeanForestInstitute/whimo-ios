@@ -85,6 +85,15 @@ extension Module {
             }
         }
 
+        private var selectedContactIdentifierType: Binding<ContactIdentifierType> {
+            .init {
+                viewModel.selectedContactIdentifierType
+            } set: { contactIdentifierType in
+                keyboardActiveField = nil
+                viewModel.selectContactIdentifierType(contactIdentifierType)
+            }
+        }
+
         private var emailTextFieldState: AppTextField.TextFieldStates {
             if let error = viewModel.validationErrors[.email] {
                 return .failed(errorText: error.localizedDescription)
@@ -94,6 +103,10 @@ extension Module {
         }
 
         private var phoneTextFieldState: AppPhoneNumberTextField.TextFieldStates {
+            if let error = viewModel.phoneVerificationError {
+                return .failed(errorText: error.localizedDescription)
+            }
+
             if let error = viewModel.validationErrors[.phone] {
                 return .failed(errorText: error.localizedDescription)
             }
@@ -130,11 +143,6 @@ extension Module {
                         .ignoresSafeArea()
                 }
                 .keyboardDefaultToolbar(action: self.keyboardActiveField = .none)
-                .sheet(isPresented: $viewModel.enableSelectGadgetAlert) {
-                    ChooseVerifyMethodView(didTapEmail: didTapVerifyEmail, didTapPhone: didTapVerifyPhone)
-                        .selfSizedSheet()
-                        .background { OverridingBackgroundView() }
-                }
                 .onChange(of: keyboardActiveField) { newValue in
                     viewModel.setKeyboardActiveField(newValue)
                 }
@@ -150,6 +158,11 @@ private extension ModuleView {
                 VStack(spacing: 24) {
                     subtitle()
                         .padding(.horizontal, 16)
+                    SegmentedPicker(
+                        items: viewModel.contactIdentifierTypes,
+                        selection: selectedContactIdentifierType,
+                        title: { $0.titleText }
+                    )
                     registerForm()
                         .padding(.horizontal, 16)
                 }
@@ -177,7 +190,7 @@ private extension ModuleView {
     }
 
     @ViewBuilder func subtitle() -> some View {
-        Text(Localization.subtitle)
+        Text(viewModel.selectedContactIdentifierType.subtitleText)
             .appFontRegularSize16()
             .foregroundStyle(AppColors.Gray.gray60.colorSwiftUI)
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -185,30 +198,12 @@ private extension ModuleView {
 
     @ViewBuilder func registerForm() -> some View {
         VStack(spacing: 16) {
-            // email
-            AppTextField(
-                text: email,
-                description: Localization.TextFields.Email.description,
-                placeholder: Localization.TextFields.Email.placeholder,
-                leadingAccessory: AppAssets.Shared.sharedEmailIcon.imageSwiftUI,
-                state: emailTextFieldState,
-                tapDestination: .textField(keyboardActiveField = .email)
-            )
-            .focused($keyboardActiveField, equals: .email)
-            .textContentType(.emailAddress)
-            .keyboardType(.emailAddress)
-            .textInputAutocapitalization(.never)
-            .submitLabel(.next)
-
-            // phone
-            AppPhoneNumberTextField(
-                text: phone,
-                description: Localization.TextFields.PhoneNumber.description,
-                state: phoneTextFieldState
-            )
-            .focused($keyboardActiveField, equals: .phone)
-            .textContentType(.telephoneNumber)
-            .submitLabel(.next)
+            switch viewModel.selectedContactIdentifierType {
+                case .email:
+                    emailTextField()
+                case .phone:
+                    phoneTextField()
+            }
 
             // pass
             AppTextField(
@@ -241,6 +236,33 @@ private extension ModuleView {
             .submitLabel(.done)
         }
         .onSubmit(focusNextField)
+    }
+
+    @ViewBuilder func emailTextField() -> some View {
+        AppTextField(
+            text: email,
+            description: Localization.TextFields.Email.description,
+            placeholder: Localization.TextFields.Email.placeholder,
+            leadingAccessory: AppAssets.Shared.sharedEmailIcon.imageSwiftUI,
+            state: emailTextFieldState,
+            tapDestination: .textField(keyboardActiveField = .email)
+        )
+        .focused($keyboardActiveField, equals: .email)
+        .textContentType(.emailAddress)
+        .keyboardType(.emailAddress)
+        .textInputAutocapitalization(.never)
+        .submitLabel(.next)
+    }
+
+    @ViewBuilder func phoneTextField() -> some View {
+        AppPhoneNumberTextField(
+            text: phone,
+            description: Localization.TextFields.PhoneNumber.description,
+            state: phoneTextFieldState
+        )
+        .focused($keyboardActiveField, equals: .phone)
+        .textContentType(.telephoneNumber)
+        .submitLabel(.next)
     }
 
     @ViewBuilder func socialLoginButtons() -> some View {
@@ -318,9 +340,7 @@ private extension ModuleView {
 private extension ModuleView {
     func focusNextField() {
         switch keyboardActiveField {
-            case .email:
-                keyboardActiveField = .phone
-            case .phone:
+            case .email, .phone:
                 keyboardActiveField = .password
             case .password:
                 keyboardActiveField = .confirmPassword
@@ -362,13 +382,6 @@ private extension ModuleView {
 
     func didTapChangeLanguage() {
         navigator.presentSheet(.changeLanguage)
-    }
-
-    func didTapVerifyEmail() {
-        viewModel.didTapVerifyEmail()
-    }
-    func didTapVerifyPhone() {
-        viewModel.didTapVerifyPhone()
     }
 }
 

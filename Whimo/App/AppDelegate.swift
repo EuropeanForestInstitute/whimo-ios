@@ -36,6 +36,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
     @Inject(\.database) private var database
     @Inject(\.tokenManager) private var tokenManager
     @Inject(\.firebaseService) private var firebaseService
+    @Inject(\.remoteConfigService) private var remoteConfigService
     @Inject(\.userNotificationsService) private var userNotificationsService
     @Inject(\.tokenRegistryService) private var tokenRegistryService
     @Inject(\.userAgentService) private var userAgentService
@@ -47,6 +48,12 @@ class AppDelegate: NSObject, UIApplicationDelegate {
     ) -> Bool {
         log.debug()
         firebaseService.configure()
+        remoteConfigService.configure()
+
+        Task {
+            await remoteConfigService.fetchAndActivate()
+        }
+
         Messaging.messaging().delegate = self
         UNUserNotificationCenter.current().delegate = userNotificationsService
 

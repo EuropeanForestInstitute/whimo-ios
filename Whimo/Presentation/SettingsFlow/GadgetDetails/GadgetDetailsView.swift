@@ -60,14 +60,12 @@ extension Module {
                         return viewModel.newGadget.identifier
                     case .phone:
                         let identifier = viewModel.newGadget.identifier
-                        if identifier.count <= 1 {
-                            return identifier
-                        } else {
-                            return "+\(identifier)"
-                        }
+                        return Module.phoneTextFieldValue(for: identifier)
                 }
             } set: { newValue in
                 let gadget = viewModel.newGadget
+                guard newValue != gadget.identifier else { return }
+
                 viewModel.newGadget = .init(
                     identifier: newValue,
                     type: gadget.type,
@@ -119,6 +117,15 @@ extension Module {
             }
         }
 
+        private var isPhoneEditable: Bool {
+            switch viewModel.screenMode {
+                case .addGadget, .verifyGadget:
+                    return true
+                case .editGadget:
+                    return viewModel.canEditGadget
+            }
+        }
+
         // MARK: - Init
         init(gadgets: NonEmptyArray<UserModel.GadgetModel>) {
             self._viewModel = .init(wrappedValue: .init(gadgets: gadgets))
@@ -133,6 +140,14 @@ extension Module {
                     viewModel.setKeyboardActiveField(newValue)
                 }
         }
+    }
+}
+
+extension Module {
+    static func phoneTextFieldValue(for identifier: String) -> String {
+        guard identifier.count > 1, !identifier.hasPrefix("+") else { return identifier }
+
+        return "+\(identifier)"
     }
 }
 
@@ -167,7 +182,7 @@ private extension ModuleView {
                     description: textFieldType.description,
                     placeholder: textFieldType.placeholder,
                     leadingAccessory: textFieldType.leadingAccessory,
-                    state: viewModel.screenMode == .addGadget ? .default :
+                    state: viewModel.screenMode == .addGadget ? emailTextFieldState :
                            viewModel.screenMode == .editGadget && viewModel.canEditGadget ? emailTextFieldState : .disabled
                 )
                 .focused($keyboardActiveField, equals: .gadgetId)
@@ -179,8 +194,7 @@ private extension ModuleView {
                 AppPhoneNumberTextField(
                     text: gadgetId,
                     description: textFieldType.description,
-                    state: viewModel.screenMode == .addGadget ? .default :
-                           viewModel.screenMode == .editGadget && viewModel.canEditGadget ? phoneTextFieldState : .disabled
+                    state: isPhoneEditable ? phoneTextFieldState : .disabled
                 )
                 .focused($keyboardActiveField, equals: .gadgetId)
                 .textContentType(.telephoneNumber)

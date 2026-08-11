@@ -72,6 +72,7 @@ extension Module {
         // MARK: - Dependencies
         @Inject(\.appState) private var appState
         @Inject(\.profileRemoteRepository) private var profileRemoteRepository
+        @Inject(\.remoteConfigService) private var remoteConfigService
 
         // MARK: - Init
         init(gadgets: NonEmptyArray<UserModel.GadgetModel>) {
@@ -90,6 +91,8 @@ extension Module {
         func didTapVerifyGadget() async {
             switch screenMode {
                 case .addGadget:
+                    guard canSaveCurrentGadget() else { return }
+
                     appState.system[\.isLoading] = true
                     defer { appState.system[\.isLoading] = false }
 
@@ -98,8 +101,25 @@ extension Module {
 
                     await verifyGadget(gadget: newGadget)
                 case .verifyGadget:
+                    guard canSaveCurrentGadget() else { return }
+
+                    let oldGadget = ViewModel.getPrimaryGadget(gadgets: gadgets)
+                    guard hasGadgetChanges(newGadget, from: oldGadget) else {
+                        await verifyGadget(gadget: newGadget)
+                        return
+                    }
+
+                    appState.system[\.isLoading] = true
+                    defer { appState.system[\.isLoading] = false }
+
+                    let newGadget = newGadget
+                    let success = await changeGadget(newGadget: newGadget, oldGadget: oldGadget)
+                    guard success else { return }
+
                     await verifyGadget(gadget: newGadget)
                 case .editGadget:
+                    guard canSaveCurrentGadget() else { return }
+
                     appState.system[\.isLoading] = true
                     defer { appState.system[\.isLoading] = false }
 
@@ -116,26 +136,49 @@ extension Module {
 
 // MARK: - Private Methods
 private extension ViewModel {
+    func canSaveCurrentGadget() -> Bool {
+        let error: Error?
+        switch newGadget.type {
+            case .email:
+                error = emailValidator.isValid(newGadget.identifier)
+            case .phone:
+                error = phoneValidationError(newGadget.identifier)
+        }
+
+        validationErrors[.gadgetId] = error
+        return error == nil
+    }
+
+    func phoneValidationError(_ phone: String) -> Error? {
+        if let error = phoneNumberValidator.isValid(phone) {
+            return error
+        }
+
+        let availability = phoneNumberValidator.verificationAvailability(
+            for: phone,
+            policy: remoteConfigService.registrationPhoneRegionPolicy
+        )
+        return availability == .available ? nil : PhoneVerificationError.settingsUnavailable
+    }
+
     func setupBinding() {
         $newGadget
             .sink { [weak self] newGadget in
                 guard let self else { return }
 
+                self.updatePhoneVerificationValidation(for: newGadget)
                 let success: Bool
-                let hasChanges: Bool
                 let primaryGadget = ViewModel.getPrimaryGadget(gadgets: gadgets)
                 switch newGadget.type {
                     case .email:
-                        hasChanges = primaryGadget.identifier != newGadget.identifier
                         success = self.emailValidator.isValid(newGadget.identifier) == nil
                     case .phone:
-                        let primaryFormatted = (try? phoneNumberFormatter.string(from: primaryGadget.identifier)) ?? ""
-                        let newFormatted = (try? phoneNumberFormatter.string(from: newGadget.identifier)) ?? ""
-                        hasChanges = primaryFormatted != newFormatted
-                        success = self.phoneNumberValidator.isValid(newGadget.identifier) == nil
+                        success = self.phoneValidationError(newGadget.identifier) == nil
                 }
+                let hasChanges = self.hasGadgetChanges(newGadget, from: primaryGadget)
+                let canSubmit = self.screenMode == .verifyGadget || hasChanges
                 Task { @MainActor in
-                    self.isSaveButtonEnabled = success && hasChanges
+                    self.isSaveButtonEnabled = success && canSubmit
                 }
             }
             .store(in: cancellable)
@@ -151,13 +194,47 @@ private extension ViewModel {
                             case .email:
                                 self.validationErrors[.gadgetId] = self.emailValidator.isValid(newGadget.identifier)
                             case .phone:
-                                self.validationErrors[.gadgetId] = self.phoneNumberValidator.isValid(newGadget.identifier)
+                                self.validationErrors[.gadgetId] = self.phoneValidationError(newGadget.identifier)
                         }
                     default:
                         return
                 }
             }
             .store(in: cancellable)
+    }
+
+    func updatePhoneVerificationValidation(for gadget: UserModel.GadgetModel) {
+        guard gadget.type == .phone else {
+            if validationErrors[.gadgetId] is PhoneVerificationError {
+                validationErrors[.gadgetId] = nil
+            }
+            return
+        }
+
+        guard let error = phoneValidationError(gadget.identifier) as? PhoneVerificationError else {
+            if validationErrors[.gadgetId] is PhoneVerificationError {
+                validationErrors[.gadgetId] = nil
+            }
+            return
+        }
+
+        validationErrors[.gadgetId] = error
+    }
+
+    func hasGadgetChanges(
+        _ newGadget: UserModel.GadgetModel,
+        from oldGadget: UserModel.GadgetModel
+    ) -> Bool {
+        guard newGadget.type == oldGadget.type else { return true }
+
+        switch newGadget.type {
+            case .email:
+                return newGadget.identifier != oldGadget.identifier
+            case .phone:
+                let oldFormatted = (try? phoneNumberFormatter.string(from: oldGadget.identifier)) ?? ""
+                let newFormatted = (try? phoneNumberFormatter.string(from: newGadget.identifier)) ?? ""
+                return oldFormatted != newFormatted
+        }
     }
 
     // MARK: - Common

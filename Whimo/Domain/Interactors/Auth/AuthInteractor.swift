@@ -28,10 +28,8 @@
 import Foundation
 
 protocol AuthInteractor: AnyObject {
-    typealias AuthMethod = AuthRepositoryImpl.AuthMethod
-
-    func signUp(authMethods: Set<AuthMethod>, password: String) async throws
-    func signIn(authMethod: AuthMethod, password: String) async throws -> AuthInteractorImpl.SignInResult
+    func signUp(contactIdentifier: ContactIdentifier, password: String) async throws
+    func signIn(contactIdentifier: ContactIdentifier, password: String) async throws -> AuthInteractorImpl.SignInResult
     func signInWithApple() async throws -> UserModel
     func signInWithGoogle() async throws -> UserModel
 

@@ -186,16 +186,19 @@ private extension ViewModel {
 
     func signInRequest(credentials: Module.Credentials) async -> AuthInteractorImpl.SignInResult? {
         do {
-            let authMethod: AuthRepositoryImpl.AuthMethod
+            let contactIdentifier: ContactIdentifier
             switch credentials {
                 case .email(let username, _):
-                    authMethod = .email(username)
+                    contactIdentifier = .email(username)
                 case .phone(let username, _):
                     let formattedPhone = try phoneNumberFormatter.string(from: username)
-                    authMethod = .phone(formattedPhone)
+                    contactIdentifier = .phone(formattedPhone)
             }
 
-            let result = try await authInteractor.signIn(authMethod: authMethod, password: credentials.password)
+            let result = try await authInteractor.signIn(
+                contactIdentifier: contactIdentifier,
+                password: credentials.password
+            )
             return result
         } catch {
             log.debug("error: \(error). \nlocalizedDescription:\(error.localizedDescription)")

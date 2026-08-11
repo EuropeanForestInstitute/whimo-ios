@@ -64,13 +64,13 @@ final class AuthInteractorImpl: AuthInteractor {
     }
 
     // MARK: - AuthInteractor
-    func signUp(authMethods: Set<AuthMethod>, password: String) async throws {
-        try await authRepository.signUp(authMethods: authMethods, password: password)
+    func signUp(contactIdentifier: ContactIdentifier, password: String) async throws {
+        try await authRepository.signUp(contactIdentifier: contactIdentifier, password: password)
     }
 
-    func signIn(authMethod: AuthMethod, password: String) async throws -> SignInResult {
+    func signIn(contactIdentifier: ContactIdentifier, password: String) async throws -> SignInResult {
         do {
-            try await authRepository.signIn(authMethod: authMethod, password: password)
+            try await authRepository.signIn(contactIdentifier: contactIdentifier, password: password)
             userDefaultsStore.set(true, key: .isLoggedIn)
         } catch RestClient.RestError.clientError(_, let code) where code == .forbidden {
             return .verifyGadget

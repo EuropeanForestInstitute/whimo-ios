@@ -33,8 +33,7 @@ extension AppContainer {
         self {
             AuthRepositoryImpl(
                 authTarget: self.authTarget.resolve(),
-                tokenManager: self.tokenManager.resolve(),
-                userDefaultsStore: self.userDefaultsStore.resolve()
+                tokenManager: self.tokenManager.resolve()
             )
         }
     }
