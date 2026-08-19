@@ -1,0 +1,41 @@
+input_dir: Sources/Resources/
+output_dir: ${DERIVED_SOURCES_DIR}
+
+# Strings
+strings:
+  - inputs: Localization/en.lproj/Localizable.strings
+    outputs:
+      - templatePath: ../../templates/swiftgen_templates/strings/locale.stencil
+        output: AppLocale.generated.swift
+        params:
+          enumName: AppLocale
+          publicAccess: true
+
+# Assets
+xcassets:
+  - inputs:
+    - Assets.xcassets
+    outputs:
+      - templatePath: ../../templates/swiftgen_templates/assets/assets.stencil
+        output: AppAssets.generated.swift
+        params:
+          enumName: AppAssets
+          publicAccess: true
+  - inputs: Colors.xcassets
+    outputs:
+      - templatePath: ../../templates/swiftgen_templates/assets/assets.stencil
+        output: AppColors.generated.swift
+        params:
+          enumName: AppColors
+          publicAccess: true
+
+# Fonts
+fonts:
+  - inputs: 
+    - Fonts
+    outputs:
+      - templatePath: ../../templates/swiftgen_templates/fonts/swift5.stencil
+        output: AppFonts.generated.swift
+        params:
+          enumName: AppFonts
+          publicAccess: true

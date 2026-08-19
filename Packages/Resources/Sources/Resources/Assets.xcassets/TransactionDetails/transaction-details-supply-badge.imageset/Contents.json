@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "transaction-details-supply-badge.pdf",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}
