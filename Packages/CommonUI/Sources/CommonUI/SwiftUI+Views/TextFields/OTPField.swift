@@ -53,12 +53,17 @@ public struct OTPField: View {
     // MARK: - Private Properties
     @State private var otpArray: [String]
     @State private var oldOtpArray: [String]
-    @FocusState private var fieldFocus: Int?
+    private var fieldFocus: FocusState<Int?>.Binding
 
     // MARK: - Init
-    public init(lenght: UInt8 = 4, otp: Binding<String>) {
+    public init(
+        lenght: UInt8 = 4,
+        otp: Binding<String>,
+        fieldFocus: FocusState<Int?>.Binding
+    ) {
         self.lenght = lenght
         self._otp = .init(projectedValue: otp)
+        self.fieldFocus = fieldFocus
         self.otpArray = .init(repeating: Constants.nullCharacter, count: Int(lenght))
         self.oldOtpArray = .init(repeating: Constants.nullCharacter, count: Int(lenght))
     }
@@ -115,7 +120,7 @@ private extension OTPField {
         .multilineTextAlignment(.center)
         .frame(width: 48)
         .keyboardType(.numberPad)
-        .focused($fieldFocus, equals: index)
+        .focused(fieldFocus, equals: index)
         .tag(index)
         .onChange(of: otpArray[index]) { [oldValue = otpArray[index]] newValue in
             self.oldOtpArray[index] = oldValue
@@ -126,9 +131,9 @@ private extension OTPField {
                     return
                 }
 
-                fieldFocus = max(.zero, (fieldFocus ?? .zero) - 1)
+                fieldFocus.wrappedValue = max(.zero, (fieldFocus.wrappedValue ?? .zero) - 1)
             } else if newValue != Constants.nullCharacter {
-                fieldFocus = (fieldFocus ?? .zero) + 1
+                fieldFocus.wrappedValue = (fieldFocus.wrappedValue ?? .zero) + 1
             }
         }
         .onReceive(Just(otpArray[index])) { newValue in
@@ -163,9 +168,10 @@ private extension OTPField {
 struct OTPField_Previews: PreviewProvider {
     private struct Container: View {
         @State private var otp: String = ""
+        @FocusState private var fieldFocus: Int?
 
         var body: some View {
-            OTPField(otp: $otp)
+            OTPField(otp: $otp, fieldFocus: $fieldFocus)
         }
     }
 

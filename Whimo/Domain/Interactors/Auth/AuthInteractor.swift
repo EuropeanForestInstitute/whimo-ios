@@ -27,6 +27,12 @@
 
 import Foundation
 
+// MARK: - AuthInteractorError
+enum AuthInteractorError: Error {
+    case contactIdentifierAlreadyExists
+}
+
+// MARK: - AuthInteractor
 protocol AuthInteractor: AnyObject {
     func signUp(contactIdentifier: ContactIdentifier, password: String) async throws
     func signIn(contactIdentifier: ContactIdentifier, password: String) async throws -> AuthInteractorImpl.SignInResult

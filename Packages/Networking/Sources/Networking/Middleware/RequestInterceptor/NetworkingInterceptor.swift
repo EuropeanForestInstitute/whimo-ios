@@ -56,17 +56,11 @@ final class BaseRequestInterceptor: RequestInterceptor {
         let language: LocalizeKeys = userDefaults.get(.currentLocalize) ?? .english
         urlRequest.headers.add(.acceptLanguage(language.code))
 
-        let headerData = try? JSONSerialization.data(
-            withJSONObject: urlRequest.allHTTPHeaderFields ?? [:],
-            options: .prettyPrinted
-        )
-        let header = headerData?.prettyPrintedJSONString ?? .init()
-
-        var message = "Request:"
-        message.append("\n🏃🏼‍♂️ \(urlRequest.httpMethod ?? "nil") \(urlRequest.debugDescription)")
-        message.append("\n🔸 Header: \(header)")
-        message.append("\n🔸 Parameters: \(urlRequest.httpBody?.prettyPrintedJSONString ?? "(RAW) \(urlRequest.httpBody?.toString ?? "")" as NSString)")
-        log.debug(message)
+        #if DEBUG
+        log.debug(NetworkRequestLogFormatter.message(for: urlRequest))
+        #else
+        log.debug("Request: \(urlRequest.httpMethod ?? "nil")")
+        #endif
 
         delegate.adapt(urlRequest, completion: completion)
     }
@@ -84,10 +78,7 @@ final class BaseRequestInterceptor: RequestInterceptor {
             return
         }
 
-        var message = "\n❌ Failure: \(request.description)"
-        message.append("\n🔄 Retry count: \(request.retryCount)")
-        message.append("\n🔸 Error: \(error). \(error.localizedDescription)")
-        log.error(message)
+        log.error("Request failed. Retry count: \(request.retryCount)")
 
         guard
             let delegate = delegate

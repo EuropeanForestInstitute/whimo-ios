@@ -28,6 +28,7 @@
 import SwiftUI
 import StorageKit
 import Utility
+import enum Resources.AppLocale
 import enum Resources.LocalizeKeys
 import class CommonUI.AlertManager
 
@@ -36,19 +37,32 @@ private typealias ViewModel = Module.ViewModel
 
 // MARK: - ViewModel
 extension Module {
+    @MainActor
     final class ViewModel: ViewModelProtocol {
         // MARK: - Public Properties
         @Published var gadgets: NonEmptyArray<UserModel.GadgetModel>
         @Published var otp: String = ""
+        @Published var isCaptchaPresented: Bool = false
 
         var selectedGadget: UserModel.GadgetModel { gadgets.first }
         var showChangeVerifyMethodButton: Bool { !gadgets.isSingle }
         var enableConfirmButton: Bool { otp.count == 6 }
+        var navigationTitle: String {
+            switch selectedGadget.type {
+                case .email:
+                    AppLocale.Otp.title
+                case .phone:
+                    AppLocale.Otp.smsTitle
+            }
+        }
 
         // MARK: - Private Properties
         @AppStorage(.currentLocalize)
         private var currentLocalize: LocalizeKeys = .english
         private var cancellable: CancelBag = .init()
+        private var pendingSendOperation: SendOperation?
+        private var approvedSendAttempt: ApprovedSendAttempt?
+        private var isProtectedRequestInFlight = false
 
         private let parrentFlow: ParrentFlow
 
@@ -127,27 +141,60 @@ extension Module {
             }
         }
 
-        func didTapResendCode() async {
-            appState.system[\.isLoading] = true
-            defer { appState.system[\.isLoading] = false }
-            let selectedGadget = self.selectedGadget
-
-            await interactor.sendOTP(gadget: selectedGadget)
+        func didTapResendCode() {
+            beginCaptchaChallenge(for: .resend(gadget: selectedGadget))
         }
 
-        func didTapSwitchGadget() async {
-            appState.system[\.isLoading] = true
-            defer { appState.system[\.isLoading] = false }
-            let selectedGadget = self.selectedGadget
+        func didTapSwitchGadget() {
+            beginCaptchaChallenge(for: .switchGadget(gadget: selectedGadget))
+        }
 
-            let success = await interactor.sendOTP(gadget: selectedGadget)
-            guard success else { return }
+        func didCompleteCaptchaChallenge(_ outcome: CaptchaChallengeModule.Outcome) {
+            guard let pendingSendOperation else { return }
+
+            self.pendingSendOperation = nil
+            isCaptchaPresented = false
+
+            switch outcome {
+                case .token(let token):
+                    approvedSendAttempt = .init(
+                        operation: pendingSendOperation,
+                        captchaToken: token
+                    )
+                case .cancelled:
+                    approvedSendAttempt = nil
+                    if pendingSendOperation.isInitial {
+                        appState.navigation.dispatch { state in
+                            guard !state.path.isEmpty else { return }
+
+                            state.path.removeLast()
+                        }
+                    }
+                case .failure:
+                    approvedSendAttempt = nil
+            }
+        }
+
+        @discardableResult
+        func didDismissCaptchaChallenge() async -> Bool {
+            guard let approvedSendAttempt else { return false }
+
+            self.approvedSendAttempt = nil
+            isProtectedRequestInFlight = true
+            defer { isProtectedRequestInFlight = false }
+
+            let success = await sendProtectedOTP(for: approvedSendAttempt)
+            guard success else { return false }
+
+            guard approvedSendAttempt.operation.switchesGadget else { return true }
 
             await MainActor.run {
                 withAnimation(.snappy) {
                     gadgets = NonEmptyArray(gadgets.elements.reversed()) ?? gadgets
                 }
             }
+
+            return true
         }
     }
 }
@@ -156,13 +203,29 @@ extension Module {
 private extension ViewModel {
     // MARK: - Setup
     func startup() {
-        Task { [weak self] in
-            guard let self else { return }
+        beginCaptchaChallenge(for: .initial(gadget: selectedGadget))
+    }
 
-            let selectedGadget = self.selectedGadget
+    // MARK: - Captcha
+    func beginCaptchaChallenge(for operation: SendOperation) {
+        guard
+            pendingSendOperation == nil,
+            approvedSendAttempt == nil,
+            !isProtectedRequestInFlight
+        else { return }
 
-            await self.interactor.sendOTP(gadget: selectedGadget)
-        }
+        pendingSendOperation = operation
+        isCaptchaPresented = true
+    }
+
+    func sendProtectedOTP(for attempt: ApprovedSendAttempt) async -> Bool {
+        appState.system[\.isLoading] = true
+        defer { appState.system[\.isLoading] = false }
+
+        return await interactor.sendOTP(
+            gadget: attempt.operation.gadget,
+            captchaToken: attempt.captchaToken
+        )
     }
 
     // MARK: - Common
@@ -185,5 +248,40 @@ private extension ViewModel {
         }
 
         return false
+    }
+}
+
+// MARK: - Captcha Send State
+private extension ViewModel {
+    enum SendOperation {
+        case initial(gadget: UserModel.GadgetModel)
+        case resend(gadget: UserModel.GadgetModel)
+        case switchGadget(gadget: UserModel.GadgetModel)
+
+        var gadget: UserModel.GadgetModel {
+            switch self {
+                case .initial(let gadget), .resend(let gadget), .switchGadget(let gadget):
+                    gadget
+            }
+        }
+
+        var switchesGadget: Bool {
+            if case .switchGadget = self {
+                return true
+            }
+            return false
+        }
+
+        var isInitial: Bool {
+            if case .initial = self {
+                return true
+            }
+            return false
+        }
+    }
+
+    struct ApprovedSendAttempt {
+        let operation: SendOperation
+        let captchaToken: String
     }
 }

@@ -356,7 +356,8 @@ private extension NetworkingSession {
                             let rawError: RawError = try decodeRawError(data)
                             return .failure(.clientError(
                                 message: rawError.message,
-                                code: status
+                                statusCode: status,
+                                serverErrorCode: rawError.code
                             ))
                         } catch {
                             return .failure(.decodingError(error))
@@ -366,7 +367,8 @@ private extension NetworkingSession {
                             let rawError: RawError = try decodeRawError(data)
                             return .failure(.serverError(
                                 message: rawError.message,
-                                code: status
+                                statusCode: status,
+                                serverErrorCode: rawError.code
                             ))
                         } catch {
                             return .failure(.decodingError(error))
@@ -428,7 +430,8 @@ private extension NetworkingSession {
                             let rawError: RawError = try decodeRawError(data)
                             return .failure(.clientError(
                                 message: rawError.message,
-                                code: status
+                                statusCode: status,
+                                serverErrorCode: rawError.code
                             ))
                         } catch {
                             return .failure(.decodingError(error))
@@ -438,7 +441,8 @@ private extension NetworkingSession {
                             let rawError: RawError = try decodeRawError(data)
                             return .failure(.serverError(
                                 message: rawError.message,
-                                code: status
+                                statusCode: status,
+                                serverErrorCode: rawError.code
                             ))
                         } catch {
                             return .failure(.decodingError(error))

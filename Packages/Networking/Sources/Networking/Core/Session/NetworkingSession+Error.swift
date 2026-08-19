@@ -33,8 +33,16 @@ extension NetworkingSession {
         /// `URLSessionTask` completed with unknown response.
         case unknown
         case some(Swift.Error)
-        case clientError(message: String, code: HTTPURLResponse.HTTPStatusCode)
-        case serverError(message: String, code: HTTPURLResponse.HTTPStatusCode)
+        case clientError(
+            message: String,
+            statusCode: HTTPURLResponse.HTTPStatusCode,
+            serverErrorCode: ServerErrorCode?
+        )
+        case serverError(
+            message: String,
+            statusCode: HTTPURLResponse.HTTPStatusCode,
+            serverErrorCode: ServerErrorCode?
+        )
         case decodingError(Swift.Error)
         case connectionLost
         /// `URLSessionTask` completed with error. Indicated low level connection issues.
@@ -50,10 +58,10 @@ extension NetworkingSession {
                     return "Unknown error."
                 case let .some(error):
                     return error.localizedDescription
-                case let .clientError(message, code):
-                    return "CLIENT ERROR. Code: \(code.rawValue). \(message)"
-                case let .serverError(message, code):
-                    return "SERVER ERROR. Code: \(code.rawValue). \(message)"
+                case let .clientError(message, statusCode, _):
+                    return "CLIENT ERROR. Code: \(statusCode.rawValue). \(message)"
+                case let .serverError(message, statusCode, _):
+                    return "SERVER ERROR. Code: \(statusCode.rawValue). \(message)"
                 case let .decodingError(error):
                     return "Decoding error. \(error)"
                 case .connectionLost:

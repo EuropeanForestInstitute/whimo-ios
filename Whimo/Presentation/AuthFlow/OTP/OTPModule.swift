@@ -45,6 +45,6 @@ protocol OTPViewModelProtocol: ObservableObject { }
 // MARK: - OTPInteractorProtocol
 protocol OTPInteractorProtocol: AnyObject {
     @discardableResult
-    func sendOTP(gadget: UserModel.GadgetModel) async -> Bool
+    func sendOTP(gadget: UserModel.GadgetModel, captchaToken: String) async -> Bool
     func verifyOTP(gadget: UserModel.GadgetModel, otp: String) async -> Bool
 }

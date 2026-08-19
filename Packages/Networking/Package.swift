@@ -67,6 +67,10 @@ let package = Package(
         .target(
             name: "Targets",
             dependencies: ["RestClient"]
+        ),
+        .testTarget(
+            name: "NetworkingTests",
+            dependencies: ["RestClient", "Targets"]
         )
     ],
     swiftLanguageModes: [.v5]

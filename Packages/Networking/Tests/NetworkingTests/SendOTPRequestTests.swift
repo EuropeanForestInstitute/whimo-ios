@@ -1,8 +1,8 @@
 //
-//  NetworkingTests.swift
+//  SendOTPRequestTests.swift
 //  Whimo
 //
-//  Copyright (c) 2025 EFI https://efi.int/
+//  Copyright (c) 2026 EFI https://efi.int/
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a copy
 //  of this software and associated documentation files (the "Software"), to deal
@@ -22,15 +22,30 @@
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 //  SOFTWARE.
 //
+
 import XCTest
-@testable import Networking
+import Foundation
+import RestClient
+import Targets
 
-final class NetworkingTests: XCTestCase {
-    func testExample() throws {
-        // XCTest Documentation
-        // https://developer.apple.com/documentation/xctest
+final class SendOTPRequestTests: XCTestCase {
+    func testProtectedOTPRequestEncodesIdentifierAndCaptchaToken() throws {
+        let request = RequestModels.SendOTP(
+            identifier: "participant@example.com",
+            captchaToken: "one-use-token"
+        )
 
-        // Defining Test Cases and Test Methods
-        // https://developer.apple.com/documentation/xctest/defining_test_cases_and_test_methods
+        let data = try JSONEncoder().encode(request)
+        let payload = try XCTUnwrap(
+            JSONSerialization.jsonObject(with: data) as? [String: String]
+        )
+
+        XCTAssertEqual(
+            payload,
+            [
+                "identifier": "participant@example.com",
+                "captcha_token": "one-use-token"
+            ]
+        )
     }
 }

@@ -145,6 +145,11 @@
 "register.contactIdentifierSubtitle.email" = "Enter email address to create your account.";
 "register.contactIdentifierSubtitle.phone" = "Enter phone number to create your account.";
 
+"register.alreadyRegistered.title" = "Already registered";
+"register.alreadyRegistered.email" = "This email address is already registered. Try logging in.";
+"register.alreadyRegistered.phone" = "This phone number is already registered. Try logging in.";
+"register.alreadyRegistered.button.ok" = "OK";
+
 "register.textFields.email.description" = "Email";
 "register.textFields.email.placeholder" = "Enter email";
 
@@ -198,8 +203,13 @@
 "createPassword.toast.passwordsMissmatch.message" = "Entered passwords doesn't match.";
 "createPassword.toast.passwordsUpdated.message" = "Password updated successfully.";
 
+// MARK: - Captcha Challenge
+"captchaChallenge.close" = "Close";
+"captchaChallenge.error" = "We couldn't load the captcha. Please try again.";
+
 // MARK: - OTP
 "otp.title" = "Check your email inbox";
+"otp.smsTitle" = "Check your SMS";
 "otp.subtitle" = "We sent you a code to %@ to restore access to your account.";
 
 "otp.buttons.confirm" = "Confirm";

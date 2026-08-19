@@ -65,14 +65,20 @@ final class AuthInteractorImpl: AuthInteractor {
 
     // MARK: - AuthInteractor
     func signUp(contactIdentifier: ContactIdentifier, password: String) async throws {
-        try await authRepository.signUp(contactIdentifier: contactIdentifier, password: password)
+        do {
+            try await authRepository.signUp(contactIdentifier: contactIdentifier, password: password)
+        } catch let error as RestClient.RestError
+            where error.serverErrorCode == .registrationGadgetAlreadyExists {
+            throw AuthInteractorError.contactIdentifierAlreadyExists
+        }
     }
 
     func signIn(contactIdentifier: ContactIdentifier, password: String) async throws -> SignInResult {
         do {
             try await authRepository.signIn(contactIdentifier: contactIdentifier, password: password)
             userDefaultsStore.set(true, key: .isLoggedIn)
-        } catch RestClient.RestError.clientError(_, let code) where code == .forbidden {
+        } catch RestClient.RestError.clientError(_, let statusCode, _)
+            where statusCode == .forbidden {
             return .verifyGadget
         } catch {
             throw error

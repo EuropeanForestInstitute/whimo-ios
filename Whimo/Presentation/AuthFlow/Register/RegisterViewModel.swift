@@ -28,6 +28,7 @@
 import Foundation
 import Utility
 import Resources
+import class CommonUI.AlertManager
 
 private typealias Module = RegisterModule
 private typealias ViewModel = Module.ViewModel
@@ -64,6 +65,7 @@ extension Module {
 
         // MARK: - Dependencies
         @Inject(\.appState) private var appState
+        @Inject(\.alertManager) private var alertManager
         @Inject(\.authInteractor) private var authInteractor
         @Inject(\.remoteConfigService) private var remoteConfigService
         @Inject(\.tokenRegistryService) private var tokenRegistryService
@@ -126,7 +128,8 @@ extension Module {
 
             let success = await signUpRequest(
                 contactIdentifier: contactIdentifier.submittedValue,
-                password: credentials.password
+                password: credentials.password,
+                contactIdentifierType: contactIdentifierType
             )
             guard success else { return }
 
@@ -257,7 +260,8 @@ private extension ViewModel {
 
     func signUpRequest(
         contactIdentifier: ContactIdentifier,
-        password: String
+        password: String,
+        contactIdentifierType: Module.ContactIdentifierType
     ) async -> Bool {
         do {
             try await authInteractor.signUp(
@@ -266,6 +270,8 @@ private extension ViewModel {
             )
 
             return true
+        } catch AuthInteractorError.contactIdentifierAlreadyExists {
+            showAlreadyRegisteredAlert(for: contactIdentifierType)
         } catch {
             await reportRegistrationError(error)
         }
@@ -294,8 +300,29 @@ private extension ViewModel {
     }
 
     func reportRegistrationError(_ error: Error) async {
-        log.debug("error: \(error). \nlocalizedDescription:\(error.localizedDescription)")
         await appState.showError(message: error.localizedDescription)
+    }
+
+    func showAlreadyRegisteredAlert(for contactIdentifierType: Module.ContactIdentifierType) {
+        typealias Localization = AppLocale.Register.AlreadyRegistered
+
+        let message: String
+        switch contactIdentifierType {
+            case .email:
+                message = Localization.email
+            case .phone:
+                message = Localization.phone
+        }
+
+        let button: AlertManager.AlertModel.Button = .init(
+            title: Localization.Button.ok,
+            action: { [weak self] in self?.openLoginScreen() }
+        )
+        alertManager.show(.init(
+            title: Localization.title,
+            subtitle: message,
+            buttons: [button]
+        ))
     }
 
     func signInWithGoogleRequest() async -> Bool {
@@ -342,5 +369,9 @@ private extension ViewModel {
         tokenRegistryService.registerTokens()
         appState.navigation.send(.authorized)
         appState.navigation[\.path] = [.root(.tabBar, embedInNavigationView: true)]
+    }
+
+    func openLoginScreen() {
+        appState.navigation[\.path] = [.root(.login, embedInNavigationView: true)]
     }
 }

@@ -27,13 +27,15 @@ import Foundation
 import Combine
 import XCTest
 import FactoryKit
-import class CommonUI.ToastManager
+import Resources
+@testable import CommonUI
 @testable import Whimo
 
 @MainActor
 final class RegisterViewModelTests: XCTestCase {
     private var appState: RegisterAppStateTestDouble!
     private var authInteractor: RegisterAuthInteractorTestDouble!
+    private var alertManager: AlertManager!
 
     override func setUp() {
         super.setUp()
@@ -41,8 +43,9 @@ final class RegisterViewModelTests: XCTestCase {
         AppContainer.shared.manager.push()
         appState = .init()
         authInteractor = .init()
+        alertManager = .init()
 
-        guard let appState, let authInteractor else {
+        guard let appState, let authInteractor, let alertManager else {
             XCTFail("Test dependencies should be initialized")
             return
         }
@@ -52,6 +55,9 @@ final class RegisterViewModelTests: XCTestCase {
             .scope(.unique)
         AppContainer.shared.authInteractor
             .register { authInteractor }
+            .scope(.unique)
+        AppContainer.shared.alertManager
+            .register { alertManager }
             .scope(.unique)
         AppContainer.shared.remoteConfigService
             .register { RegisterRemoteConfigServiceTestDouble.supportingUnitedStates }
@@ -63,6 +69,7 @@ final class RegisterViewModelTests: XCTestCase {
 
     override func tearDown() {
         AppContainer.shared.manager.pop()
+        alertManager = nil
         authInteractor = nil
         appState = nil
 
@@ -255,6 +262,94 @@ final class RegisterViewModelTests: XCTestCase {
         XCTAssertNil(authInteractor.submittedContactIdentifier)
         XCTAssertTrue(appState.navigation.value.path.isEmpty)
     }
+
+    func testExistingEmailAlertOKReplacesNavigationWithLoginRoot() async throws {
+        authInteractor.signUpError = AuthInteractorError.contactIdentifierAlreadyExists
+        appState.navigation[\.path] = [
+            .root(.login, embedInNavigationView: true),
+            .push(.register)
+        ]
+        let viewModel = RegisterModule.ViewModel()
+        await updateCredentials(
+            of: viewModel,
+            to: .init(
+                email: "participant@example.com",
+                phone: "",
+                password: "Password1",
+                repeatPassword: "Password1",
+                isTermsAccepted: true
+            ),
+            expectingRegisterEnabled: true
+        )
+
+        await viewModel.didTapSignUp()
+        await drainMainQueue()
+
+        let alert = try XCTUnwrap(alertManager.models.last)
+        XCTAssertEqual(alert.title, AppLocale.Register.AlreadyRegistered.title)
+        XCTAssertEqual(alert.subtitle, AppLocale.Register.AlreadyRegistered.email)
+        XCTAssertEqual(alert.buttons.map(\.title), [AppLocale.Register.AlreadyRegistered.Button.ok])
+        XCTAssertEqual(appState.navigation.value.path.count, 2)
+
+        try XCTUnwrap(alert.buttons.first?.action)()
+
+        XCTAssertEqual(appState.navigation.value.path.count, 1)
+        guard case .login? = appState.navigation.value.path.first?.screen else {
+            XCTFail("Acknowledging the alert should replace the navigation root with Login")
+            return
+        }
+    }
+
+    func testExistingPhoneAlertUsesPhoneMessage() async throws {
+        authInteractor.signUpError = AuthInteractorError.contactIdentifierAlreadyExists
+        let viewModel = RegisterModule.ViewModel()
+        viewModel.selectContactIdentifierType(.phone)
+        await updateCredentials(
+            of: viewModel,
+            to: .init(
+                email: "",
+                phone: "+1 202 555 1234",
+                password: "Password1",
+                repeatPassword: "Password1",
+                isTermsAccepted: true
+            ),
+            expectingRegisterEnabled: true
+        )
+
+        await viewModel.didTapSignUp()
+        await drainMainQueue()
+
+        let alert = try XCTUnwrap(alertManager.models.last)
+        XCTAssertEqual(alert.subtitle, AppLocale.Register.AlreadyRegistered.phone)
+        XCTAssertTrue(appState.navigation.value.path.isEmpty)
+    }
+
+    func testOtherRegistrationErrorKeepsToastAndNavigation() async {
+        authInteractor.signUpError = RegisterTestError.registrationFailed
+        appState.navigation[\.path] = [
+            .root(.login, embedInNavigationView: true),
+            .push(.register)
+        ]
+        let viewModel = RegisterModule.ViewModel()
+        await updateCredentials(
+            of: viewModel,
+            to: .init(
+                email: "participant@example.com",
+                phone: "",
+                password: "Password1",
+                repeatPassword: "Password1",
+                isTermsAccepted: true
+            ),
+            expectingRegisterEnabled: true
+        )
+
+        await viewModel.didTapSignUp()
+        await drainMainQueue()
+
+        XCTAssertTrue(alertManager.models.isEmpty)
+        XCTAssertEqual(appState.errorMessages, [RegisterTestError.registrationFailed.localizedDescription])
+        XCTAssertEqual(appState.navigation.value.path.count, 2)
+    }
 }
 
 private extension RegisterViewModelTests {
@@ -306,10 +401,14 @@ private extension RegisterViewModelTests {
 private final class RegisterAuthInteractorTestDouble: AuthInteractor {
     private(set) var submittedContactIdentifier: ContactIdentifier?
     private(set) var submittedPassword: String?
+    var signUpError: Error?
 
     func signUp(contactIdentifier: ContactIdentifier, password: String) async throws {
         submittedContactIdentifier = contactIdentifier
         submittedPassword = password
+        if let signUpError {
+            throw signUpError
+        }
     }
 
     func signIn(
@@ -375,6 +474,7 @@ private final class RegisterAppStateTestDouble: AppState {
     let notifications: StateStore<NotificationsState> = .init(inititalValue: .test)
     let notificationsSettings: StateStore<NotificationsSettingsState> = .init(inititalValue: .test)
     let profile: StateStore<ProfileState> = .init(inititalValue: .test)
+    private(set) var errorMessages: [String] = []
 
     func showInfo(message: String, hapticsEnabled: Bool) { }
 
@@ -394,12 +494,24 @@ private final class RegisterAppStateTestDouble: AppState {
         message: String,
         button: ToastManager.ToastButton?,
         hapticsEnabled: Bool
-    ) { }
+    ) {
+        errorMessages.append(message)
+    }
 
     @MainActor
     func showError(
         message: String,
         button: ToastManager.ToastButton?,
         hapticsEnabled: Bool
-    ) async { }
+    ) async {
+        errorMessages.append(message)
+    }
+}
+
+private enum RegisterTestError: LocalizedError {
+    case registrationFailed
+
+    var errorDescription: String? {
+        "Registration failed."
+    }
 }

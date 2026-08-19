@@ -87,15 +87,18 @@ extension Module {
         // MARK: - Body
         var body: some View {
             content()
-                .applyNavigationBar(title: Localization.title)
+                .applyNavigationBar(title: viewModel.navigationTitle)
                 .background {
                     AppColors.Other.white.colorSwiftUI
                         .ignoresSafeArea()
                 }
-                .onAppear {
-                    withAnimation(.default.speed(1.25)) {
-                        fieldFocus = 0
-                    }
+                .fullScreenCover(
+                    isPresented: $viewModel.isCaptchaPresented,
+                    onDismiss: didDismissCaptchaChallenge
+                ) {
+                    CaptchaChallengeModule.assemble(
+                        onOutcome: viewModel.didCompleteCaptchaChallenge
+                    )
                 }
         }
     }
@@ -106,9 +109,11 @@ private extension ModuleView {
     @ViewBuilder func content() -> some View {
         VStack(spacing: 32) {
             subtitle()
-            OTPField(lenght: 6, otp: $viewModel.otp)
-                .focused($fieldFocus, equals: 0)
-                .allowsHitTesting(false)
+            OTPField(
+                lenght: 6,
+                otp: $viewModel.otp,
+                fieldFocus: $fieldFocus
+            )
             VStack(spacing: 16) {
                 AppButton(
                     title: Localization.Buttons.confirm,
@@ -169,11 +174,22 @@ private extension ModuleView {
     }
 
     func didTapResendCode() {
-        Task { await viewModel.didTapResendCode() }
+        fieldFocus = nil
+        viewModel.didTapResendCode()
     }
 
     func didTapSwitchGadget() {
-        Task { await viewModel.didTapSwitchGadget() }
+        fieldFocus = nil
+        viewModel.didTapSwitchGadget()
+    }
+
+    func didDismissCaptchaChallenge() {
+        Task { @MainActor in
+            let shouldFocusOTP = await viewModel.didDismissCaptchaChallenge()
+            guard shouldFocusOTP else { return }
+
+            fieldFocus = 0
+        }
     }
 }
 

@@ -31,9 +31,16 @@ import RestClient
 extension RequestModels {
     public struct SendOTP: Encodable {
         public let identifier: String
+        public let captchaToken: String
 
-        public init(identifier: String) {
+        public init(identifier: String, captchaToken: String) {
             self.identifier = identifier
+            self.captchaToken = captchaToken
+        }
+
+        private enum CodingKeys: String, CodingKey {
+            case identifier
+            case captchaToken = "captcha_token"
         }
     }
 }

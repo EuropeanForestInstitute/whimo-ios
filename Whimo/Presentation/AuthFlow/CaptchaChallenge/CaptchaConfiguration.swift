@@ -1,10 +1,8 @@
 //
-//  AuthRepository.swift
+//  CaptchaConfiguration.swift
 //  Whimo
 //
-//  Created by Vyacheslav Razumeenko on 22.05.2025.
-//
-//  Copyright (c) 2025 EFI https://efi.int/
+//  Copyright (c) 2026 EFI https://efi.int/
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a copy
 //  of this software and associated documentation files (the "Software"), to deal
@@ -27,18 +25,17 @@
 
 import Foundation
 
-protocol AuthRepository: AnyObject {
-    func signUp(contactIdentifier: ContactIdentifier, password: String) async throws
-    func signIn(contactIdentifier: ContactIdentifier, password: String) async throws
-    func signInWithGoogle(idToken: String) async throws
-    func signInWithApple(idToken: String, nonce: String) async throws
-
-    func sendOTP(gadgetId: String, captchaToken: String) async throws
-    func verifyOTP(gadgetId: String, code: String) async throws
-
-    func sendPasswordReset(gadgetId: String, captchaToken: String) async throws
-    func checkPasswordReset(gadgetId: String, code: String) async throws
-    func verifyPasswordReset(gadgetId: String, pass: String, code: String) async throws
-
-    func flush()
+// MARK: - CaptchaConfiguration
+enum CaptchaConfiguration {
+    static var formURL: URL {
+        #if DEBUG
+        return URL(string: "https://example.com/captcha")! // swiftlint:disable:this force_unwrapping
+        #elseif STAGE
+        return URL(string: "https://example.com/captcha")! // swiftlint:disable:this force_unwrapping
+        #elseif RELEASE
+        return URL(string: "https://example.com/captcha")! // swiftlint:disable:this force_unwrapping
+        #else
+        #error("Unsupported captcha build configuration")
+        #endif
+    }
 }

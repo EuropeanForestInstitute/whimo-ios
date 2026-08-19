@@ -119,7 +119,11 @@ private extension TokenManager {
             let isExpired = try? decode(jwt: refreshToken).expired,
             !isExpired
         else {
-            let error = NetworkingSession.RequestError.clientError(message: "User unauthorized.", code: .unauthorized)
+            let error = NetworkingSession.RequestError.clientError(
+                message: "User unauthorized.",
+                statusCode: .unauthorized,
+                serverErrorCode: nil
+            )
             completion(.failure(error))
             return
         }

@@ -1,10 +1,8 @@
 //
-//  AuthRepository.swift
+//  CaptchaChallengeModule.swift
 //  Whimo
 //
-//  Created by Vyacheslav Razumeenko on 22.05.2025.
-//
-//  Copyright (c) 2025 EFI https://efi.int/
+//  Copyright (c) 2026 EFI https://efi.int/
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a copy
 //  of this software and associated documentation files (the "Software"), to deal
@@ -25,20 +23,33 @@
 //  SOFTWARE.
 //
 
-import Foundation
+import SwiftUI
 
-protocol AuthRepository: AnyObject {
-    func signUp(contactIdentifier: ContactIdentifier, password: String) async throws
-    func signIn(contactIdentifier: ContactIdentifier, password: String) async throws
-    func signInWithGoogle(idToken: String) async throws
-    func signInWithApple(idToken: String, nonce: String) async throws
+// MARK: - CaptchaChallengeModule
+struct CaptchaChallengeModule {
+    enum Outcome: Equatable {
+        case token(String)
+        case cancelled
+        case failure
+    }
 
-    func sendOTP(gadgetId: String, captchaToken: String) async throws
-    func verifyOTP(gadgetId: String, code: String) async throws
+    static func assemble(
+        formURL: URL = CaptchaConfiguration.formURL,
+        onOutcome: @escaping (Outcome) -> Void
+    ) -> some View {
+        MainView(formURL: formURL, onOutcome: onOutcome)
+    }
 
-    func sendPasswordReset(gadgetId: String, captchaToken: String) async throws
-    func checkPasswordReset(gadgetId: String, code: String) async throws
-    func verifyPasswordReset(gadgetId: String, pass: String, code: String) async throws
-
-    func flush()
+    static func outcome(for effect: CaptchaChallengeSession.Effect) -> Outcome? {
+        switch effect {
+            case .noChange:
+                nil
+            case .finish(.token(let token)):
+                .token(token)
+            case .finish(.cancelled):
+                .cancelled
+            case .finish(.failure):
+                .failure
+        }
+    }
 }

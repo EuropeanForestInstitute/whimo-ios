@@ -30,7 +30,33 @@ import Foundation
 // MARK: - ServerError
 public typealias ServerError = Decodable & Error
 
-// MARK: - ErrorObject
+// MARK: - ServerErrorCode
+public struct ServerErrorCode: RawRepresentable, Hashable, Codable, Sendable {
+    public let rawValue: String
+
+    public init(rawValue: String) {
+        self.rawValue = rawValue
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        self.rawValue = try container.decode(String.self)
+    }
+
+    public func encode(to encoder: any Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(rawValue)
+    }
+}
+
+extension ServerErrorCode {
+    public static let registrationGadgetAlreadyExists: Self = .init(
+        rawValue: "registration.gadget_already_exists"
+    )
+}
+
+// MARK: - RawError
 public struct RawError: ServerError {
     public let message: String
+    public let code: ServerErrorCode?
 }

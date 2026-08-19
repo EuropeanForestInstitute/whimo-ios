@@ -36,8 +36,16 @@ extension RestClient {
     public enum RestError: LocalizedError {
         case unknown
         case error(message: String)
-        case clientError(message: String, code: HTTPURLResponse.HTTPStatusCode)
-        case serverError(message: String, code: HTTPURLResponse.HTTPStatusCode)
+        case clientError(
+            message: String,
+            statusCode: HTTPURLResponse.HTTPStatusCode,
+            serverErrorCode: ServerErrorCode?
+        )
+        case serverError(
+            message: String,
+            statusCode: HTTPURLResponse.HTTPStatusCode,
+            serverErrorCode: ServerErrorCode?
+        )
         case decodingError
         case connectionLost
         case redirected
@@ -48,9 +56,9 @@ extension RestClient {
                     Localization.unknown
                 case .error(let message):
                     message
-                case .clientError(let message, _):
+                case .clientError(let message, _, _):
                     message
-                case .serverError(let message, _):
+                case .serverError(let message, _, _):
                     message
                 case .decodingError:
                     Localization.decodingError
@@ -68,10 +76,18 @@ extension RestClient {
                     self = .unknown
                 case .some(let error):
                     self = .error(message: error.localizedDescription)
-                case .clientError(let message, let code):
-                    self = .clientError(message: "\(message)", code: code)
-                case .serverError(let message, let code):
-                    self = .serverError(message: "\(message)", code: code)
+                case .clientError(let message, let statusCode, let serverErrorCode):
+                    self = .clientError(
+                        message: message,
+                        statusCode: statusCode,
+                        serverErrorCode: serverErrorCode
+                    )
+                case .serverError(let message, let statusCode, let serverErrorCode):
+                    self = .serverError(
+                        message: message,
+                        statusCode: statusCode,
+                        serverErrorCode: serverErrorCode
+                    )
                 case .decodingError:
                     self = .decodingError
                 case .connectionLost:
@@ -82,6 +98,16 @@ extension RestClient {
                     self = .error(message: requestError.localizedDescription)
                 case .redirected:
                     self = .redirected
+            }
+        }
+
+        public var serverErrorCode: ServerErrorCode? {
+            switch self {
+                case .clientError(_, _, let serverErrorCode),
+                     .serverError(_, _, let serverErrorCode):
+                    serverErrorCode
+                default:
+                    nil
             }
         }
     }

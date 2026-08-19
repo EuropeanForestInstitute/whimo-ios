@@ -95,8 +95,8 @@ public final class RestClient: NetworkingSession, RestClientProtocol {
             return try await super.makeRequest(router)
         } catch let error as NetworkingSession.RequestError {
             switch error {
-                case .clientError(_, let code):
-                    if code == .unauthorized {
+                case .clientError(_, let statusCode, _):
+                    if statusCode == .unauthorized {
                         await clientErrorWorker?.unauthorized(
                             router.path,
                             method: router.method,
@@ -116,8 +116,8 @@ public final class RestClient: NetworkingSession, RestClientProtocol {
             return try await super.makeMultipartRequest(router)
         } catch let error as NetworkingSession.RequestError {
             switch error {
-                case .clientError(_, let code):
-                    if code == .unauthorized {
+                case .clientError(_, let statusCode, _):
+                    if statusCode == .unauthorized {
                         await clientErrorWorker?.unauthorized(
                             router.path,
                             method: router.method,
@@ -137,8 +137,8 @@ public final class RestClient: NetworkingSession, RestClientProtocol {
             return try await super.downloadRequest(router, to: destinationFolderURL)
         } catch let error as NetworkingSession.RequestError {
             switch error {
-                case .clientError(_, let code):
-                    if code == .unauthorized {
+                case .clientError(_, let statusCode, _):
+                    if statusCode == .unauthorized {
                         await clientErrorWorker?.unauthorized(
                             router.path,
                             method: router.method,

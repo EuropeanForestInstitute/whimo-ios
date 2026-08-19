@@ -41,8 +41,8 @@ extension Module.ViewModel {
 
         // MARK: - OTPInteractorProtocol
         @discardableResult
-        func sendOTP(gadget: UserModel.GadgetModel) async -> Bool {
-            await sendOTPRequest(gadget: gadget)
+        func sendOTP(gadget: UserModel.GadgetModel, captchaToken: String) async -> Bool {
+            await sendOTPRequest(gadget: gadget, captchaToken: captchaToken)
         }
 
         func verifyOTP(gadget: UserModel.GadgetModel, otp: String) async -> Bool {
@@ -57,9 +57,12 @@ extension Module.ViewModel {
 private extension SignUpInteractor {
     // MARK: - Requests
     @discardableResult
-    func sendOTPRequest(gadget: UserModel.GadgetModel) async -> Bool {
+    func sendOTPRequest(gadget: UserModel.GadgetModel, captchaToken: String) async -> Bool {
         do {
-            try await authRepository.sendOTP(gadgetId: gadget.identifier)
+            try await authRepository.sendOTP(
+                gadgetId: gadget.identifier,
+                captchaToken: captchaToken
+            )
             return true
         } catch {
             await appState.showError(message: error.localizedDescription)

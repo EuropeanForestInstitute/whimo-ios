@@ -91,8 +91,11 @@ final class AuthRepositoryImpl: AuthRepository {
         tokenManager.updateToken(tokenModel)
     }
 
-    func sendOTP(gadgetId: String) async throws {
-        let request: RequestModels.SendOTP = .init(identifier: gadgetId)
+    func sendOTP(gadgetId: String, captchaToken: String) async throws {
+        let request: RequestModels.SendOTP = .init(
+            identifier: gadgetId,
+            captchaToken: captchaToken
+        )
         try await authTarget.sendOTP(request)
     }
 
@@ -101,8 +104,11 @@ final class AuthRepositoryImpl: AuthRepository {
         try await authTarget.verifyOTP(request)
     }
 
-    func sendPasswordReset(gadgetId: String) async throws {
-        let request: RequestModels.SendOTP = .init(identifier: gadgetId)
+    func sendPasswordReset(gadgetId: String, captchaToken: String) async throws {
+        let request: RequestModels.SendOTP = .init(
+            identifier: gadgetId,
+            captchaToken: captchaToken
+        )
         try await authTarget.sendPasswordReset(request)
     }
 

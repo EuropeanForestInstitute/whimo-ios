@@ -45,6 +45,13 @@
       }
     },
     {
+      "target" : {
+        "containerPath" : "container:Packages\/Networking",
+        "identifier" : "NetworkingTests",
+        "name" : "NetworkingTests"
+      }
+    },
+    {
       "parallelizable" : true,
       "target" : {
         "containerPath" : "container:Whimo.xcodeproj",

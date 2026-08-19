@@ -1,10 +1,8 @@
 //
-//  AuthRepository.swift
-//  Whimo
+//  OTPViewModelTitleTests.swift
+//  WhimoTests
 //
-//  Created by Vyacheslav Razumeenko on 22.05.2025.
-//
-//  Copyright (c) 2025 EFI https://efi.int/
+//  Copyright (c) 2026 EFI https://efi.int/
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a copy
 //  of this software and associated documentation files (the "Software"), to deal
@@ -25,20 +23,32 @@
 //  SOFTWARE.
 //
 
-import Foundation
+import XCTest
+import Resources
+@testable import Whimo
 
-protocol AuthRepository: AnyObject {
-    func signUp(contactIdentifier: ContactIdentifier, password: String) async throws
-    func signIn(contactIdentifier: ContactIdentifier, password: String) async throws
-    func signInWithGoogle(idToken: String) async throws
-    func signInWithApple(idToken: String, nonce: String) async throws
+@MainActor
+final class OTPViewModelTitleTests: XCTestCase {
+    func testNavigationTitleMatchesSelectedContactIdentifierType() {
+        let email = UserModel.GadgetModel.unverified(
+            identifier: "participant@example.com",
+            type: .email
+        )
+        let phone = UserModel.GadgetModel.unverified(
+            identifier: "+996555123456",
+            type: .phone
+        )
 
-    func sendOTP(gadgetId: String, captchaToken: String) async throws
-    func verifyOTP(gadgetId: String, code: String) async throws
+        let emailViewModel = OTPModule.ViewModel(
+            parrentFlow: .manualVerification(),
+            gadgets: .init(email)
+        )
+        let phoneViewModel = OTPModule.ViewModel(
+            parrentFlow: .manualVerification(),
+            gadgets: .init(phone)
+        )
 
-    func sendPasswordReset(gadgetId: String, captchaToken: String) async throws
-    func checkPasswordReset(gadgetId: String, code: String) async throws
-    func verifyPasswordReset(gadgetId: String, pass: String, code: String) async throws
-
-    func flush()
+        XCTAssertEqual(emailViewModel.navigationTitle, AppLocale.Otp.title)
+        XCTAssertEqual(phoneViewModel.navigationTitle, AppLocale.Otp.smsTitle)
+    }
 }

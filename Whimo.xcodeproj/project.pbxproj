@@ -441,6 +441,14 @@
 		EFB80F03229142CC929ACBD3 /* ContactIdentifierTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4562E6DDFF04035A812C806 /* ContactIdentifierTests.swift */; };
 		F9ADE09F3B75469894CD23BE /* ContactIdentifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4BC876C30E0458080989E02 /* ContactIdentifier.swift */; };
 		4F1E00222F00000100A11C01 /* FirebaseRemoteConfig in Frameworks */ = {isa = PBXBuildFile; productRef = 4F1E00212F00000100A11C01 /* FirebaseRemoteConfig */; };
+		4FC000022F00000100C4A001 /* CaptchaChallengeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FC000012F00000100C4A001 /* CaptchaChallengeTests.swift */; };
+		4FC100022F00000100C4A001 /* OTPFlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FC100012F00000100C4A001 /* OTPFlowTests.swift */; };
+		4FC200022F00000100C4A001 /* OTPViewModelTitleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FC200012F00000100C4A001 /* OTPViewModelTitleTests.swift */; };
+		4FC000042F00000100C4A001 /* CaptchaConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FC000032F00000100C4A001 /* CaptchaConfiguration.swift */; };
+		4FC000062F00000100C4A001 /* CaptchaChallengeSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FC000052F00000100C4A001 /* CaptchaChallengeSession.swift */; };
+		4FC000082F00000100C4A001 /* CaptchaChallengeModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FC000072F00000100C4A001 /* CaptchaChallengeModule.swift */; };
+		4FC0000A2F00000100C4A001 /* CaptchaChallengeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FC000092F00000100C4A001 /* CaptchaChallengeView.swift */; };
+		4FC0000D2F00000100C4A001 /* CaptchaChallengeWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FC0000C2F00000100C4A001 /* CaptchaChallengeWebView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -908,6 +916,14 @@
 		4F1E00032F00000100A11C01 /* FirebaseRemoteConfigService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseRemoteConfigService.swift; sourceTree = "<group>"; };
 		4F1E00052F00000100A11C01 /* RemoteConfigServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteConfigServiceTests.swift; sourceTree = "<group>"; };
 		4F1E00062F00000100A11C01 /* GadgetDetailsViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GadgetDetailsViewModelTests.swift; sourceTree = "<group>"; };
+		4FC000012F00000100C4A001 /* CaptchaChallengeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptchaChallengeTests.swift; sourceTree = "<group>"; };
+		4FC100012F00000100C4A001 /* OTPFlowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OTPFlowTests.swift; sourceTree = "<group>"; };
+		4FC200012F00000100C4A001 /* OTPViewModelTitleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OTPViewModelTitleTests.swift; sourceTree = "<group>"; };
+		4FC000032F00000100C4A001 /* CaptchaConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptchaConfiguration.swift; sourceTree = "<group>"; };
+		4FC000052F00000100C4A001 /* CaptchaChallengeSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptchaChallengeSession.swift; sourceTree = "<group>"; };
+		4FC000072F00000100C4A001 /* CaptchaChallengeModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptchaChallengeModule.swift; sourceTree = "<group>"; };
+		4FC000092F00000100C4A001 /* CaptchaChallengeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptchaChallengeView.swift; sourceTree = "<group>"; };
+		4FC0000C2F00000100C4A001 /* CaptchaChallengeWebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptchaChallengeWebView.swift; sourceTree = "<group>"; };
 		A10200002F10000100A11C01 /* RegisterViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegisterViewModelTests.swift; sourceTree = "<group>"; };
 		A10300002F10000100A11C01 /* AuthRepositoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthRepositoryTests.swift; sourceTree = "<group>"; };
 		A10200022F10000100A11C01 /* Register+ContactIdentifierType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Register+ContactIdentifierType.swift"; sourceTree = "<group>"; };
@@ -1265,6 +1281,7 @@
 		45359FBC2EAA68E4007D82DB /* AuthFlow */ = {
 			isa = PBXGroup;
 			children = (
+				4FC0000B2F00000100C4A001 /* CaptchaChallenge */,
 				45359F992EAA68E4007D82DB /* CreatePassword */,
 				45359FA02EAA68E4007D82DB /* ForgotPassword */,
 				45359FA72EAA68E4007D82DB /* Login */,
@@ -1272,6 +1289,18 @@
 				45359FBB2EAA68E4007D82DB /* Register */,
 			);
 			path = AuthFlow;
+			sourceTree = "<group>";
+		};
+		4FC0000B2F00000100C4A001 /* CaptchaChallenge */ = {
+			isa = PBXGroup;
+			children = (
+				4FC000032F00000100C4A001 /* CaptchaConfiguration.swift */,
+				4FC000052F00000100C4A001 /* CaptchaChallengeSession.swift */,
+				4FC000072F00000100C4A001 /* CaptchaChallengeModule.swift */,
+				4FC000092F00000100C4A001 /* CaptchaChallengeView.swift */,
+				4FC0000C2F00000100C4A001 /* CaptchaChallengeWebView.swift */,
+			);
+			path = CaptchaChallenge;
 			sourceTree = "<group>";
 		};
 		45359FBF2EAA68E4007D82DB /* Views */ = {
@@ -2026,6 +2055,9 @@
 				45F616762EE0533600B1A5E3 /* PhoneNumberValidatorTests.swift */,
 				4F1E00052F00000100A11C01 /* RemoteConfigServiceTests.swift */,
 				4F1E00062F00000100A11C01 /* GadgetDetailsViewModelTests.swift */,
+				4FC000012F00000100C4A001 /* CaptchaChallengeTests.swift */,
+				4FC100012F00000100C4A001 /* OTPFlowTests.swift */,
+				4FC200012F00000100C4A001 /* OTPViewModelTitleTests.swift */,
 				A10200002F10000100A11C01 /* RegisterViewModelTests.swift */,
 			);
 			path = WhimoTests;
@@ -3353,6 +3385,9 @@
 				45D997BA2E72F4C50052F836 /* PasswordValidatorTests.swift in Sources */,
 				4F1E00142F00000100A11C01 /* RemoteConfigServiceTests.swift in Sources */,
 				4F1E00152F00000100A11C01 /* GadgetDetailsViewModelTests.swift in Sources */,
+				4FC000022F00000100C4A001 /* CaptchaChallengeTests.swift in Sources */,
+				4FC100022F00000100C4A001 /* OTPFlowTests.swift in Sources */,
+				4FC200022F00000100C4A001 /* OTPViewModelTitleTests.swift in Sources */,
 				A10200012F10000100A11C01 /* RegisterViewModelTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -3382,6 +3417,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4FC000042F00000100C4A001 /* CaptchaConfiguration.swift in Sources */,
+				4FC000062F00000100C4A001 /* CaptchaChallengeSession.swift in Sources */,
+				4FC000082F00000100C4A001 /* CaptchaChallengeModule.swift in Sources */,
+				4FC0000A2F00000100C4A001 /* CaptchaChallengeView.swift in Sources */,
+				4FC0000D2F00000100C4A001 /* CaptchaChallengeWebView.swift in Sources */,
 				F9ADE09F3B75469894CD23BE /* ContactIdentifier.swift in Sources */,
 				45C4433B2DFC79750087AF33 /* TransactionTraceabilityModel.swift in Sources */,
 				454CFC002E15C439003BB078 /* NotificationsSettingsRemoteRepository.swift in Sources */,
