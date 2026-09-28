@@ -73,9 +73,11 @@ enum Screen: AnyScreen {
     case inviteSeller
 
     // balance flow
+    case sourceTransactions(commodityId: String, seasonId: String)
+    case balanceDetails(row: SeasonalBalance, isCached: Bool)
     case groupBalanceDetails(commodityGroup: CommodityGroupModel)
-    case convertCommodityList(commodity: CommodityGroupModel.Commodity)
-    case convertCommodityDetails(commodity: CommodityGroupModel.Commodity, convertionRule: ConversionRuleModel)
+    case convertCommodityList(commodity: CommodityGroupModel.Commodity, season: HarvestSeason? = nil)
+    case convertCommodityDetails(commodity: CommodityGroupModel.Commodity, convertionRule: ConversionRuleModel, season: HarvestSeason? = nil)
 
     // settings flow
     case accountInfo

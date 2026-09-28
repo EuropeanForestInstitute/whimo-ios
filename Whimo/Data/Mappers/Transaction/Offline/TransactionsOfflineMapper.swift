@@ -104,12 +104,13 @@ struct TransactionsOfflineMapper: TransactionsOfflineMapperProtocol {
             transactionLatitude: .init(dto.transactionData.transactionLatitude ?? ""),
             transactionLongitude: .init(dto.transactionData.transactionLongitude ?? ""),
             volume: .init(dto.transactionData.volume) ?? .zero,
-            isBuyingFromFarmer: true,
+            isBuyingFromFarmer: dto.transactionData.isBuyingFromFarmer,
             commodityId: dto.transactionData.commodityId,
             sellerId: nil,
             buyerId: buyerId,
             createdById: buyerId,
-            persistingData: .onDisk(farmLocationFile: toDatabase(from: dto.uploadFile))
+            persistingData: .onDisk(farmLocationFile: toDatabase(from: dto.uploadFile)),
+            harvestSeasonId: dto.transactionData.harvestSeasonId
         )
     }
 
@@ -164,7 +165,8 @@ struct TransactionsOfflineMapper: TransactionsOfflineMapperProtocol {
             sellerId: sellerId,
             buyerId: buyerId,
             createdById: creatorId,
-            persistingData: .onDisk(farmLocationFile: toDatabase(from: dto.uploadFile))
+            persistingData: .onDisk(farmLocationFile: toDatabase(from: dto.uploadFile)),
+            harvestSeasonId: dto.transactionData.harvestSeasonId
         )
     }
 
@@ -213,8 +215,18 @@ struct TransactionsOfflineMapper: TransactionsOfflineMapperProtocol {
             farmLongitude: longitude,
             transactionLatitude: txLatitude,
             transactionLongitude: txLongitude,
-            isBuyingFromFarmer: dModel.isBuyingFromFarmer
+            recipient: toDTO(from: dModel.producerRecipient),
+            isBuyingFromFarmer: dModel.isBuyingFromFarmer,
+            harvestSeasonId: dModel.harvestSeasonId
         )
+    }
+
+    private func toDTO(from recipient: ContactIdentifier?) -> RequestModels.CreateTransaction.Producer.TransactionData.Recipient? {
+        switch recipient {
+            case .email(let value): .email(value)
+            case .phone(let value): .phone(value)
+            case .none: nil
+        }
     }
 
     func toDTO(from dModel: TransactionModel) -> RequestModels.CreateTransaction.Producer {
@@ -297,7 +309,8 @@ struct TransactionsOfflineMapper: TransactionsOfflineMapperProtocol {
             transactionLatitude: txLatitude,
             transactionLongitude: txLongitude,
             action: toDTO(from: dModel.action),
-            recipient: toDTO(from: dModel)
+            recipient: toDTO(from: dModel),
+            harvestSeasonId: dModel.harvestSeasonId
         )
     }
 

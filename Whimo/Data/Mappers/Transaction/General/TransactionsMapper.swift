@@ -34,11 +34,17 @@ struct TransactionsMapper: TransactionsMapperProtocol {
     // MARK: - Dependencies
     private let commoditiesGroupsMapper: CommoditiesGroupsMapperProtocol
     private let userMapper: UserMapperProtocol
+    private let seasonMapper: SeasonCatalogueMapperProtocol
 
     // MARK: - Init
-    init(commoditiesGroupsMapper: CommoditiesGroupsMapperProtocol, userMapper: UserMapperProtocol) {
+    init(
+        commoditiesGroupsMapper: CommoditiesGroupsMapperProtocol,
+        userMapper: UserMapperProtocol,
+        seasonMapper: SeasonCatalogueMapperProtocol
+    ) {
         self.commoditiesGroupsMapper = commoditiesGroupsMapper
         self.userMapper = userMapper
+        self.seasonMapper = seasonMapper
     }
 
     // MARK: - DTO -> Domain
@@ -134,7 +140,9 @@ struct TransactionsMapper: TransactionsMapperProtocol {
             seller: userMapper.toDomainOptional(dto: dto.seller),
             buyer: userMapper.toDomainOptional(dto: dto.buyer),
             createdById: dto.createdById,
-            persistingData: .sync()
+            persistingData: .sync(),
+            harvestSeasonId: dto.harvestSeason?.id,
+            harvestSeason: dto.harvestSeason.flatMap { try? seasonMapper.toDomain(from: $0) }
         )
     }
 
@@ -249,15 +257,37 @@ struct TransactionsMapper: TransactionsMapperProtocol {
             seller: userMapper.toDomain(from: dbModel.seller),
             buyer: userMapper.toDomain(from: dbModel.buyer),
             createdById: dbModel.transaction.createdById,
-            persistingData: toDomain(from: dbModel.transaction.persistingData)
+            persistingData: toDomain(from: dbModel.transaction.persistingData),
+            harvestSeasonId: dbModel.transaction.harvestSeasonId,
+            harvestSeason: toDomain(from: dbModel.transaction.harvestSeason),
+            producerRecipient: producerRecipient(from: dbModel.transaction.type)
         )
     }
 
+    private func producerRecipient(from type: DatabaseKit.Transaction.TransactionType) -> ContactIdentifier? {
+        guard case .producer(let recipient) = type else { return nil }
+
+        if let email = recipient?.email { return .email(email) }
+        if let phone = recipient?.phone { return .phone(phone) }
+        return nil
+    }
+
+    private func toDomain(from season: DatabaseKit.Transaction.HarvestSeason?) -> HarvestSeason? {
+        guard let season, let status = HarvestSeasonStatus(rawValue: season.status),
+              season.startDate < season.endDate else { return nil }
+
+        return .init(id: season.id, name: season.name, startDate: season.startDate, endDate: season.endDate, status: status)
+    }
+
     // MARK: - Domain -> Database
-    private func toDatabase(from dModel: TransactionModel.TransactionType) -> DatabaseKit.Transaction.TransactionType {
-        switch dModel {
+    private func toDatabaseType(from dModel: TransactionModel) -> DatabaseKit.Transaction.TransactionType {
+        switch dModel.type {
             case .producer:
-                return .producer()
+                switch dModel.producerRecipient {
+                    case .email(let value): return .producer(inviteRecipient: .email(value))
+                    case .phone(let value): return .producer(inviteRecipient: .phone(value))
+                    case .none: return .producer()
+                }
             case .downstream:
                 return .downstream
             case .conversion:
@@ -327,7 +357,7 @@ struct TransactionsMapper: TransactionsMapperProtocol {
             createdAt: dModel.createdAt,
             expiresAt: dModel.expiresAt,
             updatedAt: dModel.updatedAt,
-            type: toDatabase(from: dModel.type),
+            type: toDatabaseType(from: dModel),
             status: toDatabase(from: dModel.status),
             action: toDatabase(from: dModel.action),
             traceability: toDatabase(from: dModel.traceability),
@@ -342,7 +372,11 @@ struct TransactionsMapper: TransactionsMapperProtocol {
             sellerId: dModel.seller?.id,
             buyerId: dModel.buyer?.id,
             createdById: dModel.createdById,
-            persistingData: .sync()
+            persistingData: .sync(),
+            harvestSeasonId: dModel.harvestSeasonId,
+            harvestSeason: dModel.harvestSeason.map {
+                .init(id: $0.id, name: $0.name, startDate: $0.startDate, endDate: $0.endDate, status: $0.status.rawValue)
+            }
         )
     }
 

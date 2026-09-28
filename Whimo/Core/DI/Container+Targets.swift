@@ -29,6 +29,14 @@ import FactoryKit
 import Targets
 
 extension AppContainer {
+    var balancesTarget: Factory<BalancesTarget> {
+        self { RestBalancesTarget(restClient: self.restClient.resolve()) }
+    }
+
+    var harvestSeasonsTarget: Factory<HarvestSeasonsTarget> {
+        self { RestHarvestSeasonsTarget(restClient: self.restClient.resolve()) }
+    }
+
     var authTarget: Factory<AuthTarget> {
         self { RestAuthTarget(restClient: self.restClient.resolve()) }
     }

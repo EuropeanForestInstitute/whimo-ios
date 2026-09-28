@@ -28,6 +28,9 @@
 import Foundation
 
 public enum DatabaseTable: String {
+    case transactionHistoryCache
+    case seasonalBalanceCache
+    case seasonCatalogueCache
     case commodityGroup
     case commodity
     case user

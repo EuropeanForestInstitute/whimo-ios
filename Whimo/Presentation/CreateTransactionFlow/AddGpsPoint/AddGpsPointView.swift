@@ -60,7 +60,7 @@ private extension ModuleView {
     // MARK: - Content
     @ViewBuilder func content() -> some View {
         mapPage()
-            .ignoresSafeArea()
+            .ignoresSafeArea(.container, edges: .bottom)
             .overlay { bottomToolbar() }
     }
 

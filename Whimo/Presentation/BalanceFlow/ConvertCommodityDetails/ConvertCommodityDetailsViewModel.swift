@@ -27,6 +27,7 @@
 
 import Foundation
 import Utility
+import Resources
 import class CommonUI.AlertManager
 
 private typealias Module = ConvertCommodityDetailsModule
@@ -34,128 +35,126 @@ private typealias ViewModel = Module.ViewModel
 
 // MARK: - ViewModel
 extension Module {
+    @MainActor
     final class ViewModel: ViewModelProtocol {
         // MARK: - Public Properties
         @Published var inputCommodities: IdentifiedArrayOf<MutableConversionRule> = .init()
         @Published var outputCommodities: IdentifiedArrayOf<MutableConversionRule> = .init()
+        @Published private(set) var isSubmitting = false
+        @Published private(set) var hasConverted = false
 
         let commodity: CommodityGroupModel.Commodity
         let convertionRule: ConversionRuleModel
+        let season: HarvestSeason?
         let keyboardFields: IdentifiedArrayOf<KeyboardField>
 
-        // MARK: - Private Properties
-        private var cancellable: CancelBag = .init()
+        private var draftGeneration: BusinessDataContext.Generation?
 
         // MARK: - Dependencies
         @Inject(\.appState) private var appState
+        @Inject(\.businessModeInteractor) private var businessModeInteractor
+        @Inject(\.businessDataContext) private var businessDataContext
         @Inject(\.alertManager) private var alertManager
         @Inject(\.convertCommodityInteractor) private var convertCommodityInteractor
-        @Inject(\.transactionsInteractor) private var transactionsInteractor
-        @Inject(\.balanceInteractor) private var balanceInteractor
+        @Inject(\.transactionListInteractor) private var transactionsInteractor
+        @Inject(\.balanceListInteractor) private var balanceInteractor
 
         // MARK: - Init
-        init(commodity: CommodityGroupModel.Commodity, convertionRule: ConversionRuleModel) {
-            let inputCommodities: IdentifiedArrayOf<MutableConversionRule> = .init(uniqueElements: convertionRule.inputs.map({ .init(from: $0) }))
-            let outputCommodities: IdentifiedArrayOf<MutableConversionRule> = .init(uniqueElements: convertionRule.outputs.map({ .init(from: $0) }))
-            let keyboardFields: IdentifiedArrayOf<KeyboardField> = .init(uniqueElements: (inputCommodities + outputCommodities).map({ .init(from: $0) }))
-
-            self.inputCommodities = inputCommodities
-            self.outputCommodities = outputCommodities
-            self.keyboardFields = keyboardFields
+        init(commodity: CommodityGroupModel.Commodity, convertionRule: ConversionRuleModel, season: HarvestSeason? = nil) {
+            let inputs: IdentifiedArrayOf<MutableConversionRule> = .init(uniqueElements: convertionRule.inputs.map { .init(from: $0) })
+            let outputs: IdentifiedArrayOf<MutableConversionRule> = .init(uniqueElements: convertionRule.outputs.map { .init(from: $0) })
+            self.inputCommodities = inputs
+            self.outputCommodities = outputs
+            self.keyboardFields = .init(uniqueElements: (inputs + outputs).map { .init(from: $0) })
             self.commodity = commodity
             self.convertionRule = convertionRule
-
-            setupBinding()
-            startup()
+            self.season = season
+            draftGeneration = try? businessDataContext.capture()
         }
 
-        // MARK: - ViewModelProtocol
+        // MARK: - Actions
         func didTapConvertCommodity() {
-            alertManager.show(feature: AlertManager.AlertModel.Features.ConfirmCommodityConversion.self) { [weak self] key in
+            guard !isSubmitting, !hasConverted, let draftGeneration,
+                  (try? draftGeneration.check()) != nil else { return }
+
+            let alert = AlertManager.AlertModel(feature: AlertManager.AlertModel.Features.ConfirmCommodityConversion.self) { [weak self] key in
                 guard let self else { return nil }
 
                 switch key {
                     case .cancel:
                         return nil
                     case .convert:
-                        return self.performConversion
+                        return { Task { await self.submitConversion() } }
                 }
             }
+            alertManager.show(businessModeInteractor.mode == .test
+                ? alert.withInformation(AppLocale.TestMode.Confirmation.conversion) : alert)
         }
-    }
-}
 
-// MARK: - Private Methods
-private extension ViewModel {
-    // MARK: - Setup
-    func setupBinding() { }
+        func submitConversion() async {
+            guard let draftGeneration else { return }
 
-    func startup() { }
-
-    // MARK: - Common
-    func makeConversion(
-        recipeId: String,
-        inputOverrides: IdentifiedArrayOf<ConversionRuleModel.ConversionRuleItem>,
-        outputCommodities: IdentifiedArrayOf<ConversionRuleModel.ConversionRuleItem>
-    ) async -> Bool {
-        do {
-            try await convertCommodityInteractor.makeConversion(
-                recipeId: recipeId,
-                inputOverrides: inputOverrides,
-                outputCommodities: outputCommodities
-            )
-            return true
-        } catch {
-            await appState.showError(message: error.localizedDescription)
-            return false
+            await BusinessDataContext.$requestGeneration.withValue(draftGeneration) {
+                await performConversion()
+            }
         }
-    }
 
-    func refreshTransactionsList() async {
-        do {
-            try await transactionsInteractor.fetchTransactions(searchData: .empty, refresh: true)
-        } catch {
-            await appState.showError(message: error.localizedDescription)
+        private func performConversion() async {
+            guard !isSubmitting, !hasConverted, let draftGeneration,
+                  (try? draftGeneration.check()) != nil else { return }
+            guard let season else {
+                await appState.showError(message: AppLocale.ConversionSeason.coverage)
+                return
+            }
+
+            isSubmitting = true
+            appState.system[\.isLoading] = true
+            defer {
+                isSubmitting = false
+                try? draftGeneration.whileCurrent { appState.system[\.isLoading] = false }
+            }
+
+            do {
+                try await convertCommodityInteractor.makeConversion(
+                    rule: convertionRule,
+                    seasonId: season.id,
+                    inputOverrides: .init(uniqueElements: inputCommodities.map { $0.toDomain() }),
+                    outputCommodities: .init(uniqueElements: outputCommodities.map { $0.toDomain() })
+                )
+            } catch is CancellationError {
+                return
+            } catch {
+                await appState.showError(message: message(for: error))
+                return
+            }
+
+            guard (try? draftGeneration.check()) != nil else { return }
+
+            // Once confirmed, a failed refresh must never make this form submit again.
+            hasConverted = true
+            async let transactions: Void = transactionsInteractor.refresh(cacheOnly: false)
+            async let balances: Void = balanceInteractor.refresh(cacheOnly: false)
+            _ = await (transactions, balances)
+
+            guard (try? draftGeneration.check()) != nil else { return }
+
+            let count = appState.navigation[\.path].count
+            appState.navigation[\.path].removeLast(max(.zero, count - 1))
+            appState.system[\.selectedTab] = .balance
+            if appState.balance.value.hasListError || appState.transactions.value.hasListError {
+                await appState.showError(message: AppLocale.ConversionSeason.refreshFailed)
+            }
         }
-    }
 
-    func refreshBalancesList() async {
-        do {
-            try await balanceInteractor.fetchCommodityGroupsBalance()
-        } catch {
-            await appState.showError(message: error.localizedDescription)
+        private func message(for error: Error) -> String {
+            switch error {
+                case ConversionError.coverage:
+                    AppLocale.ConversionSeason.coverage
+                case ConversionError.insufficientBalance:
+                    AppLocale.ConversionSeason.insufficientBalance
+                default:
+                    AppLocale.ConversionSeason.unavailable
+            }
         }
-    }
-
-    func openHomeScreen() {
-        let navigationStackLevel = appState.navigation[\.path].count
-        appState.navigation[\.path].removeLast(max(.zero, navigationStackLevel - 1))
-        appState.system[\.selectedTab] = .home
-    }
-
-    func performConversion() {
-        Task {
-            await _performConversion()
-        }
-    }
-
-    func _performConversion() async {
-        self.appState.system[\.isLoading] = true
-        defer { self.appState.system[\.isLoading] = false }
-
-        let success = await makeConversion(
-            recipeId: convertionRule.id,
-            inputOverrides: .init(uniqueElements: inputCommodities.map({ $0.toDomain() })),
-            outputCommodities: .init(uniqueElements: outputCommodities.map({ $0.toDomain() }))
-        )
-
-        guard success else { return }
-
-        async let refreshTransactionsList: Void = refreshTransactionsList()
-        async let refreshBalancesList: Void = refreshBalancesList()
-
-        _ = await (refreshTransactionsList, refreshBalancesList)
-
-        openHomeScreen()
     }
 }

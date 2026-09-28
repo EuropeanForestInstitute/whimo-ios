@@ -37,7 +37,7 @@ extension Module {
     enum TrailingItem: DomainModel {
         case notifications
         case more
-        case custom(image: UIImage, alternativeImage: UIImage? = nil, action: () -> Void)
+        case custom(image: UIImage, alternativeImage: UIImage? = nil, accessibilityLabel: String? = nil, isEnabled: Bool = true, action: () -> Void)
 
         var id: Self { self }
 
@@ -47,7 +47,7 @@ extension Module {
                     return Assets.navigationNotificationIcon.image
                 case .more:
                     return Assets.navigationMoreIcon.image
-                case .custom(let image, _, _):
+                case .custom(let image, _, _, _, _):
                     return image
             }
         }
@@ -58,15 +58,26 @@ extension Module {
                     return Assets.navigationNotificationNewIcon.image
                 case .more:
                     return nil
-                case .custom(_, let alternativeImage, _):
+                case .custom(_, let alternativeImage, _, _, _):
                     return alternativeImage
             }
+        }
+
+        var accessibilityLabel: String? {
+            if case .custom(_, _, let label, _, _) = self { return label }
+            return nil
+        }
+
+        var isEnabled: Bool {
+            if case .custom(_, _, _, let enabled, _) = self { return enabled }
+            return true
         }
 
         // MARK: - Equatable
         static func == (lhs: Self, rhs: Self) -> Bool {
             lhs.image == rhs.image
             && lhs.alternativeImage == rhs.alternativeImage
+            && lhs.isEnabled == rhs.isEnabled
         }
 
         // MARK: - Hashable

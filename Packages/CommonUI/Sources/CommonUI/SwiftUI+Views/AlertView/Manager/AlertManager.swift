@@ -67,6 +67,9 @@ public final class AlertManager: ObservableObject {
 
     public func close() {
         Task { @MainActor in
+            guard let model = models.last else { return }
+
+            model.onDismiss?()
             models.removeLast()
             if models.isEmpty {
                 dismissOverlayTask = Task {

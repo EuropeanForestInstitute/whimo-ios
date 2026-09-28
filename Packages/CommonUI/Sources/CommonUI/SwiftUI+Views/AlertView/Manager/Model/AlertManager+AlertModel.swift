@@ -26,6 +26,7 @@
 //
 
 import SwiftUI
+import Resources
 import typealias Utility.DomainModel
 
 private typealias AlertModel = AlertManager.AlertModel
@@ -45,6 +46,7 @@ extension AlertManager {
         public var contentView: AnyView?
         public var buttons: [Button]
         public let buttonsAxis: ButtonsAxis
+        public var onDismiss: (() -> Void)?
 
         public var id: Self { self }
 
@@ -54,8 +56,10 @@ extension AlertManager {
             subtitle: String? = nil,
             contentView: AnyView? = nil,
             buttons: [Button] = [],
-            buttonsAxis: ButtonsAxis = .horizontal
+            buttonsAxis: ButtonsAxis = .horizontal,
+            onDismiss: (() -> Void)? = nil
         ) {
+            self.onDismiss = onDismiss
             self.title = title
             self.subtitle = subtitle
             self.contentView = contentView
@@ -69,6 +73,26 @@ extension AlertManager {
         public func with(buttons: [Button]) -> Self {
             var copy = self
             copy.buttons = buttons
+            return copy
+        }
+
+        /// Groups the existing explanation and an informational banner in one alert section.
+        public func withInformation(_ message: String) -> Self {
+            var copy = self
+            copy.subtitle = nil
+            copy.contentView = AnyView(VStack(alignment: .leading, spacing: 8) {
+                if let subtitle {
+                    Text(subtitle)
+                        .appFontRegularSize14()
+                        .foregroundStyle(AppColors.Gray.gray60.colorSwiftUI)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                if let contentView { contentView }
+                NoteBanner(text: message)
+            }
+            .fixedSize(horizontal: false, vertical: true)
+            .padding(16)
+            .fitToScrollView())
             return copy
         }
 

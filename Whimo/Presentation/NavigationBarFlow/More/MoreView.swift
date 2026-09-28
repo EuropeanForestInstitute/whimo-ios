@@ -94,6 +94,8 @@ private extension ModuleView {
                     labeledCell(item, detailsText: "\(viewModel.appVersion) (\(viewModel.appBuild))")
                 default:
                     buttonRow(item)
+                        .disabled(item == .deleteAccount && !viewModel.isDeleteAccountEnabled)
+                        .opacity(item == .deleteAccount && !viewModel.isDeleteAccountEnabled ? 0.4 : 1)
             }
             DefaultDivider()
         }

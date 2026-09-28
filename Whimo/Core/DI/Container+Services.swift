@@ -47,7 +47,7 @@ extension AppContainer {
     }
 
     var fileStorage: Factory<FileStorageServiceProtocol> {
-        self { FileStorageService() }
+    self { FileStorageService(businessDataContext: self.businessDataContext.resolve()) }
     }
 
     var permissionsService: Factory<PermissionsServiceProtocol> {
@@ -67,7 +67,9 @@ extension AppContainer {
         self {
             TransactionDocumentsServiceImpl(
                 transactionsTarget: self.transactionsTarget.resolve(),
-                fileStorage: self.fileStorage.resolve()
+                fileStorage: self.fileStorage.resolve(),
+                queryMapper: self.transactionListQueryMapper.resolve(),
+                businessDataContext: self.businessDataContext.resolve()
             )
         }
     }

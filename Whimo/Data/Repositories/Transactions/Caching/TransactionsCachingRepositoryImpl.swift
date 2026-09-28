@@ -31,94 +31,65 @@ import RestClient
 
 final class TransactionsCachingRepositoryImpl: TransactionsCachingRepository {
     // MARK: - Dependencies
+    private let businessDataContext: BusinessDataContext
     private let localRepo: TransactionsLocalRepository
     private let remoteRepo: TransactionsRemoteRepository
 
     // MARK: - Init
-    init(localRepo: TransactionsLocalRepository, remoteRepo: TransactionsRemoteRepository) {
+    init(localRepo: TransactionsLocalRepository, remoteRepo: TransactionsRemoteRepository,
+         businessDataContext: BusinessDataContext = .init()) {
+        self.businessDataContext = businessDataContext
         self.localRepo = localRepo
         self.remoteRepo = remoteRepo
     }
 
     // MARK: - TransactionsCachingRepository
     func fetchTransactions(with pagination: TransactionsPagination) async throws -> TransactionsData {
-        var remotePagination: RestClient.Pagination?
-        do {
-            let transactions = try await remoteRepo.fetchTransactions(with: pagination)
-            remotePagination = transactions.pagination
-
-            for transaction in transactions.list {
-                try await localRepo.save(transaction)
-            }
-        } catch RestClient.RestError.connectionLost {
-        } catch {
-            throw error
-        }
-
-        let localTransactions = try await localRepo.fetchTransactions(with: pagination)
-
-        var nextPage: Int?
-        var previousPage: Int?
-        if let value = localTransactions.pagination.nextPage, remotePagination?.nextPage == nil {
-            nextPage = value
-        }
-        if let value = remotePagination?.nextPage, localTransactions.pagination.nextPage == nil {
-            nextPage = value
-        }
-        if let localNextPage = localTransactions.pagination.nextPage,
-           let remoteNextPage = remotePagination?.nextPage {
-            if localNextPage < remoteNextPage {
-                nextPage = remoteNextPage
-            } else {
-                nextPage = localNextPage
+        try await businessDataContext.withCurrentGeneration {
+            do {
+                let response = try await remoteRepo.fetchTransactions(with: pagination)
+                for transaction in response.list {
+                    try await localRepo.save(transaction)
+                }
+                return (response.list, response.pagination, false)
+            } catch RestClient.RestError.connectionLost {
+                let response = try await localRepo.fetchTransactions(with: pagination)
+                return (response.list, response.pagination, true)
             }
         }
-
-        if let nextPage {
-            previousPage = max(nextPage - 1, 1)
-        }
-
-        let pagination: RestClient.Pagination = .init(
-            pageSize: pagination.pageData.pageSize,
-            nextPage: nextPage,
-            previousPage: previousPage,
-            count: localTransactions.pagination.count,
-            totalPages: localTransactions.pagination.totalPages,
-            page: localTransactions.pagination.page
-        )
-        return (
-            list: localTransactions.list,
-            pagination: pagination
-        )
     }
 
     func fetchSupplierTransactions(with pagination: TransactionsPagination) async throws -> SupplierTransactionsData {
-        do {
-            let transactions = try await remoteRepo.fetchSupplierTransactions(with: pagination)
+        try await businessDataContext.withCurrentGeneration {
+            do {
+                let transactions = try await remoteRepo.fetchSupplierTransactions(with: pagination)
 
-            return transactions
-        } catch RestClient.RestError.connectionLost {
-            return (
-                list: [],
-                pagination: .empty
-            )
-        } catch {
-            throw error
+                return transactions
+            } catch RestClient.RestError.connectionLost {
+                return (
+                    list: [],
+                    pagination: .empty
+                )
+            } catch {
+                throw error
+            }
         }
     }
 
     func fetchTransaction(by id: String) async throws -> TransactionModel {
-        do {
-            let transaction = try await remoteRepo.fetchTransaction(by: id)
+        try await businessDataContext.withCurrentGeneration {
+            do {
+                let transaction = try await remoteRepo.fetchTransaction(by: id)
 
-            try await localRepo.save(transaction)
+                try await localRepo.save(transaction)
 
-            return transaction
-        } catch RestClient.RestError.connectionLost {
-            let localTransaction = try await localRepo.fetchTransaction(by: id)
-            return localTransaction
-        } catch {
-            throw error
+                return transaction
+            } catch RestClient.RestError.connectionLost {
+                let localTransaction = try await localRepo.fetchTransaction(by: id)
+                return localTransaction
+            } catch {
+                throw error
+            }
         }
     }
 
@@ -130,35 +101,40 @@ final class TransactionsCachingRepositoryImpl: TransactionsCachingRepository {
         transactionCoordinates: CLLocationCoordinate2D?,
         volume: String,
         inviteRecipient: RequestModels.CreateTransaction.Producer.TransactionData.Recipient?,
-        isBuyingFromFarmer: Bool
+        isBuyingFromFarmer: Bool,
+        season: HarvestSeason
     ) async throws -> TransactionModel {
-        do {
-            let transaction = try await remoteRepo.createProducerTransaction(
-                commodityId: commodityId,
-                location: location,
-                uploadFile: uploadFile,
-                farmCoordinates: farmCoordinates,
-                transactionCoordinates: transactionCoordinates,
-                volume: volume,
-                inviteRecipient: inviteRecipient,
-                isBuyingFromFarmer: isBuyingFromFarmer
-            )
-            try await localRepo.save(transaction)
-            return transaction
-        } catch RestClient.RestError.connectionLost {
-            let localTransaction = try await localRepo.saveProducerTransaction(
-                commodityId: commodityId,
-                location: location,
-                uploadFile: uploadFile,
-                farmCoordinates: farmCoordinates,
-                transactionCoordinates: transactionCoordinates,
-                volume: volume,
-                inviteRecipient: inviteRecipient,
-                isBuyingFromFarmer: isBuyingFromFarmer
-            )
-            return localTransaction
-        } catch {
-            throw error
+        try await businessDataContext.withCurrentGeneration {
+            do {
+                let transaction = try await remoteRepo.createProducerTransaction(
+                    commodityId: commodityId,
+                    location: location,
+                    uploadFile: uploadFile,
+                    farmCoordinates: farmCoordinates,
+                    transactionCoordinates: transactionCoordinates,
+                    volume: volume,
+                    inviteRecipient: inviteRecipient,
+                    isBuyingFromFarmer: isBuyingFromFarmer,
+                    season: season
+                )
+                try await localRepo.save(transaction)
+                return transaction
+            } catch RestClient.RestError.connectionLost {
+                let localTransaction = try await localRepo.saveProducerTransaction(
+                    commodityId: commodityId,
+                    location: location,
+                    uploadFile: uploadFile,
+                    farmCoordinates: farmCoordinates,
+                    transactionCoordinates: transactionCoordinates,
+                    volume: volume,
+                    inviteRecipient: inviteRecipient,
+                    isBuyingFromFarmer: isBuyingFromFarmer,
+                    season: season
+                )
+                return localTransaction
+            } catch {
+                throw error
+            }
         }
     }
 
@@ -170,35 +146,40 @@ final class TransactionsCachingRepositoryImpl: TransactionsCachingRepository {
         transactionCoordinates: CLLocationCoordinate2D?,
         volume: String,
         action: TransactionModel.Action,
-        recipient: RequestModels.CreateTransaction.Downstream.TransactionData.Recipient
+        recipient: RequestModels.CreateTransaction.Downstream.TransactionData.Recipient,
+        season: HarvestSeason?
     ) async throws -> TransactionModel {
-        do {
-            let transaction = try await remoteRepo.createDownstreamTransaction(
-                commodityId: commodityId,
-                location: location,
-                transactionCoordinates: transactionCoordinates,
-                uploadFile: uploadFile,
-                farmCoordinates: farmCoordinates,
-                volume: volume,
-                action: action,
-                recipient: recipient
-            )
-            try await localRepo.save(transaction)
-            return transaction
-        } catch RestClient.RestError.connectionLost {
-            let localTransaction = try await localRepo.saveDownstreamTransaction(
-                commodityId: commodityId,
-                volume: volume,
-                location: location,
-                uploadFile: uploadFile,
-                farmCoordinates: farmCoordinates,
-                transactionCoordinates: transactionCoordinates,
-                action: action,
-                recipient: recipient
-            )
-            return localTransaction
-        } catch {
-            throw error
+        try await businessDataContext.withCurrentGeneration {
+            do {
+                let transaction = try await remoteRepo.createDownstreamTransaction(
+                    commodityId: commodityId,
+                    location: location,
+                    transactionCoordinates: transactionCoordinates,
+                    uploadFile: uploadFile,
+                    farmCoordinates: farmCoordinates,
+                    volume: volume,
+                    action: action,
+                    recipient: recipient,
+                    season: season
+                )
+                try await localRepo.save(transaction)
+                return transaction
+            } catch RestClient.RestError.connectionLost {
+                let localTransaction = try await localRepo.saveDownstreamTransaction(
+                    commodityId: commodityId,
+                    volume: volume,
+                    location: location,
+                    uploadFile: uploadFile,
+                    farmCoordinates: farmCoordinates,
+                    transactionCoordinates: transactionCoordinates,
+                    action: action,
+                    recipient: recipient,
+                    season: season
+                )
+                return localTransaction
+            } catch {
+                throw error
+            }
         }
     }
 }

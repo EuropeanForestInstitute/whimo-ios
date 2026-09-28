@@ -27,15 +27,31 @@
 
 import SwiftUI
 import CommonUI
+import Resources
+
+private struct OfflineBannerVisibilityKey: EnvironmentKey {
+    static let defaultValue = false
+}
+
+extension EnvironmentValues {
+    var showsOfflineBanner: Bool {
+        get { self[OfflineBannerVisibilityKey.self] }
+        set { self[OfflineBannerVisibilityKey.self] = newValue }
+    }
+}
 
 private typealias Module = NavBarModule
 
 extension Module {
     // MARK: - NavBarModifier
     struct NavBarModifier: ViewModifier {
+        @Environment(\.showsOfflineBanner) private var showsOfflineBanner
+        @Environment(\.showsTestModeIndicator) private var showsTestModeIndicator
+
         let title: String
         let titlePrefferedFontStyle: NavBarModule.TitleFontStyle
         let trailingItem: NavBarModule.TrailingItem?
+        let additionalTrailingItem: NavBarModule.TrailingItem?
         let showBackButton: Bool
         let enableDivider: Bool
 
@@ -45,12 +61,15 @@ extension Module {
                     title: title,
                     titlePrefferedFontStyle: titlePrefferedFontStyle,
                     trailingItem: trailingItem,
+                    additionalTrailingItem: additionalTrailingItem,
                     showBackButton: showBackButton
                 )
                 if enableDivider {
                     DefaultDivider()
                 }
                 content
+                    .modifier(TestModeScreenModifier(isEnabled: showsTestModeIndicator,
+                                                     showsOfflineBanner: showsOfflineBanner))
             }
             .navigationBarHidden(true)
         }
@@ -63,6 +82,7 @@ extension View {
         title: String,
         titlePrefferedFontStyle: NavBarModule.TitleFontStyle = .h1,
         trailingItem: NavBarModule.TrailingItem? = nil,
+        additionalTrailingItem: NavBarModule.TrailingItem? = nil,
         showBackButton: Bool = true,
         enableDivider: Bool = true
     ) -> some View {
@@ -70,6 +90,7 @@ extension View {
             title: title,
             titlePrefferedFontStyle: titlePrefferedFontStyle,
             trailingItem: trailingItem,
+            additionalTrailingItem: additionalTrailingItem,
             showBackButton: showBackButton,
             enableDivider: enableDivider
         ))

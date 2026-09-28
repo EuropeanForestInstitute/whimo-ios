@@ -31,50 +31,61 @@ import Utility
 
 final class NotificationsSettingsInteractorImpl: NotificationsSettingsInteractor {
     // MARK: - Dependencies
+    private let businessDataContext: BusinessDataContext
     private let appState: AppState
     private let notificationsSettingsRepository: NotificationsSettingsCachingRepository
 
     // MARK: - Init
     init(
         appState: AppState,
-        notificationsSettingsRepository: NotificationsSettingsCachingRepository
+        notificationsSettingsRepository: NotificationsSettingsCachingRepository,
+        businessDataContext: BusinessDataContext = .init()
     ) {
+        self.businessDataContext = businessDataContext
         self.appState = appState
         self.notificationsSettingsRepository = notificationsSettingsRepository
     }
 
     // MARK: - NotificationsSettingsInteractor
     func fetchSettings() async throws {
-        let settingsList = try await notificationsSettingsRepository.fetchSettingsList()
-        appState.notificationsSettings.dispatch { state in
-            state.settingsList = settingsList
+        try await businessDataContext.withCurrentGeneration {
+            let settingsList = try await notificationsSettingsRepository.fetchSettingsList()
+            try await businessDataContext.commitState {
+                appState.notificationsSettings.dispatch { state in
+                    state.settingsList = settingsList
+                }
+            }
         }
     }
 
     func updateSettings(_ settingsList: IdentifiedArrayOf<NotificationsSettingsModel>) async throws {
-        let requestSettings: [RequestModels.NotificationsSettings] = settingsList.map {
-            let settingsType: RequestModels.NotificationsSettings.SettingsType
-            switch $0.type {
-                case .geodataMissing:
-                    settingsType = .geodataMissing
-                case .geodataUpdated:
-                    settingsType = .geodataUpdated
-                case .transactionAccepted:
-                    settingsType = .transactionAccepted
-                case .transactionExpired:
-                    settingsType = .transactionExpired
-                case .transactionPending:
-                    settingsType = .transactionPending
-                case .transactionRejected:
-                    settingsType = .transactionRejected
+        try await businessDataContext.withCurrentGeneration {
+            let requestSettings: [RequestModels.NotificationsSettings] = settingsList.map {
+                let settingsType: RequestModels.NotificationsSettings.SettingsType
+                switch $0.type {
+                    case .geodataMissing:
+                        settingsType = .geodataMissing
+                    case .geodataUpdated:
+                        settingsType = .geodataUpdated
+                    case .transactionAccepted:
+                        settingsType = .transactionAccepted
+                    case .transactionExpired:
+                        settingsType = .transactionExpired
+                    case .transactionPending:
+                        settingsType = .transactionPending
+                    case .transactionRejected:
+                        settingsType = .transactionRejected
+                }
+
+                return .init(type: settingsType, isEnabled: $0.isEnabled)
             }
 
-            return .init(type: settingsType, isEnabled: $0.isEnabled)
-        }
-
-        try await notificationsSettingsRepository.updateSettings(requestSettings)
-        appState.notificationsSettings.dispatch { state in
-            state.settingsList = settingsList
+            try await notificationsSettingsRepository.updateSettings(requestSettings)
+            try await businessDataContext.commitState {
+                appState.notificationsSettings.dispatch { state in
+                    state.settingsList = settingsList
+                }
+            }
         }
     }
 }

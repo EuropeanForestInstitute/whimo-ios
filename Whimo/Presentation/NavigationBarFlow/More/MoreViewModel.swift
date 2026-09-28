@@ -37,6 +37,7 @@ private typealias ViewModel = Module.ViewModel
 extension Module {
     final class ViewModel: ViewModelProtocol {
         // MARK: - Public Properties
+        @Published private(set) var isDeleteAccountEnabled = true
         var list: IdentifiedArrayOf<Row> { .init(uniqueElements: Row.allCases) }
         var appVersion: String { userAgentService.appVersion }
         var appBuild: String { userAgentService.appBuild }
@@ -47,6 +48,7 @@ extension Module {
         private var cancellable: CancelBag = .init()
 
         // MARK: - Dependencies
+        @Inject(\.businessModeInteractor) private var businessModeInteractor
         @Inject(\.appState) private var appState
         @Inject(\.alertManager) private var alertManager
         @Inject(\.userAgentService) private var userAgentService
@@ -58,6 +60,11 @@ extension Module {
         init() {
             self.logoutInteractor = LogoutInteractor()
             self.deleteAccountInteractor = DeleteAccountInteractor()
+            isDeleteAccountEnabled = businessModeInteractor.mode == .ordinary
+            businessModeInteractor.changes
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self] in self?.isDeleteAccountEnabled = $0 == .ordinary }
+                .store(in: cancellable)
         }
 
         // MARK: - ViewModelProtocol
@@ -73,6 +80,8 @@ extension Module {
         }
 
         func didTapDeleteAccount() {
+            guard businessModeInteractor.mode == .ordinary else { return }
+
             alertManager.show(feature: AlertManager.AlertModel.Features.DeleteAccount.self) { [weak self] key in
                 switch key {
                     case .cancel:

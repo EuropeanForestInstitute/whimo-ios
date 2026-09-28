@@ -29,6 +29,7 @@ import Foundation
 
 final class ProfileInteractorImpl: ProfileInteractor {
     // MARK: - Dependencies
+    private let businessDataContext: BusinessDataContext
     private let appState: AppState
     private let profileCachingRepository: any ProfileCachingRepository
     private let profileLocalRepository: ProfileLocalRepository
@@ -37,8 +38,10 @@ final class ProfileInteractorImpl: ProfileInteractor {
     init(
         appState: AppState,
         profileCachingRepository: any ProfileCachingRepository,
-        profileLocalRepository: ProfileLocalRepository
+        profileLocalRepository: ProfileLocalRepository,
+        businessDataContext: BusinessDataContext = .init()
     ) {
+        self.businessDataContext = businessDataContext
         self.appState = appState
         self.profileCachingRepository = profileCachingRepository
         self.profileLocalRepository = profileLocalRepository
@@ -49,49 +52,65 @@ final class ProfileInteractorImpl: ProfileInteractor {
     /// Fetches profile from network with cache fallback
     /// Uses CachingRepository which handles network + cache strategy
     func fetchProfile() async throws {
-        appState.profile.dispatch { state in
-            state.userModel.setIsLoading()
-        }
-
-        do {
-            // Fetch profile from repository (network + cache)
-            let user = try await profileCachingRepository.fetchProfile()
-
-            // Update app state with loaded data
-            appState.profile.dispatch { state in
-                state.userModel = .loaded(value: user)
+        try await businessDataContext.withCurrentGeneration {
+            try await businessDataContext.commitState {
+                appState.profile.dispatch { state in
+                    state.userModel.setIsLoading()
+                }
             }
-        } catch {
-            // Update app state with error
-            appState.profile.dispatch { state in
-                state.userModel = .failed(error: error)
+
+            do {
+                // Fetch profile from repository (network + cache)
+                let user = try await profileCachingRepository.fetchProfile()
+
+                // Update app state with loaded data
+                try await businessDataContext.commitState {
+                    appState.profile.dispatch { state in
+                        state.userModel = .loaded(value: user)
+                    }
+                }
+            } catch {
+                // Update app state with error
+                try await businessDataContext.commitState {
+                    appState.profile.dispatch { state in
+                        state.userModel = .failed(error: error)
+                    }
+                }
+                throw error
             }
-            throw error
         }
     }
 
     /// Fetches profile from local cache only (offline mode)
     /// Uses LocalRepository for fast cache-only access
     func fetchProfileFromCache() async throws {
-        // Set loading state
-        appState.profile.dispatch { state in
-            state.userModel.setIsLoading()
-        }
-
-        do {
-            // Fetch profile from local repository only (synchronous method wrapped in async context)
-            let user = try await Task { try profileLocalRepository.fetchProfile() }.value
-
-            // Update app state with loaded data
-            appState.profile.dispatch { state in
-                state.userModel = .loaded(value: user)
+        try await businessDataContext.withCurrentGeneration {
+            // Set loading state
+            try await businessDataContext.commitState {
+                appState.profile.dispatch { state in
+                    state.userModel.setIsLoading()
+                }
             }
-        } catch {
-            // Update app state with error
-            appState.profile.dispatch { state in
-                state.userModel.cancelLoading()
+
+            do {
+                // Fetch profile from local repository only (synchronous method wrapped in async context)
+                let user = try await Task { try profileLocalRepository.fetchProfile() }.value
+
+                // Update app state with loaded data
+                try await businessDataContext.commitState {
+                    appState.profile.dispatch { state in
+                        state.userModel = .loaded(value: user)
+                    }
+                }
+            } catch {
+                // Update app state with error
+                try await businessDataContext.commitState {
+                    appState.profile.dispatch { state in
+                        state.userModel.cancelLoading()
+                    }
+                }
+                throw error
             }
-            throw error
         }
     }
 }

@@ -31,7 +31,7 @@ import typealias Utility.IdentifiedArrayOf
 import RestClient
 
 protocol TransactionsCachingRepository: AnyObject {
-    typealias TransactionsData = (list: IdentifiedArrayOf<TransactionModel>, pagination: RestClient.Pagination)
+    typealias TransactionsData = (list: IdentifiedArrayOf<TransactionModel>, pagination: RestClient.Pagination, isCached: Bool)
     typealias SupplierTransactionsData = (list: IdentifiedArrayOf<SupplierTransactionModel>, pagination: RestClient.Pagination)
     typealias TransactionsPagination = RequestModels.TransactionsList
 
@@ -47,7 +47,8 @@ protocol TransactionsCachingRepository: AnyObject {
         transactionCoordinates: CLLocationCoordinate2D?,
         volume: String,
         inviteRecipient: RequestModels.CreateTransaction.Producer.TransactionData.Recipient?,
-        isBuyingFromFarmer: Bool
+        isBuyingFromFarmer: Bool,
+        season: HarvestSeason
     ) async throws -> TransactionModel
     func createDownstreamTransaction(
         commodityId: String,
@@ -57,6 +58,7 @@ protocol TransactionsCachingRepository: AnyObject {
         transactionCoordinates: CLLocationCoordinate2D?,
         volume: String,
         action: TransactionModel.Action,
-        recipient: RequestModels.CreateTransaction.Downstream.TransactionData.Recipient
+        recipient: RequestModels.CreateTransaction.Downstream.TransactionData.Recipient,
+        season: HarvestSeason?
     ) async throws -> TransactionModel
 }

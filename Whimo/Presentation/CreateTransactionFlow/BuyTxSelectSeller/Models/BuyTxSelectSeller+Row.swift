@@ -46,7 +46,7 @@ extension Module {
                 case .farmer:
                     Assets.buyTxSelectSellerFarmerIcon.imageSwiftUI
                 case .cooperative:
-                    Assets.buyTxSelectSellerFarmerIcon.imageSwiftUI
+                    Assets.buyTxSelectSellerCooperativeIcon.imageSwiftUI
             }
         }
 

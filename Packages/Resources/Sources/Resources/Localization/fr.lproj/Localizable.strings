@@ -398,21 +398,21 @@
 // MARK: - --- ADD TRANSACTION FLOW ---
 // MARK: - Create Transaction Select Type
 "createTxSelectType.title" = "Ajouter une Transaction";
+"createTxSelectType.subtitle" = "Que souhaitez-vous faire ?";
 
-"createTxSelectType.options.buy" = "Acheter ou collecter une marchandise";
-"createTxSelectType.options.sell" = "Vendre ou livrer une marchandise";
+"createTxSelectType.options.buy" = "Acheter une marchandise";
+"createTxSelectType.options.sell" = "Vendre une marchandise";
 
 // MARK: - Buy Transaction Select Type
 "buyTxSelectType.title" = "Acheter ou collecter une marchandise";
-"buyTxSelectType.subtitle" = "La personne de qui vous achetez utilise-t-elle l'application ?";
+"buyTxSelectType.subtitle" = "Quelle transaction créez-vous ?";
 
 "buyTxSelectType.row.producer.title" = "Transaction initiale";
-"buyTxSelectType.row.producer.subtitle" = "Le vendeur n'utilise pas cette application";
-"buyTxSelectType.row.producer.infoText" = "Choisissez ceci si le vendeur n'a pas de compte sur WHIMO.";
+"buyTxSelectType.row.producer.infoText" = "Votre fournisseur n'utilise pas cette application. Vous serez le premier maillon de la chaîne.";
 
 "buyTxSelectType.row.downstream.title" = "Transaction en aval";
 "buyTxSelectType.row.downstream.subtitle" = "Le vendeur utilise cette application";
-"buyTxSelectType.row.downstream.infoText" = "Choisissez ceci si le vendeur a un compte sur WHIMO.";
+"buyTxSelectType.row.downstream.infoText" = "Votre fournisseur utilise cette application. Nous récupérerons ses informations de traçabilité.";
 
 // MARK: - Buy Transaction Select Seller
 "buyTxSelectSeller.title" = "Transaction initiale";
@@ -621,3 +621,146 @@
 "notifications.row.locationReq.title" = "Demande de localisation";
 
 "notifications.buttons.save" = "Enregistrer";
+
+// MARK: - Harvest Season Picker
+"harvestSeasonPicker.season.title" = "Saison de récolte";
+"harvestSeasonPicker.season.fullTitle" = "%@ %@";
+"harvestSeasonPicker.all.title" = "Toutes les saisons de récolte";
+"harvestSeasonPicker.status.active" = "Active";
+"harvestSeasonPicker.status.past" = "Passée";
+"harvestSeasonPicker.status.archived" = "Archivée";
+"harvestSeasonPicker.disclosure.expanded" = "Développé";
+"harvestSeasonPicker.disclosure.collapsed" = "Réduit";
+"harvestSeasonPicker.accessibility.rowTitle" = "%@, %@";
+
+// Commodity group and harvest season filters
+"commoditySeasonFilter.title" = "Filtre";
+"commoditySeasonFilter.group" = "Groupe de produits";
+"commoditySeasonFilter.season" = "Saison de récolte";
+"commoditySeasonFilter.allGroups" = "Tous les groupes de produits";
+"commoditySeasonFilter.allSeasons" = "Toutes les saisons de récolte";
+"commoditySeasonFilter.chooseGroup" = "Choisissez d’abord un groupe de produits.";
+"commoditySeasonFilter.reset" = "Réinitialiser";
+"commoditySeasonFilter.apply" = "Appliquer";
+"commoditySeasonFilter.close" = "Fermer les filtres";
+"commoditySeasonFilter.clear" = "Effacer les filtres de groupe et de saison";
+"commoditySeasonFilter.loading" = "Chargement du catalogue";
+"commoditySeasonFilter.catalogueError" = "Impossible de charger le catalogue. Connectez-vous au réseau et réessayez.";
+"commoditySeasonFilter.retry" = "Réessayer";
+"commoditySeasonFilter.noSeasons" = "Aucune saison de récolte n’est disponible pour ce groupe.";
+"commoditySeasonFilter.cachedCatalogue" = "Catalogue enregistré affiché.";
+"commoditySeasonFilter.cachedTransactions" = "Hors ligne : seules les transactions enregistrées sont affichées. Les résultats peuvent être incomplets.";
+"commoditySeasonFilter.listError" = "Impossible de charger les transactions.";
+"commoditySeasonFilter.noMatches" = "Aucune transaction correspondante";
+"commoditySeasonFilter.adjustFilters" = "Essayez de modifier la recherche, la date ou les filtres.";
+
+// Transaction harvest season
+"transactionSeason.unavailable" = "Saison indisponible";
+"transactionSeason.explanation" = "Les saisons de récolte permettent d’organiser les transactions par récolte.";
+"transactionSeason.assignment" = "La saison est attribuée lors de la création de la première transaction et est automatiquement utilisée dans le reste de la chaîne d’approvisionnement.";
+"transactionSeason.badge" = "Saison %@ %@";
+"transactionSeason.export" = "Exporter les transactions filtrées en CSV";
+"general.close" = "Fermer";
+
+// Seasonal Balance
+"seasonalBalance.search" = "Rechercher un solde";
+"seasonalBalance.cached" = "Soldes en cache. Les résultats peuvent être incomplets ou obsolètes.";
+"seasonalBalance.error" = "Impossible de charger les soldes. Réessayez.";
+"seasonalBalance.convert" = "Convertir %@";
+"seasonalBalance.noMatches" = "Aucun solde correspondant";
+"seasonalBalance.adjustFilters" = "Essayez de modifier votre recherche ou vos filtres.";
+
+// Buyer harvest season creation
+"creationSeason.choose" = "Choisir la saison de récolte";
+"creationSeason.catalogueRequired" = "Connectez-vous à Internet pour charger les saisons de récolte de cette marchandise, puis choisissez une saison.";
+"creationSeason.balanceUnavailable" = "Votre solde : indisponible";
+"creationSeason.retry" = "Réessayer";
+
+// Downstream volume summary
+"createTransactionForm.volumeSummary.purchaseIncludes" = "Votre achat comprendra :";
+"createTransactionForm.volumeSummary.transactionIncludes" = "Votre transaction comprendra :";
+"createTransactionForm.volumeSummary.saleIncludes" = "Votre vente comprendra :";
+"createTransactionForm.volumeSummary.fromSeason" = "de la saison %@";
+
+// Seasonal seller validation
+"creationSeason.insufficientBalance" = "Le solde disponible est insuffisant pour la saison de récolte %@.";
+"creationSeason.balanceRequired" = "Connectez-vous pour charger votre solde pour cette saison de récolte avant de vendre.";
+"creationSeason.cachedBalance" = "Hors ligne : affichage du dernier solde saisonnier enregistré.";
+"creationSeason.invalidQuantity" = "Saisissez une quantité valide.";
+
+"creationSeason.producerCatalogueRequired" = "Connectez-vous à Internet pour charger la saison de récolte active de cette marchandise, puis réessayez.";
+
+// Transaction acceptance
+"transactionAcceptance.accepted" = "Acceptée dans la saison de récolte enregistrée de la transaction.";
+"transactionAcceptance.rejected" = "Rejetée. La saison de récolte reste inchangée.";
+"transactionAcceptance.automatic" = "Acceptée. Une transaction automatique de %@ %@ a été créée dans la même saison de récolte.";
+"transactionAcceptance.conflict" = "Toujours en attente. Demandez au vendeur de réapprovisionner le solde de cette saison, puis réessayez, ou rejetez la demande.";
+"transactionAcceptance.unconfirmed" = "Statut non confirmé. Actualisez les détails avant de réessayer.";
+"transactionAcceptance.refreshFailed" = "Statut modifié. Données indisponibles. Actualisez Transactions et Solde.";
+
+// Seasonal conversion
+"conversionSeason.coverage" = "Cette recette est indisponible pour cette saison. Choisissez une autre recette.";
+"conversionSeason.insufficientBalance" = "Solde insuffisant pour cette saison. Vérifiez les quantités et réessayez.";
+"conversionSeason.unavailable" = "Conversion impossible. Vérifiez votre connexion et réessayez.";
+"conversionSeason.refreshFailed" = "Conversion effectuée. Actualisez les listes pour voir les soldes et transactions.";
+
+"balanceDetails.title" = "Détails du solde";
+"balanceDetails.remainingBalance" = "Solde restant";
+"balanceDetails.lastActivity" = "Dernière activité";
+"balanceDetails.sourceTransactions" = "Transactions sources";
+"balanceDetails.historyConnectionRequired" = "Connectez-vous à Internet pour charger les transactions de cette commodité et de cette saison de récolte.";
+"balanceDetails.historyError" = "Impossible de charger les transactions sources. Veuillez réessayer.";
+
+// Seller Automatic volume preview
+"createTransactionForm.volumeSummary.automatic" = "transaction automatique";
+"createTransactionForm.volumeSummary.edit" = "Modifier le volume et la saison de récolte";
+"createTransactionForm.automatic.title" = "Transaction automatique";
+"createTransactionForm.automatic.explanation" = "Une transaction automatique sera créée afin d’ajouter les volumes nécessaires à votre solde. Cependant, ces volumes supplémentaires ne seront pas entièrement traçables.";
+"createTransactionForm.automatic.review" = "Vous pourrez consulter et ajouter les informations nécessaires ultérieurement.";
+"createTransactionForm.automatic.estimate" = "Le volume de la transaction automatique affiché est une estimation. Le volume final est déterminé lorsque la vente est acceptée.";
+
+"createTransactionForm.volumeSummary.savedBalance" = "Basé sur le solde enregistré";
+"createTransactionForm.volumeSummary.unavailable" = "Répartition indisponible";
+
+// MARK: - Acceptance seasonal balance
+"transactionAcceptance.balance.title" = "Accepter la transaction";
+"transactionAcceptance.balance.gotIt" = "Compris";
+"transactionAcceptance.balance.summary" = "Vous disposez de %@ pour la campagne agricole %@, mais l’acheteur a demandé %@.";
+"transactionAcceptance.balance.requirement" = "Vous ne pouvez pas accepter cette transaction tant que votre solde est insuffisant.";
+"transactionAcceptance.balance.alternative" = "Vous pouvez aussi refuser cette demande et créer une nouvelle vente pour la quantité disponible.";
+"transactionAcceptance.balance.loading" = "Vérification du solde disponible…";
+"transactionAcceptance.balance.unavailable" = "Le solde ou la campagne agricole est indisponible. Réessayez pour vérifier si vous pouvez accepter.";
+"transactionAcceptance.balance.warningLabel" = "Pourquoi ne puis-je pas accepter cette transaction ?";
+
+// Active-season acceptance preview
+"transactionAcceptance.preview.title" = "Solde disponible insuffisant.";
+"transactionAcceptance.preview.message" = "Une transaction automatique sera créée pour les %@ manquants. Cette quantité aura une traçabilité incomplète.";
+"transactionAcceptance.preview.automaticTransaction" = "transaction automatique";
+"transactionAcceptance.preview.incompleteTraceability" = "traçabilité incomplète";
+
+"transactionAcceptance.detailsRefreshFailed" = "Impossible d’actualiser les détails de la transaction. Réessayez.";
+
+// Test environment
+"testMode.title" = "Environnement de test";
+"testMode.settingsUnavailable" = "Certains paramètres ne sont pas disponibles dans l’environnement de test.";
+"testMode.subtitle" = "Entraînez-vous à créer des transactions dans un environnement séparé, sans affecter vos données réelles.";
+"testMode.entryTitle" = "Accéder à l’environnement de test";
+"testMode.gotIt" = "Compris";
+"testMode.unsynced" = "Des modifications ne sont pas synchronisées";
+"testMode.explanation" = "Tout fonctionne comme dans l’application réelle, mais rien ici n’affecte vos données réelles.";
+"testMode.syncRequired" = "Les transactions non synchronisées doivent être synchronisées avant d’accéder à l’environnement de test.\n\nReconnectez-vous à Internet et synchronisez vos données. Vous pourrez ensuite accéder à l’environnement de test.";
+"testMode.create" = "Créez et recevez des transactions de test.";
+"testMode.explore" = "Explorez la traçabilité et les soldes.";
+"testMode.learn" = "Découvrez le fonctionnement de l’application avant de l’utiliser pour de vraies transactions.";
+"testMode.separate" = "Toutes les données de test restent séparées de votre espace de travail réel.";
+"testMode.returnToLive" = "Revenez à l’environnement réel à tout moment depuis les Paramètres.";
+
+"testMode.screenIndicator" = "Vous êtes dans l’environnement de test";
+
+"testMode.confirmation.transaction" = "Vous créez une transaction dans un environnement de test. Les transactions, les soldes et la traçabilité réels ne sont pas affectés.";
+"testMode.confirmation.conversion" = "Vous effectuez une conversion dans un environnement de test. Les transactions, les soldes et la traçabilité réels ne sont pas affectés.";
+
+"testMode.acceptance.title" = "Accepter la transaction de test ?";
+"testMode.acceptance.description" = "Confirmez que vous souhaitez accepter cette transaction en attente.";
+"testMode.acceptance.cancel" = "Annuler";
+"testMode.confirmation.acceptance" = "Vous acceptez une transaction dans un environnement de test. Les transactions, les soldes et la traçabilité réels ne sont pas affectés.";

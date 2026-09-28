@@ -32,6 +32,12 @@ import Foundation
 protocol FileStorageServiceProtocol: AnyObject {
     var files: AnyPublisher<[FileObject], Never> { get }
 
+    func confirmedUploadID(for queuedID: String) throws -> String?
+    func saveConfirmedUploadID(_ remoteID: String, for queuedID: String) throws
+    func removeConfirmedUploadID(for queuedID: String)
+    func durableQueuedCopy(of source: URL) throws -> URL
+    func removeQueuedCopy(at url: URL)
+    func removeAllQueuedData() throws
     func fetchFiles()
     func isFileExists(at url: URL) -> Bool
     func isFileExists(at url: URL) -> (isExists: Bool, isDirectory: Bool)

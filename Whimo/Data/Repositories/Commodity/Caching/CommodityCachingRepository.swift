@@ -29,5 +29,6 @@ import Foundation
 import Utility
 
 protocol CommodityCachingRepository: AnyObject {
+    func prepareCatalogue() async throws -> IdentifiedArrayOf<CommodityGroupModel>
     func fetchCommodityGroups() async throws -> IdentifiedArrayOf<CommodityGroupModel>
 }

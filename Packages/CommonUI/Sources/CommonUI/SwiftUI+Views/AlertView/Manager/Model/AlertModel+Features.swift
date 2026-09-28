@@ -147,8 +147,8 @@ extension AlertModel.Features {
             }
         }
 
-        public static let title: String = Localization.SaveTransaction.title
-        public static let subtitle: String? = Localization.SaveTransaction.subtitle
+        public static var title: String { Localization.SaveTransaction.title }
+        public static var subtitle: String? { Localization.SaveTransaction.subtitle }
         public static var buttonsAxis: ButtonsAxis { .vertical }
     }
 
@@ -168,8 +168,8 @@ extension AlertModel.Features {
             }
         }
 
-        public static let title: String = Localization.SaveTransactionWithNoLocation.title
-        public static let subtitle: String? = Localization.SaveTransactionWithNoLocation.subtitle
+        public static var title: String { Localization.SaveTransactionWithNoLocation.title }
+        public static var subtitle: String? { Localization.SaveTransactionWithNoLocation.subtitle }
         public static var buttonsAxis: ButtonsAxis { .vertical }
     }
 
@@ -340,8 +340,8 @@ extension AlertModel.Features {
             }
         }
 
-        public static let title: String = Localization.ConfirmCommodityConversion.title
-        public static let subtitle: String? = Localization.ConfirmCommodityConversion.subtitle
+        public static var title: String { Localization.ConfirmCommodityConversion.title }
+        public static var subtitle: String? { Localization.ConfirmCommodityConversion.subtitle }
         public static var buttonsAxis: ButtonsAxis { .vertical }
     }
 }

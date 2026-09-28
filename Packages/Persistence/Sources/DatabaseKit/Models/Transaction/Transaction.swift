@@ -51,6 +51,8 @@ public struct Transaction: Identifiable, AutoStringConvertible, Equatable {
     public var buyerId: String?
     public var createdById: String?
     public var persistingData: PersistingData
+    public var harvestSeasonId: String?
+    public var harvestSeason: HarvestSeason?
 
     public init(
         id: String,
@@ -72,7 +74,9 @@ public struct Transaction: Identifiable, AutoStringConvertible, Equatable {
         sellerId: String?,
         buyerId: String?,
         createdById: String?,
-        persistingData: PersistingData
+        persistingData: PersistingData,
+        harvestSeasonId: String? = nil,
+        harvestSeason: HarvestSeason? = nil
     ) {
         self.id = id
         self.createdAt = createdAt
@@ -94,6 +98,8 @@ public struct Transaction: Identifiable, AutoStringConvertible, Equatable {
         self.buyerId = buyerId
         self.createdById = createdById
         self.persistingData = persistingData
+        self.harvestSeasonId = harvestSeasonId
+        self.harvestSeason = harvestSeason
     }
 }
 
@@ -119,6 +125,7 @@ extension Transaction: StorePersistable {
         public static let sellerId = Column(CodingKeys.sellerId)
         public static let buyerId = Column(CodingKeys.buyerId)
         public static let createdById = Column(CodingKeys.createdById)
+        public static let harvestSeasonId = Column(CodingKeys.harvestSeasonId)
         public static let persistingData = Column(CodingKeys.persistingData)
     }
 }
@@ -268,6 +275,25 @@ extension Transaction.PersistingData {
             self.fileURL = fileURL
             self.fileName = fileName
             self.mimeType = mimeType
+        }
+    }
+}
+
+// MARK: - Stored Harvest Season
+extension Transaction {
+    public struct HarvestSeason: StoreConvertible, Equatable {
+        public let id: String
+        public let name: String
+        public let startDate: Date
+        public let endDate: Date
+        public let status: String
+
+        public init(id: String, name: String, startDate: Date, endDate: Date, status: String) {
+            self.id = id
+            self.name = name
+            self.startDate = startDate
+            self.endDate = endDate
+            self.status = status
         }
     }
 }

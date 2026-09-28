@@ -98,8 +98,8 @@ extension RestTransactionsTarget: TransactionsTarget {
         return try await restClient.makeMultipartRequest(request)
     }
 
-    public func updateTransaction(_ model: RequestModels.UpdateTransactionStatus) async throws {
-        let _: VoidResponse = try await restClient.makeRequest(RequestRouter.Transactions.updateTransaction(model))
+    public func updateTransaction(_ model: RequestModels.UpdateTransactionStatus) async throws -> ResponseModels.UpdateTransactionStatus {
+        try await restClient.makeRequest(RequestRouter.Transactions.updateTransaction(model))
     }
 
     public func updateTransactionGeodata(_ model: RequestModels.UpdateTransactionGeodata) async throws {
@@ -132,7 +132,7 @@ extension RestTransactionsTarget: TransactionsTarget {
     public func downloadCSV(_ model: RequestModels.DownloadCSV) async throws -> ResponseModels.DownloadCSV {
         let fileURL = try await restClient.downloadRequest(
             RequestRouter.Transactions.downloadCSV(model),
-            to: nil,
+            to: FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true),
         )
         guard let fileURL else {
             throw RestClient.RestError.error(message: "Bad Response. Cannot perform download request.")

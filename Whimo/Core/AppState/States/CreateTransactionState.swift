@@ -38,15 +38,48 @@ struct CreateTransactionState: AnyState {
     enum Activity { }
 
     // MARK: - Properties
-    var commodityType: CommodityGroupModel.Commodity = .initialState
+    var draftID = UUID()
+    private(set) var balanceRevision = UUID()
+    var commodityType: CommodityGroupModel.Commodity = .initialState {
+        didSet {
+            if commodityType.id != oldValue.id {
+                balanceRevision = UUID()
+                confirmedBalance = nil
+            }
+        }
+    }
     var volumeAmount: String = ""
-    var transactionType: TransactionType?
+    var transactionType: TransactionType? {
+        didSet {
+            if transactionType != oldValue { balanceRevision = UUID() }
+        }
+    }
     var farmLocation: FarmLocation?
+    var seasonSelection: CreationSeason? {
+        didSet {
+            if seasonSelection != oldValue {
+                balanceRevision = UUID()
+                confirmedBalance = nil
+            }
+        }
+    }
+    var confirmedBalance: ConfirmedSeasonalBalance?
+
+    func hasSameSubmissionInputs(as other: Self) -> Bool {
+        draftID == other.draftID && balanceRevision == other.balanceRevision
+            && commodityType == other.commodityType && volumeAmount == other.volumeAmount
+            && transactionType == other.transactionType && farmLocation == other.farmLocation
+            && seasonSelection == other.seasonSelection
+    }
 
     mutating func clear() {
+        draftID = UUID()
+        balanceRevision = UUID()
         commodityType = .initialState
         volumeAmount = ""
         transactionType = nil
         farmLocation = nil
+        seasonSelection = nil
+        confirmedBalance = nil
     }
 }

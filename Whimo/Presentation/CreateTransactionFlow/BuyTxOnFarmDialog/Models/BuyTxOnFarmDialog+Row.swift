@@ -55,7 +55,7 @@ extension Module {
                 case .qrCode:
                     Assets.buyTxOnFarmDialogQrIcon.imageSwiftUI
                 case .manually:
-                    Assets.buyTxOnFarmDialogQrIcon.imageSwiftUI
+                    Assets.buyTxOnFarmDialogPencilIcon.imageSwiftUI
             }
         }
     }

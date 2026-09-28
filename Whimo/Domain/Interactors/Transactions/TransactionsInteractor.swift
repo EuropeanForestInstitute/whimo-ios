@@ -33,15 +33,6 @@ import RestClient
 protocol TransactionsInteractor: AnyObject {
     typealias TransactionsPagination = RequestModels.TransactionsList
 
-    /// Fetches transactions from network with cache fallback
-    func fetchTransactions(
-        searchData: TransactionsPagination.SearchData,
-        refresh: Bool
-    ) async throws
-
-    /// Fetches transactions from local cache only (offline mode)
-    func fetchTransactionsFromCache() async throws
-
     func fetchSuppliersTransactions(
         commodityGroupId: String,
         buyerId: String,
@@ -51,6 +42,9 @@ protocol TransactionsInteractor: AnyObject {
     ) async throws -> (list: IdentifiedArrayOf<SupplierTransactionModel>, pagination: TransactionsPagination)
     @discardableResult
     func fetchTransaction(by id: String) async throws -> TransactionModel
+    /// Reads current Details without publishing or persisting a potentially obsolete snapshot.
+    func refreshTransactionDetails(by id: String) async throws -> TransactionModel
+    func cacheTransactionDetails(_ transaction: TransactionModel, replacing previous: TransactionModel) async throws
 
     func createProducerTransaction(
         farmLocation: FarmLocation?,
@@ -66,10 +60,12 @@ protocol TransactionsInteractor: AnyObject {
         commodityType: CommodityGroupModel.Commodity,
         volume: String,
         action: TransactionModel.Action,
-        recipient: TransactionType.Recipient
+        recipient: TransactionType.Recipient,
+        seasonSelection: CreationSeason?
     ) async throws
 
-    func updateTransaction(transactionId: String, status: RequestModels.UpdateTransactionStatus.Status) async throws -> TransactionModel
+    @MainActor
+    func updateTransaction(_ transaction: TransactionModel, status: TransactionModel.StatusChange) async throws -> TransactionModel.StatusOutcome
     func updateTransactionGeodata(
         transactionId: String,
         file: FileObject

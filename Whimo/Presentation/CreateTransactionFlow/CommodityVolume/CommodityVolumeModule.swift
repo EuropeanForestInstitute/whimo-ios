@@ -31,6 +31,7 @@ import SwiftUI
 struct CommodityVolumeModule {
     typealias ViewModelProtocol = CommodityVolumeViewModelProtocol
 
+    @MainActor
     static func assemble(
         volumeAmount: String,
         commodityType: CommodityGroupModel.Commodity,

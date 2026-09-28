@@ -31,10 +31,13 @@ import Utility
 
 final class ConvertCommodityInteractorImpl: ConvertCommodityInteractor {
     // MARK: - Dependencies
+    private let businessDataContext: BusinessDataContext
     private let commodityConversionRemoteRepository: CommodityConversionRemoteRepository
 
     // MARK: - Init
-    init(commodityConversionRemoteRepository: CommodityConversionRemoteRepository) {
+    init(commodityConversionRemoteRepository: CommodityConversionRemoteRepository,
+         businessDataContext: BusinessDataContext = .init()) {
+        self.businessDataContext = businessDataContext
         self.commodityConversionRemoteRepository = commodityConversionRemoteRepository
     }
 
@@ -44,43 +47,58 @@ final class ConvertCommodityInteractorImpl: ConvertCommodityInteractor {
         oldPagination: ConversionPagination?,
         refresh: Bool
     ) async throws -> (list: IdentifiedArrayOf<ConversionRuleModel>, pagination: ConversionPagination) {
-        let pagination: ConversionPagination
+        try await businessDataContext.withCurrentGeneration {
+            let pagination: ConversionPagination
 
-        if !refresh, let oldPagination {
-            pagination = .init(
-                commodityId: commodity.id,
-                pageData: .init(
-                    page: oldPagination.pageData.page + 1,
-                    pageSize: oldPagination.pageData.pageSize
+            if !refresh, let oldPagination {
+                pagination = .init(
+                    commodityId: commodity.id,
+                    pageData: .init(
+                        page: oldPagination.pageData.page + 1,
+                        pageSize: oldPagination.pageData.pageSize
+                    )
                 )
+            } else {
+                pagination = .initial(commodityId: commodity.id)
+            }
+
+            let responseData = try await commodityConversionRemoteRepository.getConversionRules(pagination)
+            let updatedPageData: PaginationRequest = .init(
+                page: responseData.pagination.nextPage == nil ? oldPagination?.pageData.page ?? PaginationRequest.initial.page : pagination.pageData.page,
+                pageSize: pagination.pageData.pageSize
             )
-        } else {
-            pagination = .initial(commodityId: commodity.id)
+            var updatedPagination: ConversionPagination = .init(
+                commodityId: commodity.id,
+                pageData: updatedPageData
+            )
+            updatedPagination.nextPage = responseData.pagination.nextPage
+
+            return (responseData.list, updatedPagination)
         }
-
-        let responseData = try await commodityConversionRemoteRepository.getConversionRules(pagination)
-        let updatedPageData: PaginationRequest = .init(
-            page: responseData.pagination.nextPage == nil ? oldPagination?.pageData.page ?? PaginationRequest.initial.page : pagination.pageData.page,
-            pageSize: pagination.pageData.pageSize
-        )
-        var updatedPagination: ConversionPagination = .init(
-            commodityId: commodity.id,
-            pageData: updatedPageData
-        )
-        updatedPagination.nextPage = responseData.pagination.nextPage
-
-        return (responseData.list, updatedPagination)
     }
 
     func makeConversion(
-        recipeId: String,
+        rule: ConversionRuleModel,
+        seasonId: String,
         inputOverrides: IdentifiedArrayOf<ConversionRuleModel.ConversionRuleItem>,
         outputCommodities: IdentifiedArrayOf<ConversionRuleModel.ConversionRuleItem>
     ) async throws {
-        try await commodityConversionRemoteRepository.makeConversion(
-            recipeId: recipeId,
-            inputOverrides: inputOverrides,
-            outputOverrides: outputCommodities
-        )
+        try await businessDataContext.withProtectedWork {
+            let commodityIds = Set((rule.inputs + rule.outputs).map { $0.commodity.id })
+            guard !seasonId.isEmpty, !commodityIds.isEmpty, !commodityIds.contains("") else {
+                throw ConversionError.coverage
+            }
+            guard try await commodityConversionRemoteRepository.coversSeason(seasonId, commodityIds: commodityIds.sorted()) else {
+                throw ConversionError.coverage
+            }
+
+            try businessDataContext.capture().check()
+            try await commodityConversionRemoteRepository.makeConversion(
+                recipeId: rule.id,
+                seasonId: seasonId,
+                inputOverrides: inputOverrides,
+                outputOverrides: outputCommodities
+            )
+        }
     }
 }

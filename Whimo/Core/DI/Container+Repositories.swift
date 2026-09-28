@@ -28,6 +28,45 @@
 import FactoryKit
 
 extension AppContainer {
+    var businessModeRepository: Factory<BusinessModeRepository> {
+        self { BusinessModeRepositoryImpl(store: self.userDefaultsStore.resolve(), environment: ApiConfiguration.BasePath.baseApiUrl) }
+    }
+
+    var seasonalBalanceRepository: Factory<SeasonalBalanceRepository> {
+        self {
+            SeasonalBalanceRepositoryImpl(target: self.balancesTarget.resolve(), database: self.database.resolve(),
+                                          mapper: self.seasonalBalanceMapper.resolve(),
+                                          accountId: { try? self.profileLocalRepository.resolve().fetchProfile().id },
+                                          businessDataContext: self.businessDataContext.resolve())
+        }
+    }
+
+    var transactionListRepository: Factory<TransactionListRepository> {
+        self {
+            TransactionListRepositoryImpl(
+                caching: self.transactionsCachingRepository.resolve(), local: self.transactionsLocalRepository.resolve(),
+                queryMapper: self.transactionListQueryMapper.resolve(),
+                history: TransactionHistoryRepositoryImpl(
+                    target: self.transactionsTarget.resolve(), database: self.database.resolve(),
+                    mapper: self.transactionsMapper.resolve(), queryMapper: self.transactionListQueryMapper.resolve(),
+                    keychainStore: self.keychainStore.resolve(),
+                    businessDataContext: self.businessDataContext.resolve()
+                )
+            )
+        }
+    }
+
+    var seasonCatalogueRepository: Factory<SeasonCatalogueRepository> {
+        self {
+            SeasonCatalogueRepositoryImpl(
+                groupsTarget: self.commoditiesTarget.resolve(), seasonsTarget: self.harvestSeasonsTarget.resolve(),
+                database: self.database.resolve(), mapper: self.seasonCatalogueMapper.resolve(),
+                accountId: { try? self.profileLocalRepository.resolve().fetchProfile().id },
+                businessDataContext: self.businessDataContext.resolve()
+            )
+        }
+    }
+
     // MARK: - Auth
     var authRepository: Factory<AuthRepository> {
         self {
@@ -61,7 +100,8 @@ extension AppContainer {
         self {
             ProfileCachingRepositoryImpl(
                 localRepo: self.profileLocalRepository.resolve(),
-                remoteRepo: self.profileRemoteRepository.resolve()
+                remoteRepo: self.profileRemoteRepository.resolve(),
+                businessDataContext: self.businessDataContext.resolve()
             )
         }
     }
@@ -89,7 +129,9 @@ extension AppContainer {
         self {
             CommodityCachingRepositoryImpl(
                 localRepo: self.commodityLocalRelository.resolve(),
-                remoteRepo: self.commodityRemoteRepository.resolve()
+                remoteRepo: self.commodityRemoteRepository.resolve(),
+                accountId: { try? self.profileLocalRepository.resolve().fetchProfile().id },
+                businessDataContext: self.businessDataContext.resolve()
             )
         }
     }
@@ -99,7 +141,8 @@ extension AppContainer {
         self {
             CommodityConversionRemoteRepositoryImpl(
                 commodityConversionTarget: self.commodityConversionTarget.resolve(),
-                commodityConversionMapper: self.commodityConversionMapper.resolve()
+                commodityConversionMapper: self.commodityConversionMapper.resolve(),
+                seasonsTarget: self.harvestSeasonsTarget.resolve()
             )
         }
         .onPreview {
@@ -130,7 +173,9 @@ extension AppContainer {
                 transactionsOfflineMapper: self.transactionsOfflineMapper.resolve(),
                 userMapper: self.userMapper.resolve(),
                 userOfflineMapper: self.userOfflineMapper.resolve(),
-                keychainStore: self.keychainStore.resolve()
+                keychainStore: self.keychainStore.resolve(),
+                fileStorage: self.fileStorage.resolve(),
+                businessDataContext: self.businessDataContext.resolve()
             )
         }
     }
@@ -140,7 +185,8 @@ extension AppContainer {
             TransactionsRemoteRepositoryImpl(
                 transactionsTarget: self.transactionsTarget.resolve(),
                 transactionsMapper: self.transactionsMapper.resolve(),
-                supplierTransactionMapper: self.supplierTransactionMapper.resolve()
+                supplierTransactionMapper: self.supplierTransactionMapper.resolve(),
+                businessDataContext: self.businessDataContext.resolve()
             )
         }
     }
@@ -149,7 +195,8 @@ extension AppContainer {
         self {
             TransactionsCachingRepositoryImpl(
                 localRepo: self.transactionsLocalRepository.resolve(),
-                remoteRepo: self.transactionsRemoteRepository.resolve()
+                remoteRepo: self.transactionsRemoteRepository.resolve(),
+                businessDataContext: self.businessDataContext.resolve()
             )
         }
     }
@@ -159,7 +206,8 @@ extension AppContainer {
         self {
             TrxTraceabilityLocalRepositoryImpl(
                 database: self.database.resolve(),
-                transactionTraceabilityMapper: self.transactionTraceabilityMapper.resolve()
+                transactionTraceabilityMapper: self.transactionTraceabilityMapper.resolve(),
+                businessDataContext: self.businessDataContext.resolve()
             )
         }
     }
@@ -177,7 +225,8 @@ extension AppContainer {
         self {
             TrxTraceabilityCachingRepositoryImpl(
                 localRepo: self.trxTraceabilityLocalRepository.resolve(),
-                remoteRepo: self.trxTraceabilityRemoteRepository.resolve()
+                remoteRepo: self.trxTraceabilityRemoteRepository.resolve(),
+                businessDataContext: self.businessDataContext.resolve()
             )
         }
     }
@@ -187,7 +236,8 @@ extension AppContainer {
         self {
             NotificationsLocalRepositoryImpl(
                 database: self.database.resolve(),
-                notificationsMapper: self.notificationsMapper.resolve()
+                notificationsMapper: self.notificationsMapper.resolve(),
+                businessDataContext: self.businessDataContext.resolve()
             )
         }
     }
@@ -206,7 +256,8 @@ extension AppContainer {
             NotificationsCachingRepositoryImpl(
                 transactionLocalRepo: self.transactionsLocalRepository.resolve(),
                 localRepo: self.notificationsLocalRepository.resolve(),
-                remoteRepo: self.notificationsRemoteRepository.resolve()
+                remoteRepo: self.notificationsRemoteRepository.resolve(),
+                businessDataContext: self.businessDataContext.resolve()
             )
         }
     }
@@ -216,7 +267,8 @@ extension AppContainer {
         self {
             NotificationsSettingsLocalRepositoryImpl(
                 database: self.database.resolve(),
-                notificationsSettingsMapper: self.notificationsSettingsMapper.resolve()
+                notificationsSettingsMapper: self.notificationsSettingsMapper.resolve(),
+                businessDataContext: self.businessDataContext.resolve()
             )
         }
     }
@@ -234,7 +286,8 @@ extension AppContainer {
         self {
             NotificationsSettingsCachingRepositoryImpl(
                 localRepo: self.notificationsSettingsLocalRepository.resolve(),
-                remoteRepo: self.notificationsSettingsRemoteRepository.resolve()
+                remoteRepo: self.notificationsSettingsRemoteRepository.resolve(),
+                businessDataContext: self.businessDataContext.resolve()
             )
         }
     }

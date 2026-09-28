@@ -183,7 +183,7 @@ private extension CurrentView {
                 descriptionView(description: description)
             }
             styledTextFieldView()
-            if case .failed(let errorText) = state {
+            if case .failed(let errorText) = state, !errorText.isEmpty {
                 failedDescriptionView(errorText: errorText)
             }
         }

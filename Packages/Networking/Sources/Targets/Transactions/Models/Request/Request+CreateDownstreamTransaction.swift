@@ -46,6 +46,7 @@ extension RequestModels.CreateTransaction {
 extension RequestModels.CreateTransaction.Downstream {
     public struct TransactionData: DataMultipartEncodable {
         public let commodityId: String
+        public let harvestSeasonId: String?
         public let volume: String
         public let location: RequestModels.CreateTransaction.LocationType?
         /// Used for: buy commodity > downstream tx
@@ -66,9 +67,11 @@ extension RequestModels.CreateTransaction.Downstream {
             transactionLatitude: String? = nil,
             transactionLongitude: String? = nil,
             action: Action,
-            recipient: Recipient
+            recipient: Recipient,
+            harvestSeasonId: String? = nil
         ) {
             self.commodityId = commodityId
+            self.harvestSeasonId = harvestSeasonId
             self.volume = volume
             self.location = location
             self.farmLatitude = farmLatitude

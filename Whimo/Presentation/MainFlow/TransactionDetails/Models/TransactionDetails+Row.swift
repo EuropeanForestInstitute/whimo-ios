@@ -34,6 +34,7 @@ private typealias Localization = AppLocale.TransactionDetails
 
 extension Module {
     enum Row: DomainModel {
+        case harvestSeason
         case commodityType
         case farmGeodata
         case traceabilityStatus
@@ -47,6 +48,8 @@ extension Module {
 
         var title: String {
             switch self {
+                case .harvestSeason:
+                    AppLocale.HarvestSeasonPicker.Season.title
                 case .commodityType:
                     Localization.Row.CommodityType.title
                 case .farmGeodata:
@@ -78,6 +81,7 @@ extension Module {
         static var plainStatusCases: [TransactionDetailsModule.Row] {
             [
                 .commodityType,
+                .harvestSeason,
                 .traceabilityStatus,
                 .buyerID,
                 .supplierInformation,
@@ -89,6 +93,7 @@ extension Module {
         static var automaticStatusCases: [TransactionDetailsModule.Row] {
             [
                 .commodityType,
+                .harvestSeason,
                 .farmGeodata,
                 .transactionStatus,
                 .transactionDate
@@ -98,6 +103,7 @@ extension Module {
         static var pendingStatusCases: [TransactionDetailsModule.Row] {
             [
                 .commodityType,
+                .harvestSeason,
                 .traceabilityStatus,
                 .buyerID,
                 .supplierInformation,

@@ -33,9 +33,11 @@ protocol CommodityConversionRemoteRepository: AnyObject {
     typealias ConversionPagination = RequestModels.GetConversionRules
     typealias ConversionData = (list: IdentifiedArrayOf<ConversionRuleModel>, pagination: RestClient.Pagination)
 
+    func coversSeason(_ seasonId: String, commodityIds: [String]) async throws -> Bool
     func getConversionRules(_ model: ConversionPagination) async throws -> ConversionData
     func makeConversion(
         recipeId: String,
+        seasonId: String,
         inputOverrides: IdentifiedArrayOf<ConversionRuleModel.ConversionRuleItem>,
         outputOverrides: IdentifiedArrayOf<ConversionRuleModel.ConversionRuleItem>
     ) async throws

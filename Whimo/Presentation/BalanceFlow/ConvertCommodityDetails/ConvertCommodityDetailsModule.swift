@@ -31,8 +31,8 @@ import SwiftUI
 struct ConvertCommodityDetailsModule {
     typealias ViewModelProtocol = ConvertCommodityDetailsViewModelProtocol
 
-    static func assemble(commodity: CommodityGroupModel.Commodity, convertionRule: ConversionRuleModel) -> some View {
-        MainView(commodity: commodity, convertionRule: convertionRule)
+    static func assemble(commodity: CommodityGroupModel.Commodity, convertionRule: ConversionRuleModel, season: HarvestSeason? = nil) -> some View {
+        MainView(commodity: commodity, convertionRule: convertionRule, season: season)
     }
 }
 

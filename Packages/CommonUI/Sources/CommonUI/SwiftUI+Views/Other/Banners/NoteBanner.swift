@@ -72,7 +72,8 @@ public struct NoteBanner: View {
     }
 
     // MARK: - Private Properties
-    private let text: String
+    private let text: AttributedString
+    private let title: String?
     private let state: State
     private let actionButton: ActionButton?
     private let closeAction: (() -> Void)?
@@ -84,7 +85,18 @@ public struct NoteBanner: View {
         actionButton: ActionButton? = nil,
         closeAction: (() -> Void)? = nil
     ) {
-        self.text = text
+        self.init(attributedText: AttributedString(text), state: state, actionButton: actionButton, closeAction: closeAction)
+    }
+
+    public init(
+        attributedText: AttributedString,
+        title: String? = nil,
+        state: State = .info,
+        actionButton: ActionButton? = nil,
+        closeAction: (() -> Void)? = nil
+    ) {
+        self.text = attributedText
+        self.title = title
         self.state = state
         self.actionButton = actionButton
         self.closeAction = closeAction
@@ -102,8 +114,14 @@ private extension NoteBanner {
     @ViewBuilder func content() -> some View {
         HStack(alignment: .top, spacing: 8) {
             state.icon
+                .accessibilityHidden(true)
             HStack(alignment: .top, spacing: 8) {
                 VStack(alignment: .leading, spacing: 8) {
+                    if let title {
+                        Text(title)
+                            .appFontRegularSize14()
+                            .foregroundStyle(AppColors.Gray.gray90.colorSwiftUI)
+                    }
                     textView()
                     actionButtonView()
                 }

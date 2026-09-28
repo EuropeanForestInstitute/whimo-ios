@@ -32,9 +32,11 @@ extension ResponseModels {
     // MARK: - CommodityGroupInfo
     public struct CommodityGroupInfo: AnyDataResponse {
         public let data: [CommodityGroup]
+        public let pagination: RestClient.Pagination?
 
-        public init(data: [CommodityGroup]) {
+        public init(data: [CommodityGroup], pagination: RestClient.Pagination? = nil) {
             self.data = data
+            self.pagination = pagination
         }
     }
 

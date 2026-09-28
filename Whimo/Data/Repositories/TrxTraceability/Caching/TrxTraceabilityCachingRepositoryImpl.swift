@@ -30,35 +30,40 @@ import RestClient
 
 final class TrxTraceabilityCachingRepositoryImpl: TrxTraceabilityCachingRepository {
     // MARK: - Dependencies
+    private let businessDataContext: BusinessDataContext
     private let localRepo: TrxTraceabilityLocalRepository
     private let remoteRepo: TrxTraceabilityRemoteRepository
 
     // MARK: - Init
     init(
         localRepo: TrxTraceabilityLocalRepository,
-        remoteRepo: TrxTraceabilityRemoteRepository
+        remoteRepo: TrxTraceabilityRemoteRepository,
+        businessDataContext: BusinessDataContext = .init()
     ) {
+        self.businessDataContext = businessDataContext
         self.localRepo = localRepo
         self.remoteRepo = remoteRepo
     }
 
     // MARK: - TrxTraceabilityCachingRepository
     func fetchTransactionTraceability(by id: String) async throws -> TransactionTraceabilityModel {
-        do {
-            let traceability = try await remoteRepo.fetchTransactionTraceability(by: id)
-            try await localRepo.save(traceability, transactionId: id)
-            return traceability
-        } catch RestClient.RestError.connectionLost {
+        try await businessDataContext.withCurrentGeneration {
             do {
-                let localTraceability = try await localRepo.fetchTransactionTraceability(by: id)
-                return localTraceability
-            } catch TrxTraceabilityLocalRepositoryImpl.Error.failedReadObject {
-                return .init(items: [])
+                let traceability = try await remoteRepo.fetchTransactionTraceability(by: id)
+                try await localRepo.save(traceability, transactionId: id)
+                return traceability
+            } catch RestClient.RestError.connectionLost {
+                do {
+                    let localTraceability = try await localRepo.fetchTransactionTraceability(by: id)
+                    return localTraceability
+                } catch TrxTraceabilityLocalRepositoryImpl.Error.failedReadObject {
+                    return .init(items: [])
+                } catch {
+                    throw error
+                }
             } catch {
                 throw error
             }
-        } catch {
-            throw error
         }
     }
 }

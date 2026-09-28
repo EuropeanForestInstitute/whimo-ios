@@ -39,19 +39,117 @@ class FileStorageService: FileStorageServiceProtocol {
     private var _files: CurrentValueSubject<[FileObject], Never> = .init(.init())
 
     // MARK: - Private Dependencies
+    private let businessDataContext: BusinessDataContext
     private let fileManager: FileManager
+    private let queueDirectory: URL
 
     // MARK: - Init
-    init() {
+    init(queueDirectory: URL = FileUtils.directoryURL.appendingPathComponent("queued-evidence"),
+         businessDataContext: BusinessDataContext = .init()) {
+        self.businessDataContext = businessDataContext
+        self.queueDirectory = queueDirectory
         self.fileManager = .default
     }
 
     // MARK: - FileStorageServiceProtocol
+    func confirmedUploadID(for queuedID: String) throws -> String? {
+        let url = uploadReceiptURL(for: queuedID)
+        let data: Data
+        do {
+            data = try Data(contentsOf: url)
+        } catch let error as CocoaError where error.code == .fileReadNoSuchFile {
+            return nil
+        }
+        guard let remoteID = String(data: data, encoding: .utf8), !remoteID.isEmpty else {
+            throw CocoaError(.fileReadCorruptFile)
+        }
+        return remoteID
+    }
+
+    func saveConfirmedUploadID(_ remoteID: String, for queuedID: String) throws {
+        try businessDataContext.commit {
+            guard !remoteID.isEmpty else { throw CocoaError(.fileWriteInvalidFileName) }
+
+            let url = uploadReceiptURL(for: queuedID)
+            try fileManager.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+            try Data(remoteID.utf8).write(to: url, options: [.atomic, .completeFileProtectionUntilFirstUserAuthentication])
+        }
+    }
+
+    func removeConfirmedUploadID(for queuedID: String) {
+        try? businessDataContext.commit {
+            try? fileManager.removeItem(at: uploadReceiptURL(for: queuedID))
+        }
+    }
+
+    private func uploadReceiptURL(for queuedID: String) -> URL {
+        let name = Data(queuedID.utf8).base64EncodedString().replacingOccurrences(of: "/", with: "_")
+        return queueDirectory.appendingPathComponent(".upload-receipts").appendingPathComponent(name)
+    }
+
+    func durableQueuedCopy(of source: URL) throws -> URL {
+        try businessDataContext.commit {
+            let accessing = source.startAccessingSecurityScopedResource()
+            defer { if accessing { source.stopAccessingSecurityScopedResource() } }
+            try fileManager.createDirectory(at: queueDirectory, withIntermediateDirectories: true)
+            let destination = queueDirectory.appendingPathComponent(UUID().uuidString).appendingPathExtension(source.pathExtension)
+            let coordinator = NSFileCoordinator()
+            var coordinationError: NSError?
+            var copyError: Swift.Error?
+            coordinator.coordinate(readingItemAt: source, options: [], error: &coordinationError) { readableURL in
+                do {
+                    try fileManager.copyItem(at: readableURL, to: destination)
+                } catch {
+                    copyError = error
+                }
+            }
+            if let error = (coordinationError as Swift.Error?) ?? copyError {
+                try? fileManager.removeItem(at: destination)
+                throw error
+            }
+            return destination
+        }
+    }
+
+    func removeQueuedCopy(at url: URL) {
+        guard url.deletingLastPathComponent().standardizedFileURL == queueDirectory.standardizedFileURL else { return }
+
+        try? businessDataContext.commit { try? fileManager.removeItem(at: url) }
+    }
+
     func fetchFiles() {
         let result: Result<[FileObject], FileStorageService.Error> = contents(of: FileUtils.directoryURL)
         if case let .success(objects) = result {
             _files.send(objects)
         }
+    }
+
+    func removeAllQueuedData() throws {
+        let receipts = queueDirectory.appendingPathComponent(".upload-receipts", isDirectory: true)
+        for directory in [queueDirectory, receipts] {
+            let entries: [URL]
+            do {
+                entries = try fileManager.contentsOfDirectory(at: directory, includingPropertiesForKeys: [.isRegularFileKey])
+            } catch let error as CocoaError where error.code == .fileReadNoSuchFile {
+                continue
+            }
+            for entry in entries {
+                guard try entry.resourceValues(forKeys: [.isRegularFileKey]).isRegularFile == true else { continue }
+
+                let identifier: String?
+                if directory == receipts {
+                    identifier = Data(base64Encoded: entry.lastPathComponent.replacingOccurrences(of: "_", with: "/"))
+                        .flatMap { String(data: $0, encoding: .utf8) }
+                } else {
+                    identifier = entry.deletingPathExtension().lastPathComponent
+                }
+                // Only names created by durableQueuedCopy/uploadReceiptURL belong to this service.
+                guard let identifier, UUID(uuidString: identifier) != nil else { continue }
+
+                try fileManager.removeItem(at: entry)
+            }
+        }
+        _files.send([])
     }
 
     func isFileExists(at url: URL) -> Bool {

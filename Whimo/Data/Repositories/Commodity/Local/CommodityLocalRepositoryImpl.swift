@@ -52,13 +52,29 @@ final class CommodityLocalRepositoryImpl: CommodityLocalRepository {
         return .init(uniqueElements: domainModels)
     }
 
-    func save(_ model: CommodityGroupModel) async throws {
-        let mappedItem = commoditiesGroupsMapper.toDatabase(from: model)
-        try await database.save(mappedItem)
+    func preparedCatalogue() async throws -> IdentifiedArrayOf<CommodityGroupModel>? {
+        guard let record = try await database.readOne(SeasonCatalogueCache.filter(key: "selection:commodities")) else { return nil }
 
-        for commodity in model.commodities {
-            let mappedItem = commoditiesGroupsMapper.toDatabase(from: commodity, parrentId: model.id)
-            try await database.save(mappedItem)
+        let ids = try JSONDecoder().decode([String].self, from: record.payload)
+        let groups = try await fetchCommodityGroups()
+        let prepared = groups.filter { ids.contains($0.id) }
+        guard prepared.count == ids.count else { return nil }
+
+        return .init(uniqueElements: prepared)
+    }
+
+    func saveCatalogue(_ groups: IdentifiedArrayOf<CommodityGroupModel>, validateSession: @escaping () throws -> Void) async throws {
+        let marker = SeasonCatalogueCache(id: "selection:commodities", payload: try JSONEncoder().encode(groups.map(\.id)))
+        let mapper = commoditiesGroupsMapper
+        try await database.save { db in
+            try validateSession()
+            for group in groups {
+                try mapper.toDatabase(from: group).save(db)
+                for commodity in group.commodities {
+                    try mapper.toDatabase(from: commodity, parrentId: group.id).save(db)
+                }
+            }
+            try marker.save(db)
         }
     }
 }

@@ -84,71 +84,40 @@ public final class RestClient: NetworkingSession, RestClientProtocol {
 
     public var clientErrorWorker: ClientErrorWorker?
 
-    public override init(baseURL: URL, connectivity: Connectivity, userDefaults: AnyStorage<UserDefaultsStore>) {
-        super.init(baseURL: baseURL, connectivity: connectivity, userDefaults: userDefaults)
+    public override init(
+        baseURL: URL,
+        connectivity: Connectivity,
+        userDefaults: AnyStorage<UserDefaultsStore>,
+        configuration: URLSessionConfiguration? = nil
+    ) {
+        super.init(baseURL: baseURL, connectivity: connectivity, userDefaults: userDefaults, configuration: configuration)
 
         self.interceptorDelegate = self
     }
 
     public override func makeRequest<Model: Decodable>(_ router: AnyNetworkRouter) async throws -> Model {
-        do {
-            return try await super.makeRequest(router)
-        } catch let error as NetworkingSession.RequestError {
-            switch error {
-                case .clientError(_, let statusCode, _):
-                    if statusCode == .unauthorized {
-                        await clientErrorWorker?.unauthorized(
-                            router.path,
-                            method: router.method,
-                            headers: router.headers
-                        )
-                    }
-                default:
-                    break
-            }
-
-            throw RestClient.RestError(from: error)
-        }
+        try await performRequest(path: router.path, method: router.method, headers: router.headers) { try await super.makeRequest(router) }
     }
 
     public override func makeMultipartRequest<Model: Decodable>(_ router: AnyUploadNetworkRouter) async throws -> Model {
-        do {
-            return try await super.makeMultipartRequest(router)
-        } catch let error as NetworkingSession.RequestError {
-            switch error {
-                case .clientError(_, let statusCode, _):
-                    if statusCode == .unauthorized {
-                        await clientErrorWorker?.unauthorized(
-                            router.path,
-                            method: router.method,
-                            headers: router.headers
-                        )
-                    }
-                default:
-                    break
-            }
-
-            throw RestClient.RestError(from: error)
-        }
+        try await performRequest(path: router.path, method: router.method, headers: router.headers) { try await super.makeMultipartRequest(router) }
     }
 
     public override func downloadRequest(_ router: any AnyNetworkRouter, to destinationFolderURL: URL?) async throws -> URL? {
-        do {
-            return try await super.downloadRequest(router, to: destinationFolderURL)
-        } catch let error as NetworkingSession.RequestError {
-            switch error {
-                case .clientError(_, let statusCode, _):
-                    if statusCode == .unauthorized {
-                        await clientErrorWorker?.unauthorized(
-                            router.path,
-                            method: router.method,
-                            headers: router.headers
-                        )
-                    }
-                default:
-                    break
-            }
+        try await performRequest(path: router.path, method: router.method, headers: router.headers) {
+            try await super.downloadRequest(router, to: destinationFolderURL)
+        }
+    }
 
+    private func performRequest<Value>(path: String, method: HTTPMethod, headers: HTTPHeaders?, operation: () async throws -> Value) async throws -> Value {
+        let context = requestContext(path: path, method: method)
+        do {
+            return try await withRequestContext(context, operation: operation)
+        } catch let error as NetworkingSession.RequestError {
+            try context.validate()
+            if case .clientError(_, let statusCode, _) = error, statusCode == .unauthorized, context.handlesUnauthorized {
+                await clientErrorWorker?.unauthorized(path, method: method, headers: headers)
+            }
             throw RestClient.RestError(from: error)
         }
     }

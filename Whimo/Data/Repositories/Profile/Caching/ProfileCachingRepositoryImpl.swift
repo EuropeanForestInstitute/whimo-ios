@@ -30,39 +30,48 @@ import RestClient
 
 final class ProfileCachingRepositoryImpl: ProfileCachingRepository {
     // MARK: - Dependencies
+    private let businessDataContext: BusinessDataContext
     private let localRepo: ProfileLocalRepository
     private let remoteRepo: ProfileRemoteRepository
 
     // MARK: - Init
     init(
         localRepo: ProfileLocalRepository,
-        remoteRepo: ProfileRemoteRepository
+        remoteRepo: ProfileRemoteRepository,
+        businessDataContext: BusinessDataContext = .init()
     ) {
+        self.businessDataContext = businessDataContext
         self.localRepo = localRepo
         self.remoteRepo = remoteRepo
     }
 
     // MARK: - ProfileCachingRepository
     func fetchProfile() async throws -> UserModel {
-        do {
-            let user = try await remoteRepo.fetchProfile()
+        try await businessDataContext.withCurrentGeneration {
+            do {
+                let user = try await remoteRepo.fetchProfile()
 
-            localRepo.save(user)
-            return user
-        } catch RestClient.RestError.connectionLost {
-            let localUser = try localRepo.fetchProfile()
-            return localUser
-        } catch {
-            throw error
+                try businessDataContext.commit { localRepo.save(user) }
+                return user
+            } catch RestClient.RestError.connectionLost {
+                let localUser = try localRepo.fetchProfile()
+                return localUser
+            } catch {
+                throw error
+            }
         }
     }
 
     func changePassword(currentPassword: String, newPassword: String) async throws {
-        try await remoteRepo.changePassword(currentPassword: currentPassword, newPassword: newPassword)
+        try await businessDataContext.withCurrentGeneration {
+            try await remoteRepo.changePassword(currentPassword: currentPassword, newPassword: newPassword)
+        }
     }
 
     func deleteProfile() async throws {
-        try await remoteRepo.deleteProfile()
+        try await businessDataContext.withCurrentGeneration {
+            try await remoteRepo.deleteProfile()
+        }
     }
 
     func flush() {

@@ -32,30 +32,68 @@ import Utility
 // MARK: - CommodityCachingRepositoryImpl
 final class CommodityCachingRepositoryImpl: CommodityCachingRepository {
     // MARK: - Dependencies
+    private let businessDataContext: BusinessDataContext
     private let localRepo: CommodityLocalRepository
     private let remoteRepo: CommodityRemoteRepository
+    private let accountId: () -> String?
 
     // MARK: - Init
-    init(localRepo: CommodityLocalRepository, remoteRepo: CommodityRemoteRepository) {
+    init(localRepo: CommodityLocalRepository, remoteRepo: CommodityRemoteRepository, accountId: @escaping () -> String?,
+         businessDataContext: BusinessDataContext = .init()) {
+        self.businessDataContext = businessDataContext
         self.localRepo = localRepo
         self.remoteRepo = remoteRepo
+        self.accountId = accountId
     }
 
     // MARK: - CommodityCachingRepository
-    func fetchCommodityGroups() async throws -> IdentifiedArrayOf<CommodityGroupModel> {
-        do {
-            let groupsList = try await remoteRepo.fetchCommodityGroups()
-
-            for group in groupsList {
-                try await localRepo.save(group)
+    func prepareCatalogue() async throws -> IdentifiedArrayOf<CommodityGroupModel> {
+        try await businessDataContext.withCurrentGeneration {
+            let participant = try participantId()
+            if let saved = try await localRepo.preparedCatalogue() {
+                try validateSession(participant)
+                return saved
             }
-
-            return groupsList
-        } catch RestClient.RestError.connectionLost {
-            let localGroups = try await localRepo.fetchCommodityGroups()
-            return localGroups
-        } catch {
-            throw error
+            return try await fetchAndSave(participant: participant)
         }
+    }
+
+    func fetchCommodityGroups() async throws -> IdentifiedArrayOf<CommodityGroupModel> {
+        try await businessDataContext.withCurrentGeneration {
+            let participant = try participantId()
+            do {
+                return try await fetchAndSave(participant: participant)
+            } catch RestClient.RestError.connectionLost {
+                try validateSession(participant)
+                let groups = try await localRepo.fetchCommodityGroups()
+                try validateSession(participant)
+                return groups
+            }
+        }
+    }
+
+    private func fetchAndSave(participant: String) async throws -> IdentifiedArrayOf<CommodityGroupModel> {
+        let groups = try await remoteRepo.fetchCommodityGroups()
+        try validateSession(participant)
+        let businessGeneration = try businessDataContext.capture()
+        try await localRepo.saveCatalogue(groups) { [accountId] in
+            try businessGeneration.check()
+            guard accountId() == participant else { throw CancellationError() }
+
+        }
+        try validateSession(participant)
+        return groups
+    }
+
+    private func participantId() throws -> String {
+        guard let participant = accountId(), !participant.isEmpty else { throw CancellationError() }
+
+        return participant
+    }
+
+    private func validateSession(_ participant: String) throws {
+        try businessDataContext.capture().check()
+        guard accountId() == participant else { throw CancellationError() }
+
     }
 }

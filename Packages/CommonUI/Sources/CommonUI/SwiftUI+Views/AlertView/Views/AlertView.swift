@@ -89,9 +89,15 @@ private extension AlertView {
                 didTapClose()
             } label: {
                 AppAssets.Alert.alertXMark.imageSwiftUI
+                    .frame(width: 44, height: 44)
+                    .contentShape(Rectangle())
+
             }
+            .accessibilityLabel(AppLocale.General.close)
         }
-        .padding(16)
+        .padding(.leading, 16)
+        .padding(.trailing, 1)
+        .padding(.vertical, 6)
     }
 
     @ViewBuilder func subtitleView(subtitle: String?) -> some View {

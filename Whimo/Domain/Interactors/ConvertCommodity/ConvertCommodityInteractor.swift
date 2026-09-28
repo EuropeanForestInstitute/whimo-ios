@@ -39,7 +39,8 @@ protocol ConvertCommodityInteractor: AnyObject {
     ) async throws -> (list: IdentifiedArrayOf<ConversionRuleModel>, pagination: ConversionPagination)
 
     func makeConversion(
-        recipeId: String,
+        rule: ConversionRuleModel,
+        seasonId: String,
         inputOverrides: IdentifiedArrayOf<ConversionRuleModel.ConversionRuleItem>,
         outputCommodities: IdentifiedArrayOf<ConversionRuleModel.ConversionRuleItem>
     ) async throws

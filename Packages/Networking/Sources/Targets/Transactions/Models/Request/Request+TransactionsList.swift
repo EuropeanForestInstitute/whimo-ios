@@ -73,7 +73,10 @@ extension RequestModels {
             case createdAtFrom
             case createdAtTo
             case action
+            case commodityId
+            case orderings
             case commodityGroupId
+            case harvestSeasonId
             case buyerId
             case status
             case page
@@ -84,13 +87,7 @@ extension RequestModels {
         public func encode(to encoder: any Encoder) throws {
             var container = encoder.container(keyedBy: CodingKeys.self)
 
-            try container.encodeIfPresent(searchData.search, forKey: CodingKeys.search)
-            try container.encodeIfPresent(searchData.createdAtFrom, forKey: CodingKeys.createdAtFrom)
-            try container.encodeIfPresent(searchData.createdAtTo, forKey: CodingKeys.createdAtTo)
-            try container.encodeIfPresent(searchData.action, forKey: CodingKeys.action)
-            try container.encodeIfPresent(searchData.buyerData?.commodityGroupId, forKey: CodingKeys.commodityGroupId)
-            try container.encodeIfPresent(searchData.buyerData?.buyerId, forKey: CodingKeys.buyerId)
-            try container.encodeIfPresent(searchData.buyerData?.status, forKey: CodingKeys.status)
+            try searchData.encode(to: encoder)
             try container.encode(pageData.page, forKey: CodingKeys.page)
             try container.encode(pageData.pageSize, forKey: CodingKeys.pageSize)
         }
@@ -106,6 +103,10 @@ extension RequestModels.TransactionsList {
         public let createdAtTo: String?
         public let action: Action?
         public let buyerData: BuyerData?
+        public let commodityGroupId: String?
+        public let harvestSeasonId: String?
+        public let commodityId: String?
+        public let orderings: String?
 
         // MARK: - Static Methods
         public static let empty: Self = .init(
@@ -126,19 +127,41 @@ extension RequestModels.TransactionsList {
             )
         }
 
+        public func encode(to encoder: any Encoder) throws {
+            var container = encoder.container(keyedBy: RequestModels.TransactionsList.CodingKeys.self)
+            try container.encodeIfPresent(search, forKey: RequestModels.TransactionsList.CodingKeys.search)
+            try container.encodeIfPresent(createdAtFrom, forKey: RequestModels.TransactionsList.CodingKeys.createdAtFrom)
+            try container.encodeIfPresent(createdAtTo, forKey: RequestModels.TransactionsList.CodingKeys.createdAtTo)
+            try container.encodeIfPresent(action, forKey: RequestModels.TransactionsList.CodingKeys.action)
+            try container.encodeIfPresent(commodityGroupId ?? buyerData?.commodityGroupId, forKey: RequestModels.TransactionsList.CodingKeys.commodityGroupId)
+            try container.encodeIfPresent(harvestSeasonId, forKey: .harvestSeasonId)
+            try container.encodeIfPresent(commodityId, forKey: .commodityId)
+            try container.encodeIfPresent(orderings, forKey: .orderings)
+            try container.encodeIfPresent(buyerData?.buyerId, forKey: RequestModels.TransactionsList.CodingKeys.buyerId)
+            try container.encodeIfPresent(buyerData?.status, forKey: RequestModels.TransactionsList.CodingKeys.status)
+        }
+
         // MARK: - Public Init
         public init(
             search: String?,
             createdAtFrom: String?,
             createdAtTo: String?,
             action: Action?,
-            buyerData: BuyerData?
+            buyerData: BuyerData?,
+            commodityGroupId: String? = nil,
+            harvestSeasonId: String? = nil,
+            commodityId: String? = nil,
+            orderings: String? = nil
         ) {
             self.search = search
             self.createdAtFrom = createdAtFrom
             self.createdAtTo = createdAtTo
             self.action = action
             self.buyerData = buyerData
+            self.commodityGroupId = commodityGroupId
+            self.harvestSeasonId = harvestSeasonId
+            self.commodityId = commodityId
+            self.orderings = orderings
         }
     }
 }

@@ -71,8 +71,9 @@ public struct MockTransactionsTarget: TransactionsTarget, MockableTarget {
         return .init(data: .mock)
     }
 
-    public func updateTransaction(_ model: RequestModels.UpdateTransactionStatus) async throws {
+    public func updateTransaction(_ model: RequestModels.UpdateTransactionStatus) async throws -> ResponseModels.UpdateTransactionStatus {
         try await sleepRequest()
+        return .init(data: .init(transaction: .mock, automaticTransaction: nil))
     }
 
     public func updateTransactionGeodata(_ model: RequestModels.UpdateTransactionGeodata) async throws {

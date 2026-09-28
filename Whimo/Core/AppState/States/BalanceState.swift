@@ -38,5 +38,10 @@ struct BalanceState: AnyState {
     enum Activity { }
 
     // MARK: - Properties
+    var query = BalanceListQuery()
+    var list: Loadable<IdentifiedArrayOf<SeasonalBalance>> = .notRequested
+    var pagination: BalancePagination?
+    var isCached = false
+    var hasListError = false
     var commodityGroups: Loadable<IdentifiedArrayOf<CommodityGroupModel>> = .notRequested
 }

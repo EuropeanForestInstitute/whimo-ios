@@ -28,5 +28,17 @@
 import Foundation
 
 protocol DataCleanerInteractor: AnyObject {
+    /// The transition owner must establish eligibility before discarding saved work.
+    func resetBusinessData() async throws
+    func hasUnsynchronizedWork() async throws -> Bool
+    func resetBusinessData(protectingUnsynchronizedWork: Bool, completion: @escaping @MainActor () -> Void) async throws
     func dropAll() async throws
+}
+
+extension DataCleanerInteractor {
+    func hasUnsynchronizedWork() async throws -> Bool { true }
+
+    func resetBusinessData(protectingUnsynchronizedWork: Bool, completion: @escaping @MainActor () -> Void) async throws {
+        throw BusinessModeError.synchronizationRequired
+    }
 }

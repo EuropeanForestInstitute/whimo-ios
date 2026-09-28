@@ -73,10 +73,6 @@ private extension ModuleView {
     @ViewBuilder func content() -> some View {
         ScrollView {
             VStack(spacing: .zero) {
-                if !viewModel.connectionReachable {
-                    OfflineBanner()
-                        .padding(16)
-                }
                 Module.CommoditiesList(
                     commodityGroup: viewModel.model,
                     connectionReachable: viewModel.connectionReachable,

@@ -116,6 +116,36 @@ extension DatabaseImpl {
             }
         }
 
+        migrator.registerMigration("add_season_catalogue_and_transaction_filter") { db in
+            try db.create(table: Table.get(.seasonCatalogueCache)) { table in
+                table.column("id", .text).primaryKey()
+                table.column("payload", .blob).notNull()
+            }
+            try db.alter(table: Table.get(.transaction)) { table in
+                table.add(column: "harvestSeasonId", .text)
+            }
+        }
+
+        migrator.registerMigration("add_transaction_season_metadata") { db in
+            try db.alter(table: Table.get(.transaction)) { table in
+                table.add(column: "harvestSeason", .jsonText)
+            }
+        }
+
+        migrator.registerMigration("add_seasonal_balance_cache") { db in
+            try db.create(table: Table.get(.seasonalBalanceCache)) { table in
+                table.column("id", .text).primaryKey()
+                table.column("payload", .blob).notNull()
+            }
+        }
+
+        migrator.registerMigration("add_transaction_history_cache") { db in
+            try db.create(table: Table.get(.transactionHistoryCache)) { table in
+                table.column("id", .text).primaryKey()
+                table.column("payload", .blob).notNull()
+            }
+        }
+
         return migrator
     }
 }

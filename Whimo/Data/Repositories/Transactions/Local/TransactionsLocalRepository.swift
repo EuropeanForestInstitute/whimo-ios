@@ -39,6 +39,11 @@ protocol TransactionsLocalRepository: AnyObject {
     func fetchOnDiskTransactions() async throws -> IdentifiedArrayOf<TransactionModel>
 
     func save(_ model: TransactionModel) async throws
+    func saveRefreshedDetails(_ model: TransactionModel, replacing previous: TransactionModel) async throws
+    func saveStatusOutcome(_ models: [TransactionModel]) async throws
+    func confirmedUploadID(for queued: TransactionModel) throws -> String?
+    func saveConfirmedUploadID(_ remoteID: String, for queued: TransactionModel) throws
+    func replaceQueued(_ queued: TransactionModel, with transaction: TransactionModel) async throws
     func saveProducerTransaction(
         commodityId: String,
         location: RequestModels.CreateTransaction.LocationType?,
@@ -47,7 +52,8 @@ protocol TransactionsLocalRepository: AnyObject {
         transactionCoordinates: CLLocationCoordinate2D?,
         volume: String,
         inviteRecipient: RequestModels.CreateTransaction.Producer.TransactionData.Recipient?,
-        isBuyingFromFarmer: Bool
+        isBuyingFromFarmer: Bool,
+        season: HarvestSeason
     ) async throws -> TransactionModel
     func saveDownstreamTransaction(
         commodityId: String,
@@ -57,7 +63,8 @@ protocol TransactionsLocalRepository: AnyObject {
         farmCoordinates: CLLocationCoordinate2D?,
         transactionCoordinates: CLLocationCoordinate2D?,
         action: TransactionModel.Action,
-        recipient: RequestModels.CreateTransaction.Downstream.TransactionData.Recipient
+        recipient: RequestModels.CreateTransaction.Downstream.TransactionData.Recipient,
+        season: HarvestSeason?
     ) async throws -> TransactionModel
 
     func delete(_ transaction: TransactionModel) async throws

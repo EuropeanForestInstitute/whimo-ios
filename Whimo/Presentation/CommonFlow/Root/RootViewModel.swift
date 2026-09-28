@@ -40,8 +40,10 @@ extension Module {
 
         // MARK: - Private Properties
         private var cancellable: CancelBag = .init()
+        @MainActor private var isObservingConnectivity = false
 
         // MARK: - Dependencies
+        @Inject(\.businessDataContext) private var businessDataContext
         @Inject(\.appState) private var appState
         @Inject(\.connectivity) private var connectivity
         @Inject(\.userDefaultsStore) private var userDefaultsStore
@@ -79,10 +81,10 @@ private extension ViewModel {
         appState.navigation.activity
             .filter { $0 == .authorized }
             .sink { [weak self] _ in
-                guard let self else { return }
+                guard let self, let generation = try? self.businessDataContext.capture() else { return }
 
                 Task {
-                    await self.preloadData()
+                    await BusinessDataContext.$requestGeneration.withValue(generation) { await self.preloadData() }
                 }
             }
             .store(in: cancellable)
@@ -129,16 +131,29 @@ private extension ViewModel {
         }
     }
 
-    func startTransactionsSyncObserver() {
+    @MainActor
+    func startConnectivityObserver() {
+        guard !isObservingConnectivity else { return }
+
+        isObservingConnectivity = true
+        var isInitialStatus = true
         connectivity.isReachable
             .removeDuplicates()
             .sink { [weak self] status in
                 guard let self else { return }
 
+                let shouldResumeCatalogues = !isInitialStatus
+                isInitialStatus = false
                 switch status {
                     case .reachable:
                         Task {
                             try await self.offlineTransactionsSyncInteractor.syncTransactions()
+                        }
+                        // The initial connectivity value is handled by authorized remote preload.
+                        if shouldResumeCatalogues {
+                            Task {
+                                await self.dataFetcherInteractor.prepareCatalogues()
+                            }
                         }
                     default:
                         return
@@ -148,8 +163,12 @@ private extension ViewModel {
     }
 
     func preloadData() async {
-        await dataFetcherInteractor.loadCacheData()
-        startTransactionsSyncObserver()
-        await dataFetcherInteractor.fetchRemoteData()
+        try? await businessDataContext.withCurrentGeneration {
+            await dataFetcherInteractor.loadCacheData()
+            try businessDataContext.capture().check()
+            await startConnectivityObserver()
+            try businessDataContext.capture().check()
+            await dataFetcherInteractor.fetchRemoteData()
+        }
     }
 }

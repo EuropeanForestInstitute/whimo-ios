@@ -25,6 +25,7 @@
 //  SOFTWARE.
 //
 
+import Foundation
 import FactoryKit
 import RestClient
 
@@ -35,14 +36,31 @@ extension AppContainer: @retroactive AutoRegistering {
     public func autoRegister() {
         manager.defaultScope = .singleton
 
-        restClient.register {
-            let client: RestClient = .init(
-                baseURL: ApiConfiguration.baseUrl,
-                connectivity: self.connectivity.resolve(),
-                userDefaults: self.userDefaultsStore.resolve()
-            )
-            client.clientErrorWorker = self.restClientErrorWorker.resolve()
-            return client
+        restClient.register { self.makeRestClient() }
+    }
+}
+
+extension AppContainer {
+    func makeRestClient(baseURL: URL = ApiConfiguration.baseUrl, configuration: URLSessionConfiguration? = nil) -> RestClient {
+        let client = RestClient(baseURL: baseURL, connectivity: connectivity.resolve(), userDefaults: userDefaultsStore.resolve(),
+            configuration: configuration)
+        let modes = businessModeRepository.resolve()
+        let context = businessDataContext.resolve()
+        client.requestContextProvider = { requestPath, method in
+            let path = requestPath.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+            if path.hasPrefix("auth/") || (path == "users/profile" && method == .get) {
+                return .init(baseURL: baseURL)
+            }
+            let generation = try? context.capture()
+            let isTest = modes.mode == .test
+            return .init(baseURL: isTest ? baseURL.appendingPathComponent("test") : baseURL,
+                         handlesUnauthorized: !isTest, validate: {
+                guard let generation else { throw CancellationError() }
+
+                try generation.check()
+            })
         }
+        client.clientErrorWorker = restClientErrorWorker.resolve()
+        return client
     }
 }

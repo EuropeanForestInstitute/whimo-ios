@@ -42,6 +42,7 @@ extension Module {
 
         // MARK: - Private Properties
         private var cancellable: CancelBag = .init()
+        let season: HarvestSeason?
         private let commodityToConvert: CommodityGroupModel.Commodity
         private var pagination: ConvertCommodityInteractor.ConversionPagination?
 
@@ -50,8 +51,9 @@ extension Module {
         @Inject(\.convertCommodityInteractor) private var convertCommodityInteractor
 
         // MARK: - Init
-        init(commodity: CommodityGroupModel.Commodity) {
+        init(commodity: CommodityGroupModel.Commodity, season: HarvestSeason? = nil) {
             self.commodityToConvert = commodity
+            self.season = season
             self.items = []
 
             startup()
@@ -59,7 +61,7 @@ extension Module {
 
         // MARK: - ViewModelProtocol
         func didTapOpenConverterDetails(model: ConversionRuleModel) {
-            let screen: Screen = .convertCommodityDetails(commodity: commodityToConvert, convertionRule: model)
+            let screen: Screen = .convertCommodityDetails(commodity: commodityToConvert, convertionRule: model, season: season)
             appState.navigation[\.path].append(.push(screen))
         }
 

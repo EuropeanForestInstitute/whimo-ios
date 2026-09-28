@@ -148,7 +148,8 @@ private extension AppButton {
     @ViewBuilder func label(title: String) -> some View {
         Text(title)
             .padding(.horizontal, 6)
-            .frame(height: 22)
+            .frame(minHeight: 22)
+            .fixedSize(horizontal: false, vertical: true)
     }
 }
 

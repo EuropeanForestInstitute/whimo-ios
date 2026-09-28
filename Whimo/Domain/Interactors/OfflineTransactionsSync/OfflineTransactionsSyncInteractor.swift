@@ -28,5 +28,6 @@
 import Foundation
 
 protocol OfflineTransactionsSyncInteractor: AnyObject {
+    func discardPendingResults() async
     func syncTransactions() async throws
 }

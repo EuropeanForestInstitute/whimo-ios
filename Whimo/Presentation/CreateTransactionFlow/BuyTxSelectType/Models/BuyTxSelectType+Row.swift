@@ -44,9 +44,9 @@ extension Module {
         var icon: Image {
             switch self {
                 case .producer:
-                    Assets.buyTxSelectTypeProducerIcon.imageSwiftUI
-                case .downstream:
                     Assets.buyTxSelectTypeDownstreamIcon.imageSwiftUI
+                case .downstream:
+                    Assets.buyTxSelectTypeProducerIcon.imageSwiftUI
             }
         }
 
@@ -56,15 +56,6 @@ extension Module {
                     Localization.Producer.title
                 case .downstream:
                     Localization.Downstream.title
-            }
-        }
-
-        var subtitle: String {
-            switch self {
-                case .producer:
-                    Localization.Producer.subtitle
-                case .downstream:
-                    Localization.Downstream.subtitle
             }
         }
 

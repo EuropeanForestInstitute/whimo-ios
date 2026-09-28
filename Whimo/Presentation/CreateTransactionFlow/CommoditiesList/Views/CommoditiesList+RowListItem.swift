@@ -44,13 +44,14 @@ extension Module {
         // MARK: - Private Properties
         private let decimalFormatter: DecimalFormatter = .shortFraction
 
-        var balanceCount: Double { item.balance ?? .zero }
         var balanceText: String {
+            guard let balanceCount = item.balance else { return AppLocale.CreationSeason.balanceUnavailable }
+
             let stringBalance = decimalFormatter.format(value: "\(balanceCount)")
             return Localization.balanceCount("\(stringBalance)\(item.unit)")
         }
         var balanceTextColor: Color {
-            balanceCount > .zero
+            item.balance == nil || (item.balance ?? 0) > .zero
             ? AppColors.Gray.gray60.colorSwiftUI
             : AppColors.Expanded.expandedWarning.colorSwiftUI
         }

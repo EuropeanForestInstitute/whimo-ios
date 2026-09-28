@@ -42,40 +42,50 @@ final class TrxTraceabilityLocalRepositoryImpl: TrxTraceabilityLocalRepository {
         }
     }
     // MARK: - Dependencies
+    private let businessDataContext: BusinessDataContext
     private let database: DatabaseKit.Database
     private let transactionTraceabilityMapper: TransactionTraceabilityMapperProtocol
 
     // MARK: - Init
     init(
         database: DatabaseKit.Database,
-        transactionTraceabilityMapper: TransactionTraceabilityMapperProtocol
+        transactionTraceabilityMapper: TransactionTraceabilityMapperProtocol,
+        businessDataContext: BusinessDataContext = .init()
     ) {
+        self.businessDataContext = businessDataContext
         self.database = database
         self.transactionTraceabilityMapper = transactionTraceabilityMapper
     }
 
     // MARK: - TrxTraceabilityLocalRepository
     func fetchTransactionTraceability(by id: String) async throws -> TransactionTraceabilityModel {
-        guard
-            let dbModel = try await database.readOne(
-                DatabaseKit.TransactionTraceability.Node
-                    .byID(id)
-            )
-        else { throw Error.failedReadObject(objectId: id) }
+        try await businessDataContext.withCurrentGeneration {
+            guard
+                let dbModel = try await database.readOne(
+                    DatabaseKit.TransactionTraceability.Node
+                        .byID(id)
+                )
+            else { throw Error.failedReadObject(objectId: id) }
 
-        let domainModel = transactionTraceabilityMapper.toDomain(from: dbModel.transactionTraceability)
-        return domainModel
+            let domainModel = transactionTraceabilityMapper.toDomain(from: dbModel.transactionTraceability)
+            return domainModel
+        }
     }
 
     func save(
         _ traceability: TransactionTraceabilityModel,
         transactionId: String
     ) async throws {
-        let transactionTraceability = transactionTraceabilityMapper.toDatabase(
-            from: traceability,
-            transactionId: transactionId
-        )
+        try await businessDataContext.withCurrentGeneration {
+            let transactionTraceability = transactionTraceabilityMapper.toDatabase(
+                from: traceability,
+                transactionId: transactionId
+            )
 
-        try await database.save(transactionTraceability)
+            let businessGeneration = try businessDataContext.capture()
+            try await database.save { db in
+                try businessGeneration.whileCurrent { _ = try transactionTraceability.saved(db) }
+            }
+        }
     }
 }

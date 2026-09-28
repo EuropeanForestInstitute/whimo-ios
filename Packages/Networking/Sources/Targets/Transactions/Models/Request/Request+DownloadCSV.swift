@@ -30,10 +30,21 @@ import RestClient
 
 extension RequestModels {
     public struct DownloadCSV: Encodable {
-        public let transactionId: String
+        public let transactionId: String?
+        private let searchData: TransactionsList.SearchData?
 
         public init(transactionId: String) {
             self.transactionId = transactionId
+            self.searchData = nil
+        }
+
+        public init(searchData: TransactionsList.SearchData) {
+            self.transactionId = nil
+            self.searchData = searchData
+        }
+
+        public func encode(to encoder: any Encoder) throws {
+            try searchData?.encode(to: encoder)
         }
     }
 }

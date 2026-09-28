@@ -26,6 +26,7 @@
 //
 
 import SwiftUI
+import UniformTypeIdentifiers
 import CommonUI
 import Resources
 import Utility
@@ -49,21 +50,39 @@ extension Module {
         // MARK: - Private Properties
         @FocusState private var keyboardActiveField: KeyboardField?
         @State private var showDatePicker: Bool = false
-
+        @State private var availableHeight: CGFloat = 600
+        private let chipFontSize: CGFloat = 14
         private var dateFiltersEnabled: Bool { !viewModel.dates.isEmpty }
 
         // MARK: - Body
         var body: some View {
             content()
+                .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { availableHeight = $0 }
                 .applyNavigationBar(
                     title: Localization.title,
                     titlePrefferedFontStyle: .h2,
                     trailingItem: .notifications,
+                    additionalTrailingItem: .custom(
+                        image: AppAssets.TransactionDetails.transactionDetailsDownloadIcon.image,
+                        accessibilityLabel: AppLocale.TransactionSeason.export,
+                        action: viewModel.startCSVExport
+                    ),
                     enableDivider: false
                 )
                 .background {
                     AppColors.Gray.gray5.colorSwiftUI
                         .ignoresSafeArea()
+                }
+                .fileExporter(
+                    isPresented: $viewModel.showsCSVExporter,
+                    document: viewModel.csvDocument,
+                    contentType: .commaSeparatedText,
+                    defaultFilename: "transactions.csv",
+                    onCompletion: viewModel.didFinishCSVExport
+                )
+                .onDisappear {
+                    viewModel.cancelCSVExport()
+                    viewModel.filterSheet = nil
                 }
         }
     }
@@ -74,8 +93,29 @@ private extension ModuleView {
     // MARK: - Content
     @ViewBuilder func content() -> some View {
         VStack(spacing: .zero) {
+            if viewModel.isExportingCSV {
+                ProgressView(AppLocale.TransactionSeason.export)
+                    .padding(.horizontal, 16)
+            }
             navigationToolbar()
-                .padding(16)
+                .padding(.top, 16)
+                .padding(.horizontal, 16)
+                .padding(.bottom, viewModel.appliedFilter.isEmpty ? 16 : 0)
+            if !viewModel.appliedFilter.isEmpty {
+                filterChip()
+            }
+            if viewModel.isCached {
+                Text(AppLocale.CommoditySeasonFilter.cachedTransactions)
+                    .font(.footnote)
+                    .padding(.horizontal, 16)
+            }
+            if viewModel.hasListError, viewModel.transactions.value != nil {
+                VStack {
+                    Text(AppLocale.CommoditySeasonFilter.listError)
+                    Button(AppLocale.CommoditySeasonFilter.retry) { Task { await viewModel.didPullRefresh() } }
+                }
+                .padding(.horizontal, 16)
+            }
             pagePicker()
 
             ZStack {
@@ -89,12 +129,20 @@ private extension ModuleView {
                                 bottomLoader()
                             }
                         }
+                    } else if case .failed = viewModel.transactions {
+                        VStack(spacing: 16) {
+                            Text(AppLocale.CommoditySeasonFilter.listError)
+                            Button(AppLocale.CommoditySeasonFilter.retry) { Task { await viewModel.didPullRefresh() } }
+                        }
+                        .padding()
+                    } else if viewModel.transactions.isLoading {
+                        ProgressView().padding()
                     } else {
                         Rectangle()
                             .fill(.white.opacity(0.001))
                     }
                 }
-                .animation(.snappy, value: viewModel.transactions.value)
+                .frame(maxWidth: .infinity)
                 .refreshable { await didPullRefresh() }
                 .background(AppColors.Other.white.colorSwiftUI)
                 if !viewModel.transactions.isEmpty {
@@ -105,17 +153,71 @@ private extension ModuleView {
     }
 
     // MARK: - Header
+    @ViewBuilder func filterChip() -> some View {
+        Button(action: viewModel.clearFilter) {
+            HStack(spacing: 8) {
+                Text(filterChipTitle)
+                    .font(FontBuilder.buildRegular(size: chipFontSize))
+                    .foregroundStyle(AppColors.Primary.primaryBerryBlue.colorSwiftUI)
+                    .fixedSize(horizontal: false, vertical: true)
+                Image(systemName: "xmark")
+                    .font(.system(size: 10))
+                    .foregroundStyle(AppColors.Gray.gray50.colorSwiftUI)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .background(AppColors.Primary.primaryBirchWhite.colorSwiftUI, in: .rect(cornerRadius: 4))
+            .frame(minHeight: 44)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(AppLocale.CommoditySeasonFilter.clear)
+        .accessibilityValue(viewModel.appliedFilter.title)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 16)
+    }
+
+    var filterChipTitle: String {
+        let filter = viewModel.appliedFilter
+        guard let group = filter.group, let season = filter.season else { return filter.title }
+
+        let prefix = group.name + " "
+        let seasonName = season.name.hasPrefix(prefix) ? String(season.name.dropFirst(prefix.count)) : season.name
+        return group.name + ", " + seasonName
+    }
+
+    @ViewBuilder func filterButton() -> some View {
+        AppButton(leadingAccessory: AppAssets.Home.homeFilterIcon.imageSwiftUI, style: .bordered) {
+            keyboardActiveField = nil
+            showDatePicker = false
+            viewModel.openFilters()
+        }
+        .frame(width: 48, height: 48)
+        .overlay(alignment: .topTrailing) {
+            if !viewModel.appliedFilter.isEmpty {
+                Circle().fill(AppColors.Primary.primarySeaBlue.colorSwiftUI).frame(width: 8, height: 8)
+            }
+        }
+        .accessibilityLabel(AppLocale.CommoditySeasonFilter.title)
+        .accessibilityValue(viewModel.appliedFilter.title)
+        .sheet(item: $viewModel.filterSheet) { model in
+            CommoditySeasonFilterSheet(viewModel: model, maximumHeight: availableHeight)
+        }
+    }
+
     @ViewBuilder func navigationToolbar() -> some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 8) {
             AppTextField(
                 text: $viewModel.searchText,
+                backgroundColor: AppColors.Other.white.colorSwiftUI,
                 placeholder: Localization.SerchField.placeholder,
                 leadingAccessory: AppAssets.Home.searchIcon.imageSwiftUI,
-                tapDestination: .textField(keyboardActiveField = .search)
+                tapDestination: .textField(didTapSearchField())
             )
             .focused($keyboardActiveField, equals: .search)
             .submitLabel(.search)
             calendarPickerButton()
+            filterButton()
         }
     }
 
@@ -188,8 +290,8 @@ private extension ModuleView {
             Spacer()
                 .frame(height: 80)
             EmptyStateView(
-                title: Localization.EmptyState.title,
-                subtitle: Localization.EmptyState.subtitle
+                title: viewModel.hasCriteria ? AppLocale.CommoditySeasonFilter.noMatches : Localization.EmptyState.title,
+                subtitle: viewModel.hasCriteria ? AppLocale.CommoditySeasonFilter.adjustFilters : Localization.EmptyState.subtitle
             )
             Button(action: didTapAddTransaction, label: {
                 HStack {
@@ -250,7 +352,13 @@ private extension ModuleView {
 
     @MainActor
     func didtapShowdatePicker() {
+        keyboardActiveField = nil
         showDatePicker = true
+    }
+
+    func didTapSearchField() {
+        showDatePicker = false
+        keyboardActiveField = .search
     }
 
     func didTapAddMissignGeodata(item: TransactionModel) {

@@ -45,6 +45,7 @@ extension Module {
         let didTapTraceabilityStatus: () -> Void
         let didTapShowRecipientInfo: () -> Void
         let didTapTransactionStatus: () -> Void
+        var didTapHarvestSeason: () -> Void = { }
 
         // MARK: - Private Properties
         @AppStorage(.currentLocalize)
@@ -130,6 +131,9 @@ private extension ListView {
                             title: item.title,
                             description: commodityTypeText
                         )
+                        DefaultDivider()
+                    case .harvestSeason:
+                        seasonRow()
                         DefaultDivider()
                     case .farmGeodata:
                         if transaction.location == nil {
@@ -243,6 +247,37 @@ private extension ListView {
                 }
             }
         }
+    }
+
+    @ViewBuilder func seasonRow() -> some View {
+        Button(action: didTapHarvestSeason) {
+            HStack(spacing: 8) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Module.RowTitle(text: AppLocale.HarvestSeasonPicker.Season.title)
+                    HStack(spacing: 8) {
+                        Module.RowDescription(text: TransactionSeasonPresentation(season: transaction.harvestSeason).title)
+                        if let status = TransactionSeasonPresentation(season: transaction.harvestSeason).status {
+                            Text(status.title)
+                                .font(FontBuilder.buildMedium(size: 12))
+                                .foregroundStyle(status.foregroundColor)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(status.backgroundColor, in: .rect(cornerRadius: 3))
+                        }
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                Module.TrailingAccessoryImage()
+                    .accessibilityHidden(true)
+            }
+            .padding(.vertical, 12)
+            .padding(.horizontal, 16)
+            .background(AppColors.Other.white.colorSwiftUI)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(AppLocale.HarvestSeasonPicker.Season.title)
+        .accessibilityValue(TransactionSeasonPresentation(season: transaction.harvestSeason).accessibilityLabel)
     }
 
     // MARK: - Rows

@@ -144,6 +144,9 @@ public final class DatabaseImpl: Database {
         do {
             try await writer.write { db in
                 let deletableTypes: [any MutableStorePersistable.Type] = [
+                    TransactionHistoryCache.self,
+                    SeasonalBalanceCache.self,
+                    SeasonCatalogueCache.self,
                     Notification.self,
                     TransactionTraceability.self,
                     Transaction.self,

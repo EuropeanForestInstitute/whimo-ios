@@ -76,14 +76,21 @@ extension Transaction {
             action: String? = nil,
             dateFrom: String? = nil,
             dateTo: String? = nil,
-            refersTo userId: String? = nil
+            refersTo userId: String? = nil,
+            commodityGroupId: String? = nil,
+            harvestSeasonId: String? = nil,
+            commodityId: String? = nil
         ) -> QueryInterfaceRequest<Self> {
             Transaction
                 .all()
                 .including(
                     required: Transaction.commodity
                         .filter { table in
-                            table.name.like("%\(searchText)%")
+                            var expressions = [table.name.like("%\(searchText)%")]
+                            if let commodityGroupId {
+                                expressions.append((table.commodityGroupId == commodityGroupId))
+                            }
+                            return expressions.joined(operator: .and)
                         }
                         .forKey("commodity")
                         .including(
@@ -112,6 +119,10 @@ extension Transaction {
                         exp.append(allActionsExp.joined(operator: .or))
                     }
 
+                    if let commodityId { exp.append(table.commodityId == commodityId) }
+                    if let harvestSeasonId {
+                        exp.append(table.harvestSeasonId == harvestSeasonId)
+                    }
                     if let dateFrom {
                         exp.append(table.createdAt >= dateFrom)
                     }
@@ -122,7 +133,8 @@ extension Transaction {
                     if let userId {
                         let userIdExp = [
                             table.sellerId == userId,
-                            table.buyerId == userId
+                            table.buyerId == userId,
+                            table.createdById == userId
                         ]
 
                         exp.append(userIdExp.joined(operator: .or))

@@ -38,7 +38,7 @@ private typealias Localization = AppLocale.Settings
 extension Module {
     struct MainView: View {
         // MARK: - Dependencies
-        @StateObject var viewModel: ViewModel = .init()
+        @StateObject private var viewModel: ViewModel = .init()
         @EnvironmentObject var navigator: AppFlowNavigator
 
         // MARK: - Body
@@ -63,11 +63,13 @@ private extension ModuleView {
     @ViewBuilder func content() -> some View {
         ScrollView {
             VStack(spacing: .zero) {
-                if !viewModel.connectionReachable {
-                    OfflineBanner()
+                testModeToggle()
+                list()
+                if viewModel.isTestMode {
+                    NoteBanner(text: AppLocale.TestMode.settingsUnavailable, state: .info)
+                        .fixedSize(horizontal: false, vertical: true)
                         .padding(16)
                 }
-                list()
             }
         }
     }
@@ -85,8 +87,9 @@ private extension ModuleView {
             Button {
                 didTapRow(item)
             } label: {
-                Module.RowView(row: item)
+                Module.RowView(row: item, isEnabled: viewModel.isRowEnabled(item))
             }
+            .disabled(!viewModel.isRowEnabled(item))
             if item.id != viewModel.list.last?.id {
                 DefaultDivider()
             }
@@ -97,6 +100,8 @@ private extension ModuleView {
 // MARK: - Private Methods
 private extension ModuleView {
     func didTapRow(_ row: Module.Row) {
+        guard viewModel.isRowEnabled(row) else { return }
+
         switch row {
             case .accountInfo:
                 navigator.push(.accountInfo)
@@ -120,3 +125,58 @@ struct SettingsView_Previews: PreviewProvider {
     }
 }
 #endif
+
+private extension SettingsModule.MainView {
+    func testModeToggle() -> some View {
+        HStack(alignment: .top, spacing: 12) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(AppLocale.TestMode.title).appFontMediumSize16()
+                    .foregroundStyle(AppColors.Gray.gray90.colorSwiftUI)
+                Text(AppLocale.TestMode.subtitle).appFontRegularSize12()
+                    .foregroundStyle(AppColors.Gray.gray60.colorSwiftUI)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            Toggle(AppLocale.TestMode.title, isOn: Binding(get: { viewModel.isTestMode }, set: { enabled in
+                Task { await viewModel.setTestModeEnabled(enabled) }
+            }))
+            .labelsHidden()
+            .accessibilityHint(AppLocale.TestMode.subtitle)
+            .scaleEffect(0.85, anchor: .topTrailing)
+            .frame(width: 44, height: 24)
+        }
+        .tint(AppColors.Primary.primarySeaBlue.colorSwiftUI)
+        .disabled(viewModel.isSwitchingMode)
+        .padding(16)
+        .background(AppColors.Other.white.colorSwiftUI)
+    }
+}
+
+extension SettingsModule {
+    struct EntryContent: View {
+        let isBlocked: Bool
+
+        var body: some View {
+            VStack(alignment: .leading, spacing: 12) {
+                NoteBanner(text: isBlocked ? AppLocale.TestMode.unsynced : AppLocale.TestMode.explanation,
+                    state: isBlocked ? .warning : .info)
+                    .fixedSize(horizontal: false, vertical: true)
+                if isBlocked {
+                    Text(AppLocale.TestMode.syncRequired)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .foregroundStyle(AppColors.Gray.gray60.colorSwiftUI)
+                } else {
+                    ForEach([AppLocale.TestMode.create, AppLocale.TestMode.explore, AppLocale.TestMode.learn,
+                             AppLocale.TestMode.separate, AppLocale.TestMode.returnToLive], id: \.self) { text in
+                        HStack(alignment: .top, spacing: 6) {
+                            Text("•").foregroundStyle(AppColors.Primary.primarySeaBlue.colorSwiftUI)
+                            Text(text)
+                        }
+                    }
+                }
+            }
+            .appFontRegularSize14()
+            .foregroundStyle(AppColors.Gray.gray90.colorSwiftUI)
+            .padding(16)
+        }
+    }
+}

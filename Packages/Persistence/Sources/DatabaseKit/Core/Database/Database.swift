@@ -70,3 +70,20 @@ public class PreviewDatabaseImpl: Database {
 
     public func flush() async throws { }
 }
+
+public extension Database {
+    /// Removes mode-specific records while retaining shared catalogues and notification preferences.
+    /// The authenticated profile lives separately in StorageKit.
+    func flushBusinessData() async throws {
+        try await save { db in
+            let types: [any MutableStorePersistable.Type] = [
+                TransactionHistoryCache.self, SeasonalBalanceCache.self,
+                Notification.self, TransactionTraceability.self, Transaction.self,
+                User.self
+            ]
+            for type in types { try type.deleteAll(db) }
+            // Catalogue identities are shared, but the legacy balance belongs to the discarded mode.
+            try Commodity.updateAll(db, Commodity.Columns.balance.set(to: nil as Double?))
+        }
+    }
+}

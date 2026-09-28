@@ -73,12 +73,14 @@ final class ConvertCommodityInteractorMock: ConvertCommodityInteractor {
     }
 
     func makeConversion(
-        recipeId: String,
+        rule: ConversionRuleModel,
+        seasonId: String,
         inputOverrides: IdentifiedArrayOf<ConversionRuleModel.ConversionRuleItem>,
         outputCommodities: IdentifiedArrayOf<ConversionRuleModel.ConversionRuleItem>
     ) async throws {
         try await commodityConversionRemoteRepository.makeConversion(
-            recipeId: recipeId,
+            recipeId: rule.id,
+            seasonId: seasonId,
             inputOverrides: inputOverrides,
             outputOverrides: outputCommodities
         )

@@ -398,21 +398,21 @@
 // MARK: - --- ADD TRANSACTION FLOW ---
 // MARK: - Create Transaction Select Type
 "createTxSelectType.title" = "Añadir Transacción";
+"createTxSelectType.subtitle" = "¿Qué quieres hacer?";
 
-"createTxSelectType.options.buy" = "Comprar o adquirir";
-"createTxSelectType.options.sell" = "Vender o entregar";
+"createTxSelectType.options.buy" = "Comprar commodity";
+"createTxSelectType.options.sell" = "Vender commodity";
 
 // MARK: - Buy Transaction Select Type
 "buyTxSelectType.title" = "Comprar commodity";
-"buyTxSelectType.subtitle" = "¿La persona de la que estás comprando usa la aplicación?";
+"buyTxSelectType.subtitle" = "¿Qué transacción estás creando?";
 
 "buyTxSelectType.row.producer.title" = "Transacción inicial";
-"buyTxSelectType.row.producer.subtitle" = "El vendedor no está usando esta aplicación";
-"buyTxSelectType.row.producer.infoText" = "Elige esto si el vendedor no tiene una cuenta en WHIMO.";
+"buyTxSelectType.row.producer.infoText" = "Tu proveedor no usa esta aplicación. Serás el primer eslabón de la cadena.";
 
 "buyTxSelectType.row.downstream.title" = "Transacción posterior";
 "buyTxSelectType.row.downstream.subtitle" = "El vendedor está usando esta aplicación";
-"buyTxSelectType.row.downstream.infoText" = "Elige esto si el vendedor tiene una cuenta en WHIMO.";
+"buyTxSelectType.row.downstream.infoText" = "Tu proveedor usa esta aplicación. Recuperaremos su información de trazabilidad.";
 
 // MARK: - Buy Transaction Select Seller
 "buyTxSelectSeller.title" = "Transacción inicial";
@@ -621,3 +621,146 @@
 "notifications.row.locationReq.title" = "Solicitud de ubicación";
 
 "notifications.buttons.save" = "Guardar";
+
+// MARK: - Harvest Season Picker
+"harvestSeasonPicker.season.title" = "Temporada de cosecha";
+"harvestSeasonPicker.season.fullTitle" = "%@ %@";
+"harvestSeasonPicker.all.title" = "Todas las temporadas de cosecha";
+"harvestSeasonPicker.status.active" = "Activa";
+"harvestSeasonPicker.status.past" = "Pasada";
+"harvestSeasonPicker.status.archived" = "Archivada";
+"harvestSeasonPicker.disclosure.expanded" = "Expandido";
+"harvestSeasonPicker.disclosure.collapsed" = "Contraído";
+"harvestSeasonPicker.accessibility.rowTitle" = "%@, %@";
+
+// Commodity group and harvest season filters
+"commoditySeasonFilter.title" = "Filtro";
+"commoditySeasonFilter.group" = "Grupo de productos";
+"commoditySeasonFilter.season" = "Temporada de cosecha";
+"commoditySeasonFilter.allGroups" = "Todos los grupos de productos";
+"commoditySeasonFilter.allSeasons" = "Todas las temporadas de cosecha";
+"commoditySeasonFilter.chooseGroup" = "Primero elige un grupo de productos.";
+"commoditySeasonFilter.reset" = "Restablecer";
+"commoditySeasonFilter.apply" = "Aplicar";
+"commoditySeasonFilter.close" = "Cerrar filtros";
+"commoditySeasonFilter.clear" = "Borrar filtros de grupo y temporada";
+"commoditySeasonFilter.loading" = "Cargando catálogo";
+"commoditySeasonFilter.catalogueError" = "No se pudo cargar el catálogo. Conéctate e inténtalo de nuevo.";
+"commoditySeasonFilter.retry" = "Reintentar";
+"commoditySeasonFilter.noSeasons" = "No hay temporadas de cosecha disponibles para este grupo.";
+"commoditySeasonFilter.cachedCatalogue" = "Mostrando el catálogo guardado.";
+"commoditySeasonFilter.cachedTransactions" = "Sin conexión: se muestran las transacciones guardadas disponibles. Los resultados pueden estar incompletos.";
+"commoditySeasonFilter.listError" = "No se pudieron cargar las transacciones.";
+"commoditySeasonFilter.noMatches" = "No hay transacciones coincidentes";
+"commoditySeasonFilter.adjustFilters" = "Prueba a cambiar la búsqueda, la fecha o los filtros.";
+
+// Transaction harvest season
+"transactionSeason.unavailable" = "Temporada no disponible";
+"transactionSeason.explanation" = "Las temporadas de cosecha ayudan a organizar las transacciones por cosecha.";
+"transactionSeason.assignment" = "La temporada se asigna cuando se crea la primera transacción y se utiliza automáticamente en el resto de la cadena de suministro.";
+"transactionSeason.badge" = "Temporada %@ %@";
+"transactionSeason.export" = "Exportar las transacciones filtradas como CSV";
+"general.close" = "Cerrar";
+
+// Seasonal Balance
+"seasonalBalance.search" = "Buscar saldo";
+"seasonalBalance.cached" = "Saldos en caché. Los resultados pueden estar incompletos o desactualizados.";
+"seasonalBalance.error" = "No se pudieron cargar los saldos. Inténtalo de nuevo.";
+"seasonalBalance.convert" = "Convertir %@";
+"seasonalBalance.noMatches" = "No hay saldos coincidentes";
+"seasonalBalance.adjustFilters" = "Prueba a cambiar la búsqueda o los filtros.";
+
+// Buyer harvest season creation
+"creationSeason.choose" = "Elegir temporada de cosecha";
+"creationSeason.catalogueRequired" = "Conéctese a Internet para cargar las temporadas de cosecha de este producto y elija una temporada.";
+"creationSeason.balanceUnavailable" = "Su saldo: no disponible";
+"creationSeason.retry" = "Reintentar";
+
+// Downstream volume summary
+"createTransactionForm.volumeSummary.purchaseIncludes" = "Su compra incluirá:";
+"createTransactionForm.volumeSummary.transactionIncludes" = "Su transacción incluirá:";
+"createTransactionForm.volumeSummary.saleIncludes" = "Su venta incluirá:";
+"createTransactionForm.volumeSummary.fromSeason" = "de la temporada %@";
+
+// Seasonal seller validation
+"creationSeason.insufficientBalance" = "No hay suficiente saldo disponible para la temporada de cosecha %@.";
+"creationSeason.balanceRequired" = "Conéctese para cargar su saldo de esta temporada de cosecha antes de vender.";
+"creationSeason.cachedBalance" = "Sin conexión: se muestra el último saldo guardado de la temporada.";
+"creationSeason.invalidQuantity" = "Introduzca una cantidad válida.";
+
+"creationSeason.producerCatalogueRequired" = "Conéctese a Internet para cargar la temporada de cosecha activa de este producto y vuelva a intentarlo.";
+
+// Transaction acceptance
+"transactionAcceptance.accepted" = "Aceptada en la temporada de cosecha registrada de la transacción.";
+"transactionAcceptance.rejected" = "Rechazada. La temporada de cosecha no cambia.";
+"transactionAcceptance.automatic" = "Aceptada. Se creó una transacción automática de %@ %@ en la misma temporada de cosecha.";
+"transactionAcceptance.conflict" = "Sigue pendiente. Pida al vendedor que reponga el saldo de esta temporada y vuelva a intentarlo, o rechace la solicitud.";
+"transactionAcceptance.unconfirmed" = "Estado sin confirmar. Actualice los detalles antes de reintentar.";
+"transactionAcceptance.refreshFailed" = "Estado cambiado. Faltan datos. Actualice Transacciones y Saldo.";
+
+// Seasonal conversion
+"conversionSeason.coverage" = "Esta receta no está disponible en esta temporada. Elija otra receta.";
+"conversionSeason.insufficientBalance" = "Saldo insuficiente en esta temporada. Revise las cantidades y reintente.";
+"conversionSeason.unavailable" = "No se pudo completar la conversión. Revise su conexión y reintente.";
+"conversionSeason.refreshFailed" = "Conversión completada. Actualice las listas para ver los saldos y transacciones.";
+
+"balanceDetails.title" = "Detalles del saldo";
+"balanceDetails.remainingBalance" = "Saldo restante";
+"balanceDetails.lastActivity" = "Última actividad";
+"balanceDetails.sourceTransactions" = "Transacciones de origen";
+"balanceDetails.historyConnectionRequired" = "Conéctese a Internet para cargar las transacciones de este producto y esta temporada de cosecha.";
+"balanceDetails.historyError" = "No se pudieron cargar las transacciones de origen. Inténtelo de nuevo.";
+
+// Seller Automatic volume preview
+"createTransactionForm.volumeSummary.automatic" = "transacción automática";
+"createTransactionForm.volumeSummary.edit" = "Editar el volumen y la temporada de cosecha";
+"createTransactionForm.automatic.title" = "Transacción automática";
+"createTransactionForm.automatic.explanation" = "Se creará una transacción automática para añadir los volúmenes necesarios a su saldo. Sin embargo, estos volúmenes adicionales no serán totalmente trazables.";
+"createTransactionForm.automatic.review" = "Podrá revisar y añadir la información necesaria más adelante.";
+"createTransactionForm.automatic.estimate" = "El volumen de la transacción automática que se muestra es una estimación. El volumen final se determina cuando se acepta la venta.";
+
+"createTransactionForm.volumeSummary.savedBalance" = "Basado en el saldo guardado";
+"createTransactionForm.volumeSummary.unavailable" = "Desglose no disponible";
+
+// MARK: - Acceptance seasonal balance
+"transactionAcceptance.balance.title" = "Aceptar transacción";
+"transactionAcceptance.balance.gotIt" = "Entendido";
+"transactionAcceptance.balance.summary" = "Tiene %@ disponibles de la temporada de cosecha %@, pero el comprador solicitó %@.";
+"transactionAcceptance.balance.requirement" = "No puede aceptar esta transacción hasta que tenga saldo suficiente.";
+"transactionAcceptance.balance.alternative" = "También puede rechazar esta solicitud y crear una nueva venta por la cantidad disponible.";
+"transactionAcceptance.balance.loading" = "Comprobando el saldo disponible…";
+"transactionAcceptance.balance.unavailable" = "El saldo o la temporada de cosecha no está disponible. Reintente para comprobar si puede aceptar.";
+"transactionAcceptance.balance.warningLabel" = "¿Por qué no puedo aceptar esta transacción?";
+
+// Active-season acceptance preview
+"transactionAcceptance.preview.title" = "Saldo disponible insuficiente.";
+"transactionAcceptance.preview.message" = "Se creará una transacción automática por los %@ que faltan. Esta cantidad tendrá una trazabilidad incompleta.";
+"transactionAcceptance.preview.automaticTransaction" = "transacción automática";
+"transactionAcceptance.preview.incompleteTraceability" = "trazabilidad incompleta";
+
+"transactionAcceptance.detailsRefreshFailed" = "No se pudieron actualizar los detalles de la transacción. Inténtelo de nuevo.";
+
+// Test environment
+"testMode.title" = "Entorno de prueba";
+"testMode.settingsUnavailable" = "Algunos ajustes no están disponibles en el entorno de prueba.";
+"testMode.subtitle" = "Practique la creación de transacciones en un entorno separado sin afectar a sus datos reales.";
+"testMode.entryTitle" = "Entrar en el entorno de prueba";
+"testMode.gotIt" = "Entendido";
+"testMode.unsynced" = "Tiene cambios sin sincronizar";
+"testMode.explanation" = "Todo funciona como en la aplicación real, pero nada de lo que haga aquí afecta a sus datos reales.";
+"testMode.syncRequired" = "Debe sincronizar las transacciones pendientes antes de entrar en el entorno de prueba.\n\nVuelva a conectarse a Internet y sincronice sus datos. Después podrá cambiar al entorno de prueba.";
+"testMode.create" = "Cree y reciba transacciones de prueba.";
+"testMode.explore" = "Explore la trazabilidad y los saldos.";
+"testMode.learn" = "Aprenda cómo funciona la aplicación antes de utilizarla en operaciones reales.";
+"testMode.separate" = "Todos los datos de prueba se mantienen separados de su espacio de trabajo real.";
+"testMode.returnToLive" = "Vuelva al entorno real en cualquier momento desde Ajustes.";
+
+"testMode.screenIndicator" = "Estás en el entorno de prueba";
+
+"testMode.confirmation.transaction" = "Está creando una transacción en un entorno de prueba. Las transacciones, los saldos y la trazabilidad reales no se ven afectados.";
+"testMode.confirmation.conversion" = "Está realizando una conversión en un entorno de prueba. Las transacciones, los saldos y la trazabilidad reales no se ven afectados.";
+
+"testMode.acceptance.title" = "¿Aceptar la transacción de prueba?";
+"testMode.acceptance.description" = "Confirma que deseas aceptar esta transacción pendiente.";
+"testMode.acceptance.cancel" = "Cancelar";
+"testMode.confirmation.acceptance" = "Estás aceptando una transacción en un entorno de prueba. Las transacciones, los saldos y la trazabilidad reales no se ven afectados.";

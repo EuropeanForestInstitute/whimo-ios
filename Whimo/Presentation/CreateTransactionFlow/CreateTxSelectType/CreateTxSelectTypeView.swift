@@ -59,8 +59,18 @@ extension Module {
 // MARK: - Private Layout
 private extension ModuleView {
     @ViewBuilder func content() -> some View {
-        options()
-            .padding(16)
+        VStack(spacing: 16) {
+            subtitle()
+                .frame(maxWidth: .infinity, alignment: .leading)
+            options()
+        }
+        .padding(16)
+    }
+
+    @ViewBuilder func subtitle() -> some View {
+        Text(Localization.subtitle)
+            .appFontMediumSize18()
+            .foregroundStyle(AppColors.Gray.gray90.colorSwiftUI)
     }
 
     @ViewBuilder func options() -> some View {

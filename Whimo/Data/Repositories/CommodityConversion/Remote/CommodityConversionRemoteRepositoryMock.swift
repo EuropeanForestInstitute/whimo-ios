@@ -45,6 +45,8 @@ final class CommodityConversionRemoteRepositoryMock: CommodityConversionRemoteRe
     }
 
     // MARK: - CommodityConversionRemoteRepository
+    func coversSeason(_ seasonId: String, commodityIds: [String]) async throws -> Bool { true }
+
     func getConversionRules(_ model: ConversionPagination) async throws -> ConversionData {
         let response = try await commodityConversionTarget.getConversionRules(model)
         let conversionRulesList = response
@@ -56,6 +58,7 @@ final class CommodityConversionRemoteRepositoryMock: CommodityConversionRemoteRe
 
     func makeConversion(
         recipeId: String,
+        seasonId: String,
         inputOverrides: IdentifiedArrayOf<ConversionRuleModel.ConversionRuleItem>,
         outputOverrides: IdentifiedArrayOf<ConversionRuleModel.ConversionRuleItem>
     ) async throws {
@@ -69,6 +72,7 @@ final class CommodityConversionRemoteRepositoryMock: CommodityConversionRemoteRe
 
         let requestModel: RequestModels.MakeConversion = .init(
             recipeId: recipeId,
+            harvestSeasonId: seasonId,
             inputOverrides: inputOverridesRequest,
             outputOverrides: outputOverridesRequest
         )

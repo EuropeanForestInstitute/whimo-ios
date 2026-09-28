@@ -46,6 +46,8 @@ extension Module {
 
         // MARK: - Dependencies
         @StateObject var viewModel: ViewModel = .init()
+        @StateObject private var offlineBanner = RootOfflineBannerViewModel()
+        @StateObject private var testMode = RootTestModeViewModel()
 
         // MARK: - Init
 
@@ -64,107 +66,117 @@ extension Module {
 // MARK: - Private Layout
 private extension ModuleView {
     @ViewBuilder func content() -> some View {
-        CoordinatorModule.assemble(navigationHandler: viewModel.navigationHandler) { screen, _ in
-            switch screen {
-                // system
-                case .documentPicker(let didPickData):
-                    DocumentPicker(didPickData: didPickData)
-                case .openWevView(let url):
-                    WebView(stringURL: url)
-                // auth flow
-                case .login:
-                    LoginModule.assemble()
-                case .register:
-                    RegisterModule.assemble()
-                case .changeLanguage:
-                    VStack(spacing: .zero) {
-                        Spacer()
-                            .frame(height: 16)
-                        ChangeLanguageModule.assemble()
-                    }
+        CoordinatorModule.assemble(navigationHandler: viewModel.navigationHandler) { screen, index in
+            screenView(screen)
+                .environment(\.showsTestModeIndicator, testMode.visibleRouteIndices.contains(index))
+                .environment(\.showsOfflineBanner, offlineBanner.visibleRouteIndices.contains(index))
+        }
+    }
+
+    @ViewBuilder func screenView(_ screen: Screen) -> some View {
+        switch screen {
+            // system
+            case .documentPicker(let didPickData):
+                DocumentPicker(didPickData: didPickData)
+            case .openWevView(let url):
+                WebView(stringURL: url)
+            // auth flow
+            case .login:
+                LoginModule.assemble()
+            case .register:
+                RegisterModule.assemble()
+            case .changeLanguage:
+                VStack(spacing: .zero) {
+                    Spacer()
+                        .frame(height: 16)
+                    ChangeLanguageModule.assemble()
+                }
+                .selfSizedSheet()
+                .background { OverridingBackgroundView() }
+            case .forgotPassword:
+                ForgotPasswordModule.assemble()
+            case .createPassword:
+                CreatePasswordModule.assemble()
+            case .otp(let parrentFlow, let gadgets):
+                OTPModule.assemble(parrentFlow: parrentFlow, gadgets: gadgets)
+            // nav bar flow
+            case .more:
+                MoreModule.assemble()
                     .selfSizedSheet()
                     .background { OverridingBackgroundView() }
-                case .forgotPassword:
-                    ForgotPasswordModule.assemble()
-                case .createPassword:
-                    CreatePasswordModule.assemble()
-                case .otp(let parrentFlow, let gadgets):
-                    OTPModule.assemble(parrentFlow: parrentFlow, gadgets: gadgets)
-                // nav bar flow
-                case .more:
-                    MoreModule.assemble()
-                        .selfSizedSheet()
-                        .background { OverridingBackgroundView() }
-                case .notificationsList:
-                    NotificationsListModule.assemble()
-                // main flow
-                case .tabBar:
-                    TabBarModule.assemble()
-                case .transactionDetails(let transactionId):
-                    TransactionDetailsModule.assemble(transactionId: transactionId)
-                case .downloadTxDetails(let transactionId, let tradersCount):
-                    DownloadTxDetailsModule.assemble(transactionId: transactionId, tradersCount: tradersCount)
-                        .selfSizedSheet()
-                        .background { OverridingBackgroundView() }
-                case .suppliersHistory(let supplierInfo):
-                    SuppliersHistoryModule.assemble(supplierInfo: supplierInfo)
-                // select transaction type flow
-                case .createTransaction:
-                    CreateTxSelectTypeModule.assemble()
-                case .buyTxSelectType:
-                    BuyTxSelectTypeModule.assemble()
-                case .buyTxSelectSeller:
-                    BuyTxSelectSellerModule.assemble()
-                case .buyTxOnFarmDialog:
-                    BuyTxOnFarmDialogModule.assemble()
-                case .createTransactionForm(let transactionType):
-                    CreateTransactionFormModule.assemble(transactionType: transactionType)
-                case .scanQR:
-                    ScanQRModule.assemble()
-                case .chooseFarmGeodata:
-                    ChooseFarmGeodataModule.assemble()
-                case .uploadFile(let mode):
-                    UploadFileModule.assemble(mode: mode)
-                case .addGpsPoint:
-                    AddGpsPointModule.assemble()
-                case .commoditiesList:
-                    CommoditiesListModule.assemble()
-                case .commodityVolume(let volumeAmount, let commodityType, let transactionType):
-                    CommodityVolumeModule.assemble(
-                        volumeAmount: volumeAmount,
-                        commodityType: commodityType,
-                        transactionType: transactionType
-                    )
-                case .addTransactionRecipient(let action):
-                    AddTransactionRecipientModule.assemble(action: action)
-                case .inviteSeller:
-                    InviteSellerModule.assemble()
-                // balance flow
-                case .groupBalanceDetails(let commodityGroup):
-                    BalanceGroupDetailsModule.assemble(model: commodityGroup)
-                case .convertCommodityList(let commodity):
-                    ConvertCommodityListModule.assemble(commodity: commodity)
-                case .convertCommodityDetails(let commodity, let convertionRule):
-                    ConvertCommodityDetailsModule.assemble(commodity: commodity, convertionRule: convertionRule)
-                // settings flow
-                case .accountInfo:
-                    AccountInfoModule.assemble()
-                case .gadgetDetails(let gadgets):
-                    GadgetDetailsModule.assemble(gadgets: gadgets)
-                case .changePassword:
-                    ChangePasswordModule.assemble()
-                case .notifications:
-                    NotificationsModule.assemble()
-                case .changeLanguageFullScreen:
-                    VStack {
-                        ChangeLanguageModule.assemble(showBackButton: true)
-                        Spacer()
-                    }
-                    .background {
-                        AppColors.Gray.gray5.colorSwiftUI
-                            .ignoresSafeArea()
-                    }
-            }
+            case .notificationsList:
+                NotificationsListModule.assemble()
+            // main flow
+            case .tabBar:
+                TabBarModule.assemble()
+            case .transactionDetails(let transactionId):
+                TransactionDetailsModule.assemble(transactionId: transactionId)
+            case .downloadTxDetails(let transactionId, let tradersCount):
+                DownloadTxDetailsModule.assemble(transactionId: transactionId, tradersCount: tradersCount)
+                    .selfSizedSheet()
+                    .background { OverridingBackgroundView() }
+            case .suppliersHistory(let supplierInfo):
+                SuppliersHistoryModule.assemble(supplierInfo: supplierInfo)
+            // select transaction type flow
+            case .createTransaction:
+                CreateTxSelectTypeModule.assemble()
+            case .buyTxSelectType:
+                BuyTxSelectTypeModule.assemble()
+            case .buyTxSelectSeller:
+                BuyTxSelectSellerModule.assemble()
+            case .buyTxOnFarmDialog:
+                BuyTxOnFarmDialogModule.assemble()
+            case .createTransactionForm(let transactionType):
+                CreateTransactionFormModule.assemble(transactionType: transactionType)
+            case .scanQR:
+                ScanQRModule.assemble()
+            case .chooseFarmGeodata:
+                ChooseFarmGeodataModule.assemble()
+            case .uploadFile(let mode):
+                UploadFileModule.assemble(mode: mode)
+            case .addGpsPoint:
+                AddGpsPointModule.assemble()
+            case .commoditiesList:
+                CommoditiesListModule.assemble()
+            case .commodityVolume(let volumeAmount, let commodityType, let transactionType):
+                CommodityVolumeModule.assemble(
+                    volumeAmount: volumeAmount,
+                    commodityType: commodityType,
+                    transactionType: transactionType
+                )
+            case .addTransactionRecipient(let action):
+                AddTransactionRecipientModule.assemble(action: action)
+            case .inviteSeller:
+                InviteSellerModule.assemble()
+            // balance flow
+            case .sourceTransactions(let commodityId, let seasonId):
+                SourceTransactionsModule.assemble(commodityId: commodityId, seasonId: seasonId)
+            case .balanceDetails(let row, let isCached):
+                BalanceDetailsModule.assemble(row: row, isCached: isCached)
+            case .groupBalanceDetails(let commodityGroup):
+                BalanceGroupDetailsModule.assemble(model: commodityGroup)
+            case .convertCommodityList(let commodity, let season):
+                ConvertCommodityListModule.assemble(commodity: commodity, season: season)
+            case .convertCommodityDetails(let commodity, let convertionRule, let season):
+                ConvertCommodityDetailsModule.assemble(commodity: commodity, convertionRule: convertionRule, season: season)
+            // settings flow
+            case .accountInfo:
+                AccountInfoModule.assemble()
+            case .gadgetDetails(let gadgets):
+                GadgetDetailsModule.assemble(gadgets: gadgets)
+            case .changePassword:
+                ChangePasswordModule.assemble()
+            case .notifications:
+                NotificationsModule.assemble()
+            case .changeLanguageFullScreen:
+                VStack {
+                    ChangeLanguageModule.assemble(showBackButton: true)
+                    Spacer()
+                }
+                .background {
+                    AppColors.Gray.gray5.colorSwiftUI
+                        .ignoresSafeArea()
+                }
         }
     }
 }

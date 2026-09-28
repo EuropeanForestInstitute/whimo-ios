@@ -51,7 +51,8 @@ extension Module {
         }
 
         private var enableConvertButton: Bool {
-            !viewModel.inputCommodities.contains(where: { Double($0.quantity) ?? .zero == .zero })
+            !viewModel.isSubmitting && !viewModel.hasConverted && viewModel.season != nil
+                && !viewModel.inputCommodities.contains(where: { Double($0.quantity) ?? .zero == .zero })
         }
 
         private let decimalFormatter: DecimalFormatter = .default
@@ -60,8 +61,8 @@ extension Module {
         @FocusState private var keyboardActiveField: KeyboardField?
 
         // MARK: - Init
-        init(commodity: CommodityGroupModel.Commodity, convertionRule: ConversionRuleModel) {
-            self._viewModel = .init(wrappedValue: .init(commodity: commodity, convertionRule: convertionRule))
+        init(commodity: CommodityGroupModel.Commodity, convertionRule: ConversionRuleModel, season: HarvestSeason? = nil) {
+            self._viewModel = .init(wrappedValue: .init(commodity: commodity, convertionRule: convertionRule, season: season))
         }
 
         // MARK: - Body

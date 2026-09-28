@@ -33,19 +33,54 @@ private typealias ViewModel = Module.ViewModel
 
 // MARK: - ViewModel
 extension Module {
+    @MainActor
     final class ViewModel: ViewModelProtocol {
         // MARK: - Public Properties
         @Published var volumeText: String = ""
         @Published private(set) var commodityType: CommodityGroupModel.Commodity
-        @Published private(set) var enableNoteBanner: Bool = false
+
+        @Published private(set) var seasons: [HarvestSeason] = []
+        @Published private(set) var selectedSeason: HarvestSeason?
+        @Published private(set) var seasonalBalance: ExactSeasonalBalance?
+        @Published private(set) var catalogueUnavailable = false
+        @Published private(set) var isLoadingSeasons = false
+        @Published private(set) var balanceUnavailable = false
+
+        var requiresSeason: Bool {
+            if case .downstream = transactionType { return true }
+            return false
+        }
+
+        var isSelling: Bool {
+            if case .downstream(.sell, _) = transactionType { return true }
+            return false
+        }
+
+        var saleValidation: SeasonalSaleValidation {
+            .init(volume: volumeText, season: selectedSeason, balance: seasonalBalance)
+        }
+
+        var enableNoteBanner: Bool { isSelling && saleValidation == .activeShortage }
+        var hasSeasonalShortage: Bool { isSelling && saleValidation == .seasonalShortage }
+
+        var canConfirm: Bool {
+            guard !volumeText.isEmpty else { return false }
+            guard requiresSeason else { return true }
+            return loadedCommodityId == commodityType.id && selectedSeason != nil && !isLoadingSeasons
+                && appState.createTransaction.value.commodityType.id == commodityType.id
+                && (!isSelling || ((seasonalBalance != nil || balanceUnavailable) && saleValidation.permitsSale))
+        }
 
         // MARK: - Private Properties
+        private var loadedCommodityId: String?
+        private var catalogueGeneration = UUID()
+        private var balanceGeneration = UUID()
         private let transactionType: TransactionType
         private var cancellable: CancelBag = .init()
 
         // MARK: - Dependencies
         @Inject(\.appState) private var appState
-        @Inject(\.commodityInteractor) private var commodityInteractor
+        @Inject(\.creationSeasonInteractor) private var creationSeasonInteractor
 
         // MARK: - Init
         init(
@@ -57,16 +92,99 @@ extension Module {
             self.commodityType = commodityType
             self.transactionType = transactionType
 
+            self.selectedSeason = appState.createTransaction.value.seasonSelection?.season
             setupBinding()
         }
 
         // MARK: - ViewModelProtocol
         func didTapConfirm() {
-            if !volumeText.isEmpty {
-                appState.createTransaction[\.volumeAmount] = volumeText
-            }
+            guard canConfirm else { return }
 
-            appState.navigation[\.path].removeLast()
+            appState.createTransaction.dispatch { state in
+                state.volumeAmount = volumeText
+                if requiresSeason, let selectedSeason {
+                    state.seasonSelection = .init(commodityId: commodityType.id, season: selectedSeason)
+                    state.confirmedBalance = isSelling ? seasonalBalance.map {
+                        .init(commodityId: commodityType.id, seasonId: selectedSeason.id, balance: $0)
+                    } : nil
+                }
+            }
+            if !appState.navigation.value.path.isEmpty { appState.navigation[\.path].removeLast() }
+        }
+
+        func loadSeasons() async {
+            guard requiresSeason else { return }
+
+            let commodityId = commodityType.id
+            let generation = UUID()
+            catalogueGeneration = generation
+            balanceGeneration = UUID()
+            balanceUnavailable = false
+            loadedCommodityId = nil
+            isLoadingSeasons = true
+            catalogueUnavailable = false
+            seasons = []
+            seasonalBalance = nil
+            let previousId = selectedSeason?.id
+            do {
+                let catalogue = try await creationSeasonInteractor.seasons(commodityId: commodityId)
+                try Task.checkCancellation()
+                guard catalogueGeneration == generation, commodityType.id == commodityId,
+                      appState.createTransaction.value.commodityType.id == commodityId else { return }
+
+                seasons = catalogue.values
+                selectedSeason = seasons.first(where: { $0.id == previousId })
+                    ?? seasons.first(where: { $0.status == .active })
+                loadedCommodityId = commodityId
+                catalogueUnavailable = seasons.isEmpty
+                isLoadingSeasons = false
+            } catch {
+                guard catalogueGeneration == generation else { return }
+
+                isLoadingSeasons = false
+                guard !Task.isCancelled else { return }
+
+                selectedSeason = nil
+                catalogueUnavailable = true
+            }
+        }
+
+        func selectSeason(_ season: HarvestSeason) {
+            guard loadedCommodityId == commodityType.id,
+                  let covered = seasons.first(where: { $0.id == season.id }) else { return }
+
+            balanceGeneration = UUID()
+            balanceUnavailable = false
+            selectedSeason = covered
+            seasonalBalance = nil
+        }
+
+        func loadBalance() async {
+            guard requiresSeason, loadedCommodityId == commodityType.id, let selectedSeason else { return }
+
+            let commodityId = commodityType.id
+            let seasonId = selectedSeason.id
+            let generation = UUID()
+            balanceGeneration = generation
+            seasonalBalance = nil
+            balanceUnavailable = false
+            do {
+                let balance = try await creationSeasonInteractor.balance(commodityId: commodityId, seasonId: seasonId)
+                try Task.checkCancellation()
+                guard balanceGeneration == generation, self.selectedSeason?.id == seasonId,
+                      commodityType.id == commodityId, loadedCommodityId == commodityId,
+                      appState.createTransaction.value.commodityType.id == commodityId else { return }
+
+                seasonalBalance = balance
+            } catch is CancellationError {
+                return
+            } catch {
+                guard balanceGeneration == generation, self.selectedSeason?.id == seasonId,
+                      commodityType.id == commodityId, loadedCommodityId == commodityId,
+                      appState.createTransaction.value.commodityType.id == commodityId, !Task.isCancelled else { return }
+
+                balanceUnavailable = true
+            }
         }
     }
 }
@@ -75,46 +193,22 @@ extension Module {
 private extension ViewModel {
     // MARK: - Setup
     func setupBinding() {
-        $volumeText
-            .receive(on: DispatchQueue.main)
-            .defaultDebounce()
-            .sink { [weak self] volumeText in
-                guard let self else { return }
-
-                let status = self.getBannerStatus(
-                    balance: self.commodityType.balance,
-                    transactionType: self.transactionType,
-                    volumeText: volumeText
-                )
-
-                withAnimation(.snappy) {
-                    self.enableNoteBanner = status
-                }
-            }
-            .store(in: cancellable)
         appState.createTransaction.state
             .map(\.commodityType)
             .receive(on: DispatchQueue.main)
-            .weakAssign(on: self, to: \.commodityType)
+            .sink { [weak self] commodity in
+                guard let self else { return }
+
+                if self.commodityType.id != commodity.id {
+                    self.catalogueGeneration = UUID()
+                    self.balanceGeneration = UUID()
+                    self.loadedCommodityId = nil
+                    self.balanceUnavailable = false
+                    self.seasonalBalance = nil
+                }
+                self.commodityType = commodity
+            }
             .store(in: cancellable)
     }
 
-    // MARK: - Common
-    func getBannerStatus(
-        balance: Double?,
-        transactionType: TransactionType,
-        volumeText: String
-    ) -> Bool {
-        let status: Bool
-        if case .downstream(let action, _) = transactionType,
-           action == .sell,
-           let volume: Double = .init(volumeText),
-           volume > balance ?? .zero {
-            status = true
-        } else {
-            status = false
-        }
-
-        return status
-    }
 }

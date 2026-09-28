@@ -104,6 +104,9 @@ extension Module {
         // MARK: - Body
         var body: some View {
             content()
+                .task { await viewModel.refreshBalance() }
+                .task(id: viewModel.commodityType.id) { await viewModel.refreshProducerSeason() }
+                .onDisappear { viewModel.stopBalanceRefresh() }
                 .applyNavigationBar(title: titleText)
                 .background {
                     AppColors.Gray.gray5.colorSwiftUI
@@ -117,11 +120,14 @@ extension Module {
 private extension ModuleView {
     @ViewBuilder func content() -> some View {
         VStack(spacing: 16) {
-            NoteBanner(text: Localization.Note.title)
-                .padding(.top, 16)
-                .padding(.horizontal, 16)
-            list()
-            Spacer()
+            ScrollView {
+                VStack(spacing: 16) {
+                    NoteBanner(text: Localization.Note.title)
+                        .padding(.top, 16)
+                        .padding(.horizontal, 16)
+                    list()
+                }
+            }
             AppButton(
                 title: Localization.Buttons.save,
                 isEnabled: viewModel.isSaveButtonEnabled,
@@ -142,39 +148,54 @@ private extension ModuleView {
     }
 
     @ViewBuilder func row(_ item: Module.Row) -> some View {
-        Button {
-            didTapRow(item)
-        } label: {
-            switch item {
-                case .geodata:
-                    Module.RowView(row: item) {
-                        VStack {
-                            if let file = viewModel.farmLocation?.selectedFile {
-                                Module.FileRowView(file: file)
-                            } else {
-                                Module.DescriptionText(
-                                    row: item,
-                                    value: viewModel.farmLocation?.coordinates.formatToDMS()
-                                )
+        if item == .volume, let breakdown = viewModel.volumeBreakdown, let season = viewModel.volumeSeason {
+            Module.SaleVolumeSummary(
+                breakdown: breakdown, unit: viewModel.commodityType.unit, season: season,
+                isCached: viewModel.confirmedBalance?.balance.isCached == true,
+                edit: viewModel.didTapOpenCommodityVolumeScreen,
+                showAutomaticInfo: viewModel.didTapAutomaticInfo
+            )
+        } else {
+            Button {
+                didTapRow(item)
+            } label: {
+                switch item {
+                    case .geodata:
+                        Module.RowView(row: item) {
+                            VStack {
+                                if let file = viewModel.farmLocation?.selectedFile {
+                                    Module.FileRowView(file: file)
+                                } else {
+                                    Module.DescriptionText(
+                                        row: item,
+                                        value: viewModel.farmLocation?.coordinates.formatToDMS()
+                                    )
+                                }
                             }
                         }
-                    }
-                case .commodity:
-                    Module.RowView(row: item) {
-                        Module.DescriptionText(row: item, value: commodityText)
-                    }
-                case .volume:
-                    Module.RowView(row: item) {
-                        Module.DescriptionText(row: item, value: volumeText)
-                    }
-                case .inviteSupplier:
-                    Module.RowView(row: item) {
-                        Module.DescriptionText(row: item, value: inviteRecipientText)
-                    }
-                case .supplier, .buyer:
-                    Module.RowView(row: item) {
-                        Module.DescriptionText(row: item, value: recipientText)
-                    }
+                    case .commodity:
+                        Module.RowView(row: item) {
+                            Module.DescriptionText(row: item, value: commodityText)
+                        }
+                    case .volume:
+                        Module.RowView(row: item, contentExtendsUnderAccessory: viewModel.volumeSeason != nil) {
+                            if let season = viewModel.volumeSeason, let volumeText {
+                                Module.VolumeSummary(volume: volumeText, season: season, transactionType: viewModel.transactionType,
+                                    message: viewModel.saleSummaryMessage,
+                                    isCached: viewModel.saleSummaryMessage != nil && viewModel.confirmedBalance?.balance.isCached == true)
+                            } else {
+                                Module.DescriptionText(row: item, value: volumeText)
+                            }
+                        }
+                    case .inviteSupplier:
+                        Module.RowView(row: item) {
+                            Module.DescriptionText(row: item, value: inviteRecipientText)
+                        }
+                    case .supplier, .buyer:
+                        Module.RowView(row: item) {
+                            Module.DescriptionText(row: item, value: recipientText)
+                        }
+                }
             }
         }
         if item.id != viewModel.list.last?.id {

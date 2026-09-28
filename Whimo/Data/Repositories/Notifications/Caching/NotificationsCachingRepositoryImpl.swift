@@ -29,6 +29,7 @@ import Foundation
 
 final class NotificationsCachingRepositoryImpl: NotificationsCachingRepository {
     // MARK: - Dependencies
+    private let businessDataContext: BusinessDataContext
 //    private let transactionLocalRepo: any TransactionsLocalRepository
     private let localRepo: any NotificationsLocalRepository
     private let remoteRepo: any NotificationsRemoteRepository
@@ -37,8 +38,10 @@ final class NotificationsCachingRepositoryImpl: NotificationsCachingRepository {
     init(
         transactionLocalRepo: any TransactionsLocalRepository,
         localRepo: any NotificationsLocalRepository,
-        remoteRepo: any NotificationsRemoteRepository
+        remoteRepo: any NotificationsRemoteRepository,
+        businessDataContext: BusinessDataContext = .init()
     ) {
+        self.businessDataContext = businessDataContext
 //        self.transactionLocalRepo = transactionLocalRepo
         self.localRepo = localRepo
         self.remoteRepo = remoteRepo
@@ -46,17 +49,19 @@ final class NotificationsCachingRepositoryImpl: NotificationsCachingRepository {
 
     // MARK: - NotificationsCachingRepository
     func fetchNotifications(with pagination: NotificationsPagination) async throws -> NotificationsData {
-        do {
-            let notifications = try await remoteRepo.fetchNotifications(with: pagination)
+        try await businessDataContext.withCurrentGeneration {
+            do {
+                let notifications = try await remoteRepo.fetchNotifications(with: pagination)
 
-            for notification in notifications.list {
-//                try await transactionLocalRepo.save(notification.data)
-                try await localRepo.save(notification)
+                for notification in notifications.list {
+    //                try await transactionLocalRepo.save(notification.data)
+                    try await localRepo.save(notification)
+                }
+
+                return notifications
+            } catch {
+                throw error
             }
-
-            return notifications
-        } catch {
-            throw error
         }
     }
 }

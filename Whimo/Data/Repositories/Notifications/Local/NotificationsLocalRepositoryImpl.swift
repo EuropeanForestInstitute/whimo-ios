@@ -31,14 +31,17 @@ import DatabaseKit
 
 final class NotificationsLocalRepositoryImpl: NotificationsLocalRepository {
     // MARK: - Dependencies
+    private let businessDataContext: BusinessDataContext
     private let database: any Database
     private let notificationsMapper: any NotificationsMapperProtocol
 
     // MARK: - Init
     init(
         database: any Database,
-        notificationsMapper: any NotificationsMapperProtocol
+        notificationsMapper: any NotificationsMapperProtocol,
+        businessDataContext: BusinessDataContext = .init()
     ) {
+        self.businessDataContext = businessDataContext
         self.database = database
         self.notificationsMapper = notificationsMapper
     }
@@ -46,40 +49,47 @@ final class NotificationsLocalRepositoryImpl: NotificationsLocalRepository {
     // MARK: - NotificationsLocalRepository
     // MARK: - Fetch
     func fetchNotifications(with pagination: NotificationsPagination) async throws -> NotificationsData {
-        let fetchRequest = DatabaseKit.Notification.all()
+        try await businessDataContext.withCurrentGeneration {
+            let fetchRequest = DatabaseKit.Notification.all()
 
-        let limit = pagination.pageData.pageSize
-        let currentPage = max(.zero, pagination.pageData.page - 1)
-        let offset = limit * currentPage
+            let limit = pagination.pageData.pageSize
+            let currentPage = max(.zero, pagination.pageData.page - 1)
+            let offset = limit * currentPage
 
-        let totalCount: Int = try await database.readCount(fetchRequest)
-        let dbModels = try await database.readAll(
-            fetchRequest
-                .limit(limit, offset: offset)
-        )
-        let domainModels: [Notifications.Model] = dbModels.map(notificationsMapper.toDomain)
+            let totalCount: Int = try await database.readCount(fetchRequest)
+            let dbModels = try await database.readAll(
+                fetchRequest
+                    .limit(limit, offset: offset)
+            )
+            let domainModels: [Notifications.Model] = dbModels.map(notificationsMapper.toDomain)
 
-        let page = pagination.pageData.page
-        let totalPages: Int = (totalCount + limit - 1) / limit
-        let previousPage: Int? = page > 1 ? page - 1 : nil
-        let nextPage: Int? = page < totalPages ? page + 1 : nil
+            let page = pagination.pageData.page
+            let totalPages: Int = (totalCount + limit - 1) / limit
+            let previousPage: Int? = page > 1 ? page - 1 : nil
+            let nextPage: Int? = page < totalPages ? page + 1 : nil
 
-        let pagination: RestClient.Pagination = .init(
-            pageSize: pagination.pageData.pageSize,
-            nextPage: nextPage,
-            previousPage: previousPage,
-            count: totalCount,
-            totalPages: totalPages,
-            page: pagination.pageData.page
-        )
+            let pagination: RestClient.Pagination = .init(
+                pageSize: pagination.pageData.pageSize,
+                nextPage: nextPage,
+                previousPage: previousPage,
+                count: totalCount,
+                totalPages: totalPages,
+                page: pagination.pageData.page
+            )
 
-        return (list: .init(uniqueElements: domainModels), pagination: pagination)
+            return (list: .init(uniqueElements: domainModels), pagination: pagination)
+        }
     }
 
     // MARK: - Save
     func save(_ model: Notifications.Model) async throws {
-        let notification = notificationsMapper.toDatabase(from: model)
+        try await businessDataContext.withCurrentGeneration {
+            let notification = notificationsMapper.toDatabase(from: model)
 
-        try await database.save(notification)
+            let businessGeneration = try businessDataContext.capture()
+            try await database.save { db in
+                try businessGeneration.whileCurrent { _ = try notification.saved(db) }
+            }
+        }
     }
 }

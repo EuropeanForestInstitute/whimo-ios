@@ -45,7 +45,7 @@ struct SelfSizedSheet: ViewModifier {
         content
             .presentationDetents([.height(size?.height ?? defaultHeight)])
             .presentationDragIndicator(.visible)
-            .sizeObserver(size: $size)
+            .onGeometryChange(for: CGSize.self) { $0.size } action: { size = $0 }
     }
 }
 

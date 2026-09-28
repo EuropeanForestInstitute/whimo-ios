@@ -43,118 +43,34 @@ final class TransactionsInteractorImpl: TransactionsInteractor {
         }
     }
 
+    @MainActor private var statusSubmissions: [String: BusinessDataContext.Generation] = [:]
+
     // MARK: - Dependencies
+    private let businessDataContext: BusinessDataContext
     private let appState: AppState
     private let transactionsRemoteRepository: TransactionsRemoteRepository
     private let transactionsCachingRepository: TransactionsCachingRepository
     private let transactionsLocalRepository: TransactionsLocalRepository
+    private let creationSeasonInteractor: CreationSeasonInteractor
 
     // MARK: - Init
     init(
         appState: AppState,
         transactionsRemoteRepository: TransactionsRemoteRepository,
         transactionsCachingRepository: TransactionsCachingRepository,
-        transactionsLocalRepository: TransactionsLocalRepository
+        transactionsLocalRepository: TransactionsLocalRepository,
+        creationSeasonInteractor: CreationSeasonInteractor,
+        businessDataContext: BusinessDataContext = .init()
     ) {
+        self.businessDataContext = businessDataContext
         self.appState = appState
         self.transactionsRemoteRepository = transactionsRemoteRepository
         self.transactionsCachingRepository = transactionsCachingRepository
         self.transactionsLocalRepository = transactionsLocalRepository
+        self.creationSeasonInteractor = creationSeasonInteractor
     }
 
     // MARK: - TransactionsInteractor
-    func fetchTransactions(
-        searchData: TransactionsPagination.SearchData,
-        refresh: Bool
-    ) async throws {
-        let oldPagination = appState.transactions.value.pagination
-        let pagination: TransactionsPagination
-
-        if !refresh, let oldPagination {
-            pagination = .init(
-                searchData: searchData,
-                pageData: .init(
-                    page: oldPagination.pageData.page + 1,
-                    pageSize: oldPagination.pageData.pageSize
-                )
-            )
-        } else {
-            pagination = .init(searchData: searchData)
-        }
-
-        appState.transactions.dispatch { state in
-            state.list.setIsLoading()
-        }
-        do {
-            let responseData = try await transactionsCachingRepository.fetchTransactions(with: pagination)
-            let updatedPageData: PaginationRequest = .init(
-                page: responseData.pagination.nextPage == nil ? oldPagination?.pageData.page ?? PaginationRequest.initial.page : pagination.pageData.page,
-                pageSize: pagination.pageData.pageSize
-            )
-            var updatedPagination: TransactionsPagination = .init(
-                searchData: searchData,
-                pageData: updatedPageData
-            )
-            updatedPagination.nextPage = responseData.pagination.nextPage
-
-            let currentList: IdentifiedArrayOf<TransactionModel> = refresh ? .init() : appState.transactions.value.list.value ?? []
-            let updatingList = appState.transactions.value.updatingList
-            let loadedList = responseData.list.map { item in
-                guard
-                    let updatingItem = updatingList[id: item.id],
-                    updatingItem.persistingData.state == .uploading
-                else { return item }
-
-                return updatingItem
-            }
-            let updatedList = currentList + loadedList
-
-            appState.transactions.dispatch { state in
-                state.list = .loaded(value: updatedList)
-                state.pagination = updatedPagination
-            }
-        } catch {
-            appState.transactions.dispatch { state in
-                state.list = .failed(error: error)
-            }
-            throw error
-        }
-    }
-
-    /// Fetches transactions from local cache only (offline mode)
-    func fetchTransactionsFromCache() async throws {
-        appState.transactions.dispatch { state in
-            state.list.setIsLoading()
-        }
-        do {
-            let pagination: RequestModels.TransactionsList = .initial()
-            let transactions = try await transactionsLocalRepository.fetchTransactions(with: pagination)
-            let updatingList = appState.transactions.value.updatingList
-            let loadedList = transactions.list.map { item in
-                guard
-                    let updatingItem = updatingList[id: item.id],
-                    updatingItem.persistingData.state == .uploading
-                else { return item }
-
-                return updatingItem
-            }
-
-            appState.transactions.dispatch { state in
-                let list: IdentifiedArrayOf<TransactionModel> = .init(uniqueElements: loadedList)
-                if !list.isEmpty {
-                    state.list = .requested(lastValue: list)
-                } else {
-                    state.list = .requested(lastValue: nil)
-                }
-            }
-        } catch {
-            appState.transactions.dispatch { state in
-                state.list = .failed(error: error)
-            }
-            throw error
-        }
-    }
-
     func fetchSuppliersTransactions(
         commodityGroupId: String,
         buyerId: String,
@@ -162,57 +78,74 @@ final class TransactionsInteractorImpl: TransactionsInteractor {
         oldPagination: TransactionsPagination?,
         refresh: Bool
     ) async throws -> (list: IdentifiedArrayOf<SupplierTransactionModel>, pagination: TransactionsPagination) {
-        let pagination: TransactionsPagination
+        try await businessDataContext.withCurrentGeneration {
+            let pagination: TransactionsPagination
 
-        if !refresh, let oldPagination {
-            pagination = .init(
-                searchData: .byBuyer(
-                    .init(
+            if !refresh, let oldPagination {
+                pagination = .init(
+                    searchData: .byBuyer(
+                        .init(
+                            commodityGroupId: commodityGroupId,
+                            buyerId: buyerId
+                        ),
+                        createdAtTo: createdAtTo
+                    ),
+                    pageData: .init(
+                        page: oldPagination.pageData.page + 1,
+                        pageSize: oldPagination.pageData.pageSize
+                    )
+                )
+            } else {
+                pagination = .supplierInitial(
+                    buyerData: .init(
                         commodityGroupId: commodityGroupId,
                         buyerId: buyerId
                     ),
                     createdAtTo: createdAtTo
-                ),
-                pageData: .init(
-                    page: oldPagination.pageData.page + 1,
-                    pageSize: oldPagination.pageData.pageSize
                 )
+            }
+
+            let responseData = try await transactionsCachingRepository.fetchSupplierTransactions(with: pagination)
+            let updatedPageData: PaginationRequest = .init(
+                page: responseData.pagination.nextPage == nil ? oldPagination?.pageData.page ?? PaginationRequest.initial.page : pagination.pageData.page,
+                pageSize: pagination.pageData.pageSize
             )
-        } else {
-            pagination = .supplierInitial(
-                buyerData: .init(
-                    commodityGroupId: commodityGroupId,
-                    buyerId: buyerId
-                ),
-                createdAtTo: createdAtTo
+            var updatedPagination: TransactionsPagination = .init(
+                searchData: .byBuyer(pagination.searchData.buyerData),
+                pageData: updatedPageData
             )
+            updatedPagination.nextPage = responseData.pagination.nextPage
+
+            return (responseData.list, updatedPagination)
         }
-
-        let responseData = try await transactionsCachingRepository.fetchSupplierTransactions(with: pagination)
-        let updatedPageData: PaginationRequest = .init(
-            page: responseData.pagination.nextPage == nil ? oldPagination?.pageData.page ?? PaginationRequest.initial.page : pagination.pageData.page,
-            pageSize: pagination.pageData.pageSize
-        )
-        var updatedPagination: TransactionsPagination = .init(
-            searchData: .byBuyer(pagination.searchData.buyerData),
-            pageData: updatedPageData
-        )
-        updatedPagination.nextPage = responseData.pagination.nextPage
-
-        return (responseData.list, updatedPagination)
     }
 
     @discardableResult
     func fetchTransaction(by id: String) async throws -> TransactionModel {
-        let transaction = try await transactionsCachingRepository.fetchTransaction(by: id)
+        try await businessDataContext.withCurrentGeneration {
+            let transaction = try await transactionsCachingRepository.fetchTransaction(by: id)
 
-        appState.transactions.dispatch { state in
-            var currentList: IdentifiedArrayOf<TransactionModel> = state.list.value ?? []
-            currentList[id: transaction.id] = transaction
-            state.list = .loaded(value: currentList)
+            try await businessDataContext.commitState {
+                appState.transactions.dispatch { state in
+                    state.updateList(with: transaction)
+                }
+            }
+
+            return transaction
         }
+    }
 
-        return transaction
+    func refreshTransactionDetails(by id: String) async throws -> TransactionModel {
+        try await businessDataContext.withCurrentGeneration {
+            try await transactionsRemoteRepository.fetchTransaction(by: id)
+        }
+    }
+
+    func cacheTransactionDetails(_ transaction: TransactionModel, replacing previous: TransactionModel) async throws {
+        try await businessDataContext.withCurrentGeneration {
+            try businessDataContext.capture().check()
+            try await transactionsLocalRepository.saveRefreshedDetails(transaction, replacing: previous)
+        }
     }
 
     func createProducerTransaction(
@@ -223,31 +156,39 @@ final class TransactionsInteractorImpl: TransactionsInteractor {
         transactionCoordinates: CLLocationCoordinate2D?,
         inviteRecipient: TransactionType.Recipient?
     ) async throws {
-        let locationData = convertFarmLocation(farmLocation)
+        try await businessDataContext.withProtectedWork {
+            let catalogue = try await creationSeasonInteractor.seasons(commodityId: commodityType.id)
+            let activeSeasons = catalogue.values.filter { $0.status == .active && !$0.id.isEmpty }
+            guard activeSeasons.count == 1, let season = activeSeasons.first else { throw CreationSeasonError.catalogueRequired }
 
-        var requestRecipient: RequestModels.CreateTransaction.Producer.TransactionData.Recipient?
-        if inviteRecipient?.email.isEmpty == false,
-           let email = inviteRecipient?.email {
-            requestRecipient = .email(email)
-        } else if inviteRecipient?.phone.isEmpty == false,
-                  let phone = inviteRecipient?.phone {
-            requestRecipient = .phone(phone)
+            try businessDataContext.capture().check()
+            let locationData = convertFarmLocation(farmLocation)
+
+            var requestRecipient: RequestModels.CreateTransaction.Producer.TransactionData.Recipient?
+            if inviteRecipient?.email.isEmpty == false,
+               let email = inviteRecipient?.email {
+                requestRecipient = .email(email)
+            } else if inviteRecipient?.phone.isEmpty == false,
+                      let phone = inviteRecipient?.phone {
+                requestRecipient = .phone(phone)
+            }
+
+            let transaction = try await transactionsCachingRepository.createProducerTransaction(
+                commodityId: commodityType.id,
+                location: locationData.location,
+                uploadFile: locationData.uploadFile,
+                farmCoordinates: locationData.farmCoordinates,
+                transactionCoordinates: transactionCoordinates,
+                volume: volume,
+                inviteRecipient: requestRecipient,
+                isBuyingFromFarmer: isBuyingFromFarmer,
+                season: season
+            )
+
+            try await businessDataContext.commitState {
+                appState.transactions.dispatch { $0.updateList(with: transaction) }
+            }
         }
-
-        let transaction = try await transactionsCachingRepository.createProducerTransaction(
-            commodityId: commodityType.id,
-            location: locationData.location,
-            uploadFile: locationData.uploadFile,
-            farmCoordinates: locationData.farmCoordinates,
-            transactionCoordinates: transactionCoordinates,
-            volume: volume,
-            inviteRecipient: requestRecipient,
-            isBuyingFromFarmer: isBuyingFromFarmer
-        )
-
-        let currentList: IdentifiedArrayOf<TransactionModel> = appState.transactions.value.list.value ?? []
-        let updatedList: IdentifiedArrayOf<TransactionModel> = [transaction] + currentList
-        appState.transactions[\.list] = .loaded(value: updatedList)
     }
 
     func createDownstreamTransaction(
@@ -256,69 +197,133 @@ final class TransactionsInteractorImpl: TransactionsInteractor {
         commodityType: CommodityGroupModel.Commodity,
         volume: String,
         action: TransactionModel.Action,
-        recipient: TransactionType.Recipient
+        recipient: TransactionType.Recipient,
+        seasonSelection: CreationSeason?
     ) async throws {
-        let locationData = convertFarmLocation(farmLocation)
+        try await businessDataContext.withProtectedWork {
+            let season = try await creationSeasonInteractor.validate(seasonSelection, commodityId: commodityType.id)
+            if action == .sell {
+                try await validateSale(volume: volume, commodityId: commodityType.id, season: season)
+            }
+            try businessDataContext.capture().check()
+            let locationData = convertFarmLocation(farmLocation)
 
-        let requestRecipient: RequestModels.CreateTransaction.Downstream.TransactionData.Recipient
-        if !recipient.recipientID.isEmpty {
-            requestRecipient = .name(recipient.recipientID)
-        } else if !recipient.email.isEmpty {
-            requestRecipient = .email(recipient.email)
-        } else if !recipient.phone.isEmpty {
-            requestRecipient = .phone(recipient.phone)
-        } else {
-            throw Error.recipientNotSelected
+            let requestRecipient: RequestModels.CreateTransaction.Downstream.TransactionData.Recipient
+            if !recipient.recipientID.isEmpty {
+                requestRecipient = .name(recipient.recipientID)
+            } else if !recipient.email.isEmpty {
+                requestRecipient = .email(recipient.email)
+            } else if !recipient.phone.isEmpty {
+                requestRecipient = .phone(recipient.phone)
+            } else {
+                throw Error.recipientNotSelected
+            }
+
+            let transaction = try await transactionsCachingRepository.createDownstreamTransaction(
+                commodityId: commodityType.id,
+                location: locationData.location,
+                uploadFile: locationData.uploadFile,
+                farmCoordinates: locationData.farmCoordinates,
+                transactionCoordinates: transactionCoordinates,
+                volume: volume,
+                action: action,
+                recipient: requestRecipient,
+                season: season
+            )
+
+            try await businessDataContext.commitState {
+                appState.transactions.dispatch { $0.updateList(with: transaction) }
+            }
         }
-
-        let transaction = try await transactionsCachingRepository.createDownstreamTransaction(
-            commodityId: commodityType.id,
-            location: locationData.location,
-            uploadFile: locationData.uploadFile,
-            farmCoordinates: locationData.farmCoordinates,
-            transactionCoordinates: transactionCoordinates,
-            volume: volume,
-            action: action,
-            recipient: requestRecipient
-        )
-
-        let currentList: IdentifiedArrayOf<TransactionModel> = appState.transactions.value.list.value ?? []
-        let updatedList: IdentifiedArrayOf<TransactionModel> = [transaction] + currentList
-        appState.transactions[\.list] = .loaded(value: updatedList)
     }
 
-    func updateTransaction(
-        transactionId: String,
-        status: RequestModels.UpdateTransactionStatus.Status
-    ) async throws -> TransactionModel {
-        try await transactionsRemoteRepository.updateTransaction(transactionId: transactionId, status: status)
-        let transaction = try await transactionsCachingRepository.fetchTransaction(by: transactionId)
+    @MainActor
+    func updateTransaction(_ transaction: TransactionModel, status: TransactionModel.StatusChange) async throws -> TransactionModel.StatusOutcome {
+        try await businessDataContext.withProtectedWork {
+            let generation = try businessDataContext.capture()
+            guard statusSubmissions[transaction.id] !== generation else { throw TransactionModel.StatusChangeError.alreadySubmitting }
 
-        appState.transactions.dispatch { state in
-            var currentList: IdentifiedArrayOf<TransactionModel> = state.list.value ?? []
-            currentList[id: transaction.id] = transaction
-            state.list = .loaded(value: currentList)
+            statusSubmissions[transaction.id] = generation
+            defer {
+                if statusSubmissions[transaction.id] === generation { statusSubmissions[transaction.id] = nil }
+            }
+            guard transaction.status == .pending, transaction.persistingData.state == .sync else {
+                throw TransactionModel.StatusChangeError.invalidResponse
+            }
+            var outcome = try await transactionsRemoteRepository.updateTransaction(transactionId: transaction.id, status: status)
+            let updated = outcome.transaction
+            guard updated.id == transaction.id,
+                  updated.commodity.id == transaction.commodity.id,
+                  updated.volume == transaction.volume,
+                  updated.harvestSeasonId == transaction.harvestSeasonId,
+                  updated.status == (status == .accept ? .accepted : .rejected) else {
+                throw TransactionModel.StatusChangeError.invalidResponse
+            }
+            if let automatic = outcome.automaticTransaction {
+                guard status == .accept, automatic.status == .automatic,
+                      automatic.id != updated.id, automatic.commodity.id == updated.commodity.id,
+                      automatic.volume.isFinite, automatic.volume > 0,
+                      automatic.harvestSeasonId == updated.harvestSeasonId else {
+                    throw TransactionModel.StatusChangeError.invalidResponse
+                }
+            }
+            let returned = [updated] + [outcome.automaticTransaction].compactMap { $0 }
+            do {
+                try await transactionsLocalRepository.saveStatusOutcome(returned)
+            } catch {
+                // A cache failure cannot turn a confirmed server mutation into a failed acceptance.
+                outcome.cacheSaveFailed = true
+            }
+            try await businessDataContext.commitState {
+                appState.transactions.dispatch { state in
+                    for item in returned { state.updateList(with: item) }
+                }
+            }
+            return outcome
         }
-
-        return transaction
     }
 
     func updateTransactionGeodata(
         transactionId: String,
         file: FileObject
     ) async throws {
-        let uploadFile: RequestModels.UpdateTransactionGeodata.UploadFile = .init(
-            fileURL: file.url,
-            fileName: file.id,
-            mimeType: file.mimeType
-        )
+        try await businessDataContext.withProtectedWork {
+            let uploadFile: RequestModels.UpdateTransactionGeodata.UploadFile = .init(
+                fileURL: file.url,
+                fileName: file.id,
+                mimeType: file.mimeType
+            )
 
-        try await transactionsRemoteRepository.updateTransactionGeodata(transactionId: transactionId, uploadFile: uploadFile)
+            try await transactionsRemoteRepository.updateTransactionGeodata(transactionId: transactionId, uploadFile: uploadFile)
+        }
     }
 }
 
 // MARK: - Private Methods
 private extension TransactionsInteractorImpl {
+    func validateSale(volume: String, commodityId: String, season: HarvestSeason) async throws {
+        try await businessDataContext.withCurrentGeneration {
+            let balance: ExactSeasonalBalance?
+            do {
+                balance = try await creationSeasonInteractor.balance(commodityId: commodityId, seasonId: season.id)
+            } catch is CancellationError {
+                throw CancellationError()
+            } catch {
+                balance = nil
+            }
+            switch SeasonalSaleValidation(volume: volume, season: season, balance: balance) {
+                case .sufficient, .activeShortage, .balanceUnavailable:
+                    return
+                case .invalidQuantity:
+                    throw SeasonalSaleError.invalidQuantity
+                case .invalidSelection:
+                    throw CreationSeasonError.invalidSelection
+                case .seasonalShortage:
+                    throw SeasonalSaleError.insufficientBalance(season)
+            }
+        }
+    }
+
     func convertFarmLocation(
         _ farmLocation: FarmLocation?
     ) -> (

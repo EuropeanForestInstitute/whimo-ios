@@ -31,5 +31,6 @@ import Utility
 // MARK: - CommodityLocalRepository
 protocol CommodityLocalRepository: AnyObject {
     func fetchCommodityGroups() async throws -> IdentifiedArrayOf<CommodityGroupModel>
-    func save(_ model: CommodityGroupModel) async throws
+    func preparedCatalogue() async throws -> IdentifiedArrayOf<CommodityGroupModel>?
+    func saveCatalogue(_ groups: IdentifiedArrayOf<CommodityGroupModel>, validateSession: @escaping () throws -> Void) async throws
 }

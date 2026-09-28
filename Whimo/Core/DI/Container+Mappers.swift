@@ -28,6 +28,10 @@
 import FactoryKit
 
 extension AppContainer {
+    var seasonalBalanceMapper: Factory<SeasonalBalanceMapperProtocol> {
+        self { SeasonalBalanceMapper(seasonMapper: self.seasonCatalogueMapper.resolve()) }
+    }
+
     var commoditiesGroupsMapper: Factory<CommoditiesGroupsMapperProtocol> {
         self { CommoditiesGroupsMapper() }
     }
@@ -40,11 +44,20 @@ extension AppContainer {
         self { UserOfflineMapper() }
     }
 
+    var seasonCatalogueMapper: Factory<SeasonCatalogueMapperProtocol> {
+        self { SeasonCatalogueMapper() }
+    }
+
+    var transactionListQueryMapper: Factory<TransactionListQueryMapperProtocol> {
+        self { TransactionListQueryMapper() }
+    }
+
     var transactionsMapper: Factory<TransactionsMapperProtocol> {
         self {
             TransactionsMapper(
                 commoditiesGroupsMapper: self.commoditiesGroupsMapper.resolve(),
-                userMapper: self.userMapper.resolve()
+                userMapper: self.userMapper.resolve(),
+                seasonMapper: self.seasonCatalogueMapper.resolve()
             )
         }
     }

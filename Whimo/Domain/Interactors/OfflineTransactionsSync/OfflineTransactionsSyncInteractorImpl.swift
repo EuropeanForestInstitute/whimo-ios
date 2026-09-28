@@ -31,7 +31,7 @@ import Targets
 import Utility
 
 // MARK: - OfflineTransactionsSyncServiceImpl
-final class OfflineTransactionsSyncInteractorImpl: OfflineTransactionsSyncInteractor {
+actor OfflineTransactionsSyncInteractorImpl: OfflineTransactionsSyncInteractor {
     // MARK: - PendingTransaction
     enum PendingTransaction: AutoStringConvertible {
         case producer(RequestModels.CreateTransaction.Producer)
@@ -40,7 +40,12 @@ final class OfflineTransactionsSyncInteractorImpl: OfflineTransactionsSyncIntera
 
     typealias PendingTuple = (domainModel: TransactionModel, requestModel: PendingTransaction)
 
+    private var syncingGeneration: BusinessDataContext.Generation?
+    // Retain a known result even if journaling fails; retry storage before any further POST.
+    private var confirmedUploads: [String: TransactionModel] = [:]
+
     // MARK: - Dependencies
+    private let businessDataContext: BusinessDataContext
     private let appState: any AppState
     private let transactionsLocalRepository: any TransactionsLocalRepository
     private let transactionsOfflineMapper: any TransactionsOfflineMapperProtocol
@@ -54,8 +59,10 @@ final class OfflineTransactionsSyncInteractorImpl: OfflineTransactionsSyncIntera
         transactionsLocalRepository: any TransactionsLocalRepository,
         transactionsOfflineMapper: any TransactionsOfflineMapperProtocol,
         transactionsTarget: any TransactionsTarget,
-        transactionsMapper: any TransactionsMapperProtocol
+        transactionsMapper: any TransactionsMapperProtocol,
+        businessDataContext: BusinessDataContext = .init()
     ) {
+        self.businessDataContext = businessDataContext
         self.appState = appState
         self.transactionsLocalRepository = transactionsLocalRepository
         self.transactionsOfflineMapper = transactionsOfflineMapper
@@ -63,65 +70,111 @@ final class OfflineTransactionsSyncInteractorImpl: OfflineTransactionsSyncIntera
         self.transactionsMapper = transactionsMapper
     }
 
+    func discardPendingResults() {
+        confirmedUploads.removeAll()
+        syncingGeneration = nil
+    }
+
     // MARK: - OfflineTransactionsSyncInteractor
     func syncTransactions() async throws {
-        let pendingTuples = try await fetchTransactions()
-        for tuple in pendingTuples {
-            try await handlePendingTransactrion(tuple)
+        try await businessDataContext.withProtectedWork {
+            let generation = try businessDataContext.capture()
+            guard syncingGeneration !== generation else { return }
+
+            syncingGeneration = generation
+            defer { if syncingGeneration === generation { syncingGeneration = nil } }
+            let pendingTuples = try await fetchTransactions()
+            for tuple in pendingTuples {
+                do {
+                    try await handlePendingTransaction(tuple)
+                } catch {
+                    try await MainActor.run {
+                        try businessDataContext.capture().check()
+                        appState.transactions.dispatch { state in
+                            state.updateList(with: tuple.domainModel)
+                            state.updatingList.remove(id: tuple.domainModel.id)
+                        }
+                    }
+                    throw error
+                }
+            }
         }
     }
 }
 
 // MARK: - Private Methods
 private extension OfflineTransactionsSyncInteractorImpl {
-    func fetchTransactions() async throws -> Zip2Sequence<IdentifiedArrayOf<TransactionModel>, [OfflineTransactionsSyncInteractorImpl.PendingTransaction]> {
+    func fetchTransactions() async throws -> [PendingTuple] {
         let onDiskItems = try await transactionsLocalRepository.fetchOnDiskTransactions()
-        let pendingTransactions: [PendingTransaction] = onDiskItems.reduce(into: []) { partialResult, transaction in
+        return onDiskItems.compactMap { transaction in
+            // Legacy seasonless test records remain untouched; new records require their captured ID.
+            guard let seasonId = transaction.harvestSeasonId, !seasonId.isEmpty else { return nil }
+
+            let request: PendingTransaction
             switch transaction.type {
                 case .producer:
-                    let transaction: RequestModels.CreateTransaction.Producer = transactionsOfflineMapper.toDTO(from: transaction)
-                    partialResult.append(.producer(transaction))
+                    request = .producer(transactionsOfflineMapper.toDTO(from: transaction))
                 case .downstream:
-                    let transaction: RequestModels.CreateTransaction.Downstream = transactionsOfflineMapper.toDTO(from: transaction)
-                    partialResult.append(.downstream(transaction))
+                    request = .downstream(transactionsOfflineMapper.toDTO(from: transaction))
                 case .conversion:
-                    break
+                    return nil
             }
+            return (transaction, request)
         }
-        let pendingTupleZip = zip(onDiskItems, pendingTransactions)
-
-        return pendingTupleZip
     }
 
-    #warning("Add error handling to indicate that this tx uploading ended with error")
-    func handlePendingTransactrion(_ pendingTuple: PendingTuple) async throws {
-        appState.transactions.dispatch { state in
-            var transactions: IdentifiedArrayOf<TransactionModel> = state.list.value ?? []
-            guard var tx = transactions[id: pendingTuple.domainModel.id] else { return }
-
-            tx.persistingData = .uploading(farmLocationFile: tx.persistingData.farmLocationFile)
-            transactions[id: pendingTuple.domainModel.id] = tx
-            switch state.list {
-                case .requested:
-                    state.list = .requested(lastValue: transactions)
-                case .isLoading:
-                    state.list = .isLoading(lastValue: transactions)
-                case .loaded:
-                    state.list = .loaded(value: transactions)
-                default:
-                    break
-            }
-            state.updatingList.append(tx)
+    func confirmedTransaction(for tuple: PendingTuple) async throws -> TransactionModel {
+        let queued = tuple.domainModel
+        if let transaction = confirmedUploads[queued.id] {
+            try transactionsLocalRepository.saveConfirmedUploadID(transaction.id, for: queued)
+            return transaction
         }
+        if let remoteID = try transactionsLocalRepository.confirmedUploadID(for: queued) {
+            // A read failure keeps the receipt and queue intact; it must never become another create.
+            let response = try await transactionsTarget.getTransaction(.init(transactionId: remoteID))
+            try businessDataContext.capture().check()
+            guard response.data.id == remoteID else { throw CocoaError(.coderInvalidValue) }
 
+            return transactionsMapper.toDomain(from: response.data)
+        }
         let response: ResponseModels.TransactionInfo
-        switch pendingTuple.requestModel {
+        switch tuple.requestModel {
             case .producer(let request):
                 response = try await transactionsTarget.createProducerTransaction(request)
             case .downstream(let request):
                 response = try await transactionsTarget.createDownstreamTransaction(request)
         }
+        try businessDataContext.capture().check()
         let transaction = transactionsMapper.toDomain(from: response.data)
+        confirmedUploads[queued.id] = transaction
+        try transactionsLocalRepository.saveConfirmedUploadID(transaction.id, for: queued)
+        return transaction
+    }
+
+    func handlePendingTransaction(_ pendingTuple: PendingTuple) async throws {
+        try await MainActor.run {
+            try businessDataContext.capture().check()
+            appState.transactions.dispatch { state in
+                var transactions: IdentifiedArrayOf<TransactionModel> = state.list.value ?? []
+                guard var tx = transactions[id: pendingTuple.domainModel.id] else { return }
+
+                tx.persistingData = .uploading(farmLocationFile: tx.persistingData.farmLocationFile)
+                transactions[id: pendingTuple.domainModel.id] = tx
+                switch state.list {
+                    case .requested:
+                        state.list = .requested(lastValue: transactions)
+                    case .isLoading:
+                        state.list = .isLoading(lastValue: transactions)
+                    case .loaded:
+                        state.list = .loaded(value: transactions)
+                    default:
+                        break
+                }
+                state.updatingList.append(tx)
+            }
+        }
+
+        let transaction = try await confirmedTransaction(for: pendingTuple)
         let oldTransaction = pendingTuple.domainModel
         var recipient: UserModel?
         switch oldTransaction.action {
@@ -130,16 +183,17 @@ private extension OfflineTransactionsSyncInteractorImpl {
             case .sell:
                 recipient = oldTransaction.buyer
         }
-        try await transactionsLocalRepository.delete(oldTransaction)
-        try await transactionsLocalRepository.deleteTxRecepient(recipient)
-        try await transactionsLocalRepository.save(transaction)
+        try await transactionsLocalRepository.replaceQueued(oldTransaction, with: transaction)
+        try businessDataContext.commit { confirmedUploads.removeValue(forKey: oldTransaction.id) }
+        // Recipient cleanup cannot turn an already committed upload into a retry.
+        try? await transactionsLocalRepository.deleteTxRecepient(recipient)
 
-        var currentList: IdentifiedArrayOf<TransactionModel> = appState.transactions.value.list.value ?? []
-        currentList.remove(id: oldTransaction.id)
-        let updatedList: IdentifiedArrayOf<TransactionModel> = [transaction] + currentList
-        appState.transactions.dispatch { state in
-            state.list = .loaded(value: updatedList)
-            state.updatingList.remove(id: oldTransaction.id)
+        try await MainActor.run {
+            try businessDataContext.capture().check()
+            appState.transactions.dispatch { state in
+                state.updateList(with: transaction, replacing: oldTransaction.id)
+                state.updatingList.remove(id: oldTransaction.id)
+            }
         }
     }
 }

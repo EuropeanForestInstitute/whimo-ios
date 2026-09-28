@@ -43,34 +43,52 @@ final class TransactionDocumentsServiceImpl: TransactionDocumentsService {
     }
 
     // MARK: - Dependencies
+    private let businessDataContext: BusinessDataContext
     private let transactionsTarget: any TransactionsTarget
+    private let queryMapper: TransactionListQueryMapperProtocol
     private let fileStorage: any FileStorageServiceProtocol
 
     // MARK: - Init
     init(
         transactionsTarget: any TransactionsTarget,
-        fileStorage: any FileStorageServiceProtocol
+        fileStorage: any FileStorageServiceProtocol,
+        queryMapper: TransactionListQueryMapperProtocol,
+        businessDataContext: BusinessDataContext = .init()
     ) {
+        self.businessDataContext = businessDataContext
         self.transactionsTarget = transactionsTarget
         self.fileStorage = fileStorage
+        self.queryMapper = queryMapper
     }
 
     // MARK: - TransactionDocumentsService
-    func downloadCSV(transactionId: String) async throws -> URLDocument {
-        let request: RequestModels.DownloadCSV = .init(transactionId: transactionId)
-        let response = try await transactionsTarget.downloadCSV(request)
-        let url = response.fileURL
+    func downloadCSV(query: TransactionListQuery) async throws -> URLDocument {
+        try await businessDataContext.withCurrentGeneration {
+            let request = RequestModels.DownloadCSV(searchData: queryMapper.toDTO(query))
+            let response = try await transactionsTarget.downloadCSV(request)
+            return .init(response.fileURL.path())
+        }
+    }
 
-        let urlDocument: URLDocument = .init(url.path())
-        return urlDocument
+    func downloadCSV(transactionId: String) async throws -> URLDocument {
+        try await businessDataContext.withCurrentGeneration {
+            let request: RequestModels.DownloadCSV = .init(transactionId: transactionId)
+            let response = try await transactionsTarget.downloadCSV(request)
+            let url = response.fileURL
+
+            let urlDocument: URLDocument = .init(url.path())
+            return urlDocument
+        }
     }
 
     func downloadDocumentsBundle(transactionId: String) async throws -> URLDocument {
-        let request: RequestModels.DownloadBundle = .init(transactionId: transactionId)
-        let response = try await transactionsTarget.downloadBundle(request)
-        let url = response.fileURL
+        try await businessDataContext.withCurrentGeneration {
+            let request: RequestModels.DownloadBundle = .init(transactionId: transactionId)
+            let response = try await transactionsTarget.downloadBundle(request)
+            let url = response.fileURL
 
-        let urlDocument: URLDocument = .init(url.path())
-        return urlDocument
+            let urlDocument: URLDocument = .init(url.path())
+            return urlDocument
+        }
     }
 }

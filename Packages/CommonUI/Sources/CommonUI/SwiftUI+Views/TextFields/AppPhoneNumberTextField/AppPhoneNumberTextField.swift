@@ -40,12 +40,6 @@ public struct AppPhoneNumberTextField: View {
         case textField(@autoclosure () -> Void)
     }
 
-    // MARK: - FocusField
-    private enum FocusField {
-        case textField
-        case secureField
-    }
-
     // MARK: - TrailingItem
     public enum TrailingItem {
         case phonebook(permissionsProvider: ContactsPermissionsProvider)
@@ -102,6 +96,8 @@ public struct AppPhoneNumberTextField: View {
     @Binding var text: String
 
     // MARK: - Private Properties
+    @Environment(\.isEnabled) private var isEnabled
+    @StateObject private var focusController = PhoneTextField.FocusController()
     @StateObject private var viewModel: ContactsTextFieldViewModel
     private let phoneNumberUtility: PhoneNumberUtility = .init()
 
@@ -144,6 +140,8 @@ public struct AppPhoneNumberTextField: View {
             .simultaneousGesture(
                 TapGesture()
                     .onEnded { _ in
+                        guard isEnabled, state != .disabled else { return }
+
                         if case .`self`(let closure) = self.tapDestination {
                             closure()
                         }
@@ -201,10 +199,14 @@ private extension CurrentView {
                 )
         }
         .onTapGesture {
+            guard isEnabled, state != .disabled else { return }
+
+            focusController.focus()
             if case .textField(let closure) = self.tapDestination {
                 closure()
             }
         }
+        .disabled(state == .disabled)
     }
 
     @ViewBuilder func textFieldView() -> some View {
@@ -216,7 +218,7 @@ private extension CurrentView {
             withExamplePlaceholder: true,
             text: self.$text
         )
-        .disabled(state == .disabled)
+        .focusController(focusController)
     }
 
     @ViewBuilder func failedDescriptionView(errorText: String) -> some View {
@@ -232,16 +234,13 @@ private extension CurrentView {
     @ViewBuilder func trailingItemView() -> some View {
         switch trailingItem {
             case .phonebook:
-                HStack {
-                    Spacer()
-                    Button(action: viewModel.checkContactsAccessAndShowPicker) {
-                        Assets.sharedPhoneBook.imageSwiftUI
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: 20, height: 20)
-                    }
-                    .padding(16)
-                    .contentShape(.rect)
+                Button(action: viewModel.checkContactsAccessAndShowPicker) {
+                    Assets.sharedPhoneBook.imageSwiftUI
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 20, height: 20)
                 }
+                .padding(16)
+                .contentShape(.rect)
             case .none:
                 EmptyView()
         }

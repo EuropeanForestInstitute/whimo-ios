@@ -31,6 +31,7 @@ import Utility
 
 final class NotificationsInteractorImpl: NotificationsInteractor {
     // MARK: - Dependencies
+    private let businessDataContext: BusinessDataContext
     private let appState: AppState
     private let notificationsCachingRepository: any NotificationsCachingRepository
     private let notificationsLocalRepository: any NotificationsLocalRepository
@@ -39,8 +40,10 @@ final class NotificationsInteractorImpl: NotificationsInteractor {
     init(
         appState: AppState,
         notificationsCachingRepository: any NotificationsCachingRepository,
-        notificationsLocalRepository: any NotificationsLocalRepository
+        notificationsLocalRepository: any NotificationsLocalRepository,
+        businessDataContext: BusinessDataContext = .init()
     ) {
+        self.businessDataContext = businessDataContext
         self.appState = appState
         self.notificationsCachingRepository = notificationsCachingRepository
         self.notificationsLocalRepository = notificationsLocalRepository
@@ -53,73 +56,89 @@ final class NotificationsInteractorImpl: NotificationsInteractor {
         notificationTypes: [RequestModels.NotificationsList.NotificationType],
         refresh: Bool
     ) async throws {
-        let oldPagination = appState.notifications.value.pagination
-        let pagination: NotificationsPagination
+        try await businessDataContext.withCurrentGeneration {
+            let oldPagination = appState.notifications.value.pagination
+            let pagination: NotificationsPagination
 
-        if !refresh, let oldPagination {
-            pagination = .init(
-                notificationTypes: notificationTypes,
-                pageData: .init(
-                    page: oldPagination.pageData.page + 1,
-                    pageSize: oldPagination.pageData.pageSize
+            if !refresh, let oldPagination {
+                pagination = .init(
+                    notificationTypes: notificationTypes,
+                    pageData: .init(
+                        page: oldPagination.pageData.page + 1,
+                        pageSize: oldPagination.pageData.pageSize
+                    )
                 )
-            )
-        } else {
-            pagination = .initial(notificationTypes: notificationTypes)
-        }
-
-        appState.notifications.dispatch { state in
-            state.list.setIsLoading()
-        }
-        do {
-            let responseData = try await notificationsCachingRepository.fetchNotifications(with: pagination)
-            let updatedPageData: PaginationRequest = .init(
-                page: responseData.pagination.nextPage == nil ? oldPagination?.pageData.page ?? PaginationRequest.initial.page : pagination.pageData.page,
-                pageSize: pagination.pageData.pageSize
-            )
-            var updatedPagination: NotificationsPagination = .init(
-                notificationTypes: notificationTypes,
-                pageData: updatedPageData
-            )
-            updatedPagination.nextPage = responseData.pagination.nextPage
-
-            let currentList: IdentifiedArrayOf<Notifications.Model> = refresh ? .init() : appState.notifications.value.list.value ?? []
-            let updatedList = currentList + responseData.list
-
-            appState.notifications.dispatch { state in
-                state.list = .loaded(value: updatedList)
-                state.pagination = updatedPagination
+            } else {
+                pagination = .initial(notificationTypes: notificationTypes)
             }
-        } catch {
-            appState.notifications.dispatch { state in
-                state.list = .failed(error: error)
+
+            try await businessDataContext.commitState {
+                appState.notifications.dispatch { state in
+                    state.list.setIsLoading()
+                }
             }
-            throw error
+            do {
+                let responseData = try await notificationsCachingRepository.fetchNotifications(with: pagination)
+                let updatedPageData: PaginationRequest = .init(
+                    page: responseData.pagination.nextPage == nil ? oldPagination?.pageData.page ?? PaginationRequest.initial.page : pagination.pageData.page,
+                    pageSize: pagination.pageData.pageSize
+                )
+                var updatedPagination: NotificationsPagination = .init(
+                    notificationTypes: notificationTypes,
+                    pageData: updatedPageData
+                )
+                updatedPagination.nextPage = responseData.pagination.nextPage
+
+                let currentList: IdentifiedArrayOf<Notifications.Model> = refresh ? .init() : appState.notifications.value.list.value ?? []
+                let updatedList = currentList + responseData.list
+
+                try await businessDataContext.commitState {
+                    appState.notifications.dispatch { state in
+                        state.list = .loaded(value: updatedList)
+                        state.pagination = updatedPagination
+                    }
+                }
+            } catch {
+                try await businessDataContext.commitState {
+                    appState.notifications.dispatch { state in
+                        state.list = .failed(error: error)
+                    }
+                }
+                throw error
+            }
         }
     }
 
     /// Fetches notifications from local cache only (offline mode)
     func fetchNotificationsFromCache() async throws {
-        appState.notifications.dispatch { state in
-            state.cachedList.setIsLoading()
-        }
-        do {
-            let pagination: RequestModels.NotificationsList = .initial()
-            let notifications = try await notificationsLocalRepository.fetchNotifications(with: pagination)
-
-            appState.notifications.dispatch { state in
-                let list = notifications.list
-                if !list.isEmpty {
-                    state.cachedList = .requested(lastValue: list)
-                } else {
-                    state.cachedList = .requested(lastValue: nil)
+        try await businessDataContext.withCurrentGeneration {
+            try await businessDataContext.commitState {
+                appState.notifications.dispatch { state in
+                    state.cachedList.setIsLoading()
                 }
             }
-        } catch {
-            appState.notifications.dispatch { state in
-                state.cachedList = .failed(error: error)
+            do {
+                let pagination: RequestModels.NotificationsList = .initial()
+                let notifications = try await notificationsLocalRepository.fetchNotifications(with: pagination)
+
+                try await businessDataContext.commitState {
+                    appState.notifications.dispatch { state in
+                        let list = notifications.list
+                        if !list.isEmpty {
+                            state.cachedList = .requested(lastValue: list)
+                        } else {
+                            state.cachedList = .requested(lastValue: nil)
+                        }
+                    }
+                }
+            } catch {
+                try await businessDataContext.commitState {
+                    appState.notifications.dispatch { state in
+                        state.cachedList = .failed(error: error)
+                    }
+                }
+                throw error
             }
-            throw error
         }
     }
 }

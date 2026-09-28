@@ -31,37 +31,44 @@ import Utility
 
 final class NotificationsSettingsCachingRepositoryImpl: NotificationsSettingsCachingRepository {
     // MARK: - Dependencies
+    private let businessDataContext: BusinessDataContext
     private let localRepo: NotificationsSettingsLocalRepository
     private let remoteRepo: NotificationsSettingsRemoteRepository
 
     // MARK: - Init
     init(
         localRepo: NotificationsSettingsLocalRepository,
-        remoteRepo: NotificationsSettingsRemoteRepository
+        remoteRepo: NotificationsSettingsRemoteRepository,
+        businessDataContext: BusinessDataContext = .init()
     ) {
+        self.businessDataContext = businessDataContext
         self.localRepo = localRepo
         self.remoteRepo = remoteRepo
     }
 
     // MARK: - NotificationsSettingsCachingRepositoryImpl
     func fetchSettingsList() async throws -> IdentifiedArrayOf<NotificationsSettingsModel> {
-        do {
-            let settingsList = try await remoteRepo.fetchSettingsList()
+        try await businessDataContext.withCurrentGeneration {
+            do {
+                let settingsList = try await remoteRepo.fetchSettingsList()
 
-            for setting in settingsList {
-                try await localRepo.save(setting)
+                for setting in settingsList {
+                    try await localRepo.save(setting)
+                }
+
+                return settingsList
+            } catch RestClient.RestError.connectionLost {
+                let localSettingList = try await localRepo.fetchSettingsList()
+                return localSettingList
+            } catch {
+                throw error
             }
-
-            return settingsList
-        } catch RestClient.RestError.connectionLost {
-            let localSettingList = try await localRepo.fetchSettingsList()
-            return localSettingList
-        } catch {
-            throw error
         }
     }
 
     func updateSettings(_ settingsList: [RequestModels.NotificationsSettings]) async throws {
-        try await remoteRepo.updateSettings(settingsList)
+        try await businessDataContext.withCurrentGeneration {
+            try await remoteRepo.updateSettings(settingsList)
+        }
     }
 }

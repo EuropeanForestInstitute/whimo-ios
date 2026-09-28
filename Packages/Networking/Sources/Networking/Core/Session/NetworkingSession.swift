@@ -34,6 +34,17 @@ public typealias Response<T: Decodable> = Result<T, NetworkingSession.RequestErr
 
 // MARK: - NetworkingSession
 open class NetworkingSession: NetworkingSessionProtocol {
+    public var requestContextProvider: ((String, HTTPMethod) -> RequestContext)?
+
+    public func requestContext(path: String, method: HTTPMethod) -> RequestContext {
+        requestContextProvider?(path, method) ?? .init(baseURL: baseURL)
+    }
+
+    private func requestURL(path: String, method: HTTPMethod) -> URL {
+        let context = Self.activeRequestContext ?? requestContext(path: path, method: method)
+        return context.baseURL.appendingPathComponent(path)
+    }
+
     // MARK: - Public Properties
     public private(set) var sessionManager: Session
 
@@ -79,7 +90,7 @@ open class NetworkingSession: NetworkingSessionProtocol {
     private var baseURL: URL
 
     // MARK: - Init
-    public init(baseURL: URL, connectivity: Connectivity, userDefaults: AnyStorage<UserDefaultsStore>) {
+    public init(baseURL: URL, connectivity: Connectivity, userDefaults: AnyStorage<UserDefaultsStore>, configuration: URLSessionConfiguration? = nil) {
         self.baseURL = baseURL
 
         self.connectivity = connectivity
@@ -92,13 +103,13 @@ open class NetworkingSession: NetworkingSessionProtocol {
         self.requestQueue = DispatchQueue(label: "\(baseURL).\(Bundle.main.bundleIdentifier ?? "").requestQueue")
         self.serializationQueue = DispatchQueue(label: "\(baseURL).\(Bundle.main.bundleIdentifier ?? "").serializationQueue")
 
-        self.configuration = URLSessionConfiguration.af.default
+        self.configuration = configuration ?? URLSessionConfiguration.af.default
         self.configuration.timeoutIntervalForRequest = 30
         self.configuration.waitsForConnectivity = false
         self.configuration.requestCachePolicy = .reloadRevalidatingCacheData
 
         self.sessionManager = .init(
-            configuration: configuration,
+            configuration: self.configuration,
             rootQueue: rootQueue,
             startRequestsImmediately: true,
             requestQueue: requestQueue,
@@ -191,7 +202,7 @@ open class NetworkingSession: NetworkingSessionProtocol {
         let parameters: Parameters? = type.parameters?.asDictionary(encoder: encoder)
 
         return sessionManager.request(
-            baseURL.appendingPathComponent(type.path),
+            requestURL(path: type.path, method: type.method),
             method: type.method,
             parameters: parameters,
             encoding: type.encoder,
@@ -209,7 +220,7 @@ open class NetworkingSession: NetworkingSessionProtocol {
                     overridenEncoder: type.overridenEncoder
                 )
             },
-            to: baseURL.appendingPathComponent(type.path),
+            to: requestURL(path: type.path, method: type.method),
             method: type.method,
             headers: type.headers,
             interceptor: type.addAuth ? authInterceptor : nil
@@ -252,7 +263,7 @@ open class NetworkingSession: NetworkingSessionProtocol {
             return (url, [.createIntermediateDirectories, .removePreviousFile])
         }
         let downloadRequest = sessionManager.download(
-            baseURL.appendingPathComponent(type.path),
+            requestURL(path: type.path, method: type.method),
             method: type.method,
             parameters: parameters,
             headers: type.headers,
@@ -280,7 +291,7 @@ open class NetworkingSession: NetworkingSessionProtocol {
         }
 
         let downloadRequest = sessionManager.download(
-            baseURL.appendingPathComponent(router.path),
+            requestURL(path: router.path, method: router.method),
             method: router.method,
             parameters: parameters,
             headers: router.headers,

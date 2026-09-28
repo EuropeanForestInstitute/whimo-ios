@@ -84,6 +84,7 @@ extension ResponseModels {
         public let seller: Profile?
         public let buyer: Profile?
         public let createdById: String?
+        public let harvestSeason: HarvestSeason?
 
         public enum CodingKeys: CodingKey {
             case id
@@ -106,6 +107,7 @@ extension ResponseModels {
             case seller
             case buyer
             case createdById
+            case harvestSeason
         }
 
         public init(
@@ -128,7 +130,8 @@ extension ResponseModels {
             isAutomatic: Bool,
             seller: Profile?,
             buyer: Profile?,
-            createdById: String?
+            createdById: String?,
+            harvestSeason: HarvestSeason? = nil
         ) {
             self.id = id
             self.createdAt = createdAt
@@ -150,6 +153,7 @@ extension ResponseModels {
             self.seller = seller
             self.buyer = buyer
             self.createdById = createdById
+            self.harvestSeason = harvestSeason
         }
 
         public init(from decoder: any Decoder) throws {
@@ -188,6 +192,9 @@ extension ResponseModels {
             self.seller = try container.decodeIfPresent(Profile.self, forKey: .seller)
             self.buyer = try container.decodeIfPresent(Profile.self, forKey: .buyer)
             self.createdById = try container.decodeIfPresent(String.self, forKey: .createdById)
+            // Older list/details/notification responses may omit the season or return null.
+            // A supplied object must satisfy the season contract; do not invent missing fields.
+            self.harvestSeason = try container.decodeIfPresent(HarvestSeason.self, forKey: .harvestSeason)
         }
     }
 }

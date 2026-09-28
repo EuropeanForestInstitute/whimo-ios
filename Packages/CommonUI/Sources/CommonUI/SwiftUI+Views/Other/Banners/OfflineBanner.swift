@@ -40,6 +40,11 @@ public struct OfflineBanner: View {
     // MARK: - Body
     public var body: some View {
         content()
+            .frame(height: 48)
+            .clipped()
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(AppLocale.Settings.OfflineInfoView.title)
+            .accessibilityIdentifier("offlineBanner")
             .background {
                 RoundedRectangle(cornerRadius: 8)
                     .fill(AppColors.Gray.gray10.colorSwiftUI)
@@ -52,13 +57,18 @@ private extension OfflineBanner {
     @ViewBuilder func content() -> some View {
         HStack(spacing: 8) {
             AppAssets.Settings.settingsOfflineIcon.imageSwiftUI
+                .resizable()
+                .frame(width: 24, height: 24)
+                .accessibilityHidden(true)
             Text(AppLocale.Settings.OfflineInfoView.title)
                 .appFontRegularSize14()
+                .lineLimit(2)
+                .truncationMode(.tail)
                 .foregroundStyle(AppColors.Gray.gray90.colorSwiftUI)
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding(.horizontal, 16)
-        .padding(.vertical, 12)
+        .padding(.vertical, 4)
     }
 }
 

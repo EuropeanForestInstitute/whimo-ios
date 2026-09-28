@@ -28,6 +28,31 @@
 import FactoryKit
 
 extension AppContainer {
+    var businessModeInteractor: Factory<BusinessModeInteractor> {
+        self {
+            BusinessModeInteractorImpl(repository: self.businessModeRepository.resolve(), cleaner: self.dataCleanerInteractor.resolve(),
+                appState: self.appState.resolve())
+        }
+    }
+
+    var businessDataContext: Factory<BusinessDataContext> {
+        self { BusinessDataContext() }
+    }
+
+    var commodityTransactionsInteractor: Factory<CommodityTransactionsInteractor> {
+        self { CommodityTransactionsInteractorImpl(repository: self.transactionListRepository.resolve()) }
+    }
+
+    var balanceListInteractor: Factory<BalanceListInteractor> {
+        self {
+            BalanceListInteractorImpl(
+                appState: self.appState.resolve(),
+                repository: self.seasonalBalanceRepository.resolve(),
+                businessDataContext: self.businessDataContext.resolve()
+            )
+        }
+    }
+
     // MARK: - Auth
     var authInteractor: Factory<AuthInteractor> {
         self {
@@ -48,7 +73,8 @@ extension AppContainer {
             ProfileInteractorImpl(
                 appState: self.appState.resolve(),
                 profileCachingRepository: self.profileCachingRepository.resolve(),
-                profileLocalRepository: self.profileLocalRepository.resolve()
+                profileLocalRepository: self.profileLocalRepository.resolve(),
+                businessDataContext: self.businessDataContext.resolve()
             )
         }
     }
@@ -57,8 +83,12 @@ extension AppContainer {
     var commodityInteractor: Factory<CommodityInteractor> {
         self {
             CommodityInteractorImpl(
-                appState: self.appState.resolve(),
+                dataFetcherInteractor: self.dataFetcherInteractor.resolve(),
                 commodityRepository: self.commodityCachingRepository.resolve(),
+                seasonRepository: self.seasonCatalogueRepository.resolve(),
+                balanceRepository: self.seasonalBalanceRepository.resolve(),
+                accountId: { try? self.profileLocalRepository.resolve().fetchProfile().id },
+                businessDataContext: self.businessDataContext.resolve()
             )
         }
     }
@@ -66,7 +96,8 @@ extension AppContainer {
     var convertCommodityInteractor: Factory<ConvertCommodityInteractor> {
         self {
             ConvertCommodityInteractorImpl(
-                commodityConversionRemoteRepository: self.commodityConversionRemoteRepository.resolve()
+                commodityConversionRemoteRepository: self.commodityConversionRemoteRepository.resolve(),
+                businessDataContext: self.businessDataContext.resolve()
             )
         }
         .onPreview {
@@ -80,19 +111,43 @@ extension AppContainer {
             BalanceInteractorImpl(
                 appState: self.appState.resolve(),
                 balanceLocalRepository: self.balanceLocalRepository.resolve(),
-                commodityCachingRepositoryImpl: self.commodityCachingRepository.resolve()
+                commodityCachingRepositoryImpl: self.commodityCachingRepository.resolve(),
+                businessDataContext: self.businessDataContext.resolve()
             )
         }
     }
 
     // MARK: - Transactions
+    var seasonCatalogueInteractor: Factory<SeasonCatalogueInteractor> {
+        self { SeasonCatalogueInteractorImpl(repository: self.seasonCatalogueRepository.resolve()) }
+    }
+
+    var transactionListInteractor: Factory<TransactionListInteractor> {
+        self {
+            TransactionListInteractorImpl(
+                appState: self.appState.resolve(),
+                repository: self.transactionListRepository.resolve(),
+                businessDataContext: self.businessDataContext.resolve()
+            )
+        }
+    }
+
+    var creationSeasonInteractor: Factory<CreationSeasonInteractor> {
+        self {
+            CreationSeasonInteractorImpl(catalogue: self.seasonCatalogueRepository.resolve(),
+                                         balances: self.seasonalBalanceRepository.resolve())
+        }
+    }
+
     var transactionsInteractor: Factory<TransactionsInteractor> {
         self {
             TransactionsInteractorImpl(
                 appState: self.appState.resolve(),
                 transactionsRemoteRepository: self.transactionsRemoteRepository.resolve(),
                 transactionsCachingRepository: self.transactionsCachingRepository.resolve(),
-                transactionsLocalRepository: self.transactionsLocalRepository.resolve()
+                transactionsLocalRepository: self.transactionsLocalRepository.resolve(),
+                creationSeasonInteractor: self.creationSeasonInteractor.resolve(),
+                businessDataContext: self.businessDataContext.resolve()
             )
         }
     }
@@ -103,7 +158,8 @@ extension AppContainer {
             NotificationsInteractorImpl(
                 appState: self.appState.resolve(),
                 notificationsCachingRepository: self.notificationsCachingRepository.resolve(),
-                notificationsLocalRepository: self.notificationsLocalRepository.resolve()
+                notificationsLocalRepository: self.notificationsLocalRepository.resolve(),
+                businessDataContext: self.businessDataContext.resolve()
             )
         }
     }
@@ -113,7 +169,8 @@ extension AppContainer {
         self {
             NotificationsSettingsInteractorImpl(
                 appState: self.appState.resolve(),
-                notificationsSettingsRepository: self.notificationsSettingsCachingRepository.resolve()
+                notificationsSettingsRepository: self.notificationsSettingsCachingRepository.resolve(),
+                businessDataContext: self.businessDataContext.resolve()
             )
         }
     }
@@ -123,11 +180,15 @@ extension AppContainer {
         self {
             DataCleanerInteractorImpl(
                 appState: self.appState.resolve(),
+                dataFetcherInteractor: self.dataFetcherInteractor.resolve(),
                 database: self.database.resolve(),
+                fileStorage: self.fileStorage.resolve(),
                 authRepository: self.authRepository.resolve(),
-                profileCachingRepository: self.profileCachingRepository.resolve(),
+                offlineTransactionsSyncInteractor: self.offlineTransactionsSyncInteractor.resolve(),
                 keychainStore: self.keychainStore.resolve(),
-                userDefaultsStore: self.userDefaultsStore.resolve()
+                userDefaultsStore: self.userDefaultsStore.resolve(),
+                businessDataContext: self.businessDataContext.resolve(),
+                businessModeRepository: self.businessModeRepository.resolve()
             )
         }
     }
@@ -138,10 +199,14 @@ extension AppContainer {
             DataFetcherInteractorImpl(
                 profileInteractor: self.profileInteractor.resolve(),
                 notificationsSettingsInteractor: self.notificationsSettingsInteractor.resolve(),
-                transactionsInteractor: self.transactionsInteractor.resolve(),
-                balanceInteractor: self.balanceInteractor.resolve(),
+                transactionsInteractor: self.transactionListInteractor.resolve(),
+                balanceInteractor: self.balanceListInteractor.resolve(),
                 notificationsInteractor: self.notificationsInteractor.resolve(),
-                connectivity: self.connectivity.resolve()
+                connectivity: self.connectivity.resolve(),
+                commodityRepository: self.commodityCachingRepository.resolve(),
+                seasonRepository: self.seasonCatalogueRepository.resolve(),
+                accountId: { try? self.profileLocalRepository.resolve().fetchProfile().id },
+                businessDataContext: self.businessDataContext.resolve()
             )
         }
     }
@@ -154,7 +219,8 @@ extension AppContainer {
                 transactionsLocalRepository: self.transactionsLocalRepository.resolve(),
                 transactionsOfflineMapper: self.transactionsOfflineMapper.resolve(),
                 transactionsTarget: self.transactionsTarget.resolve(),
-                transactionsMapper: self.transactionsMapper.resolve()
+                transactionsMapper: self.transactionsMapper.resolve(),
+                businessDataContext: self.businessDataContext.resolve()
             )
         }
     }

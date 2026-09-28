@@ -31,6 +31,7 @@ import SwiftUI
 // MARK: - StoreKeys
 public extension UserDefaultsStore {
     enum StoreKeys: String {
+        case businessModes
         case isFirstLaunch
         case isLoggedIn
         case currentLocalize

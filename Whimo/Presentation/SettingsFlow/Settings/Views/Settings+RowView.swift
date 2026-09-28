@@ -36,6 +36,7 @@ extension Module {
     struct RowView: View {
         // MARK: - Properties
         let row: Row
+        var isEnabled = true
 
         @AppStorage(.currentLocalize)
         private var currentLocalize: LocalizeKeys = .english
@@ -43,6 +44,7 @@ extension Module {
         // MARK: - Body
         var body: some View {
             content()
+                .opacity(isEnabled ? 1 : 0.4)
                 .background {
                     AppColors.Other.white.colorSwiftUI
                         .ignoresSafeArea()
@@ -57,14 +59,22 @@ private extension RowView {
         HStack(spacing: 8) {
             leadingAccessoryImage()
             text()
-            trailingAccessoryImage()
+            if isEnabled { trailingAccessoryImage() }
         }
         .padding()
     }
 
     @ViewBuilder func leadingAccessoryImage() -> some View {
-        row.leadingAccessory
-            .frame(width: 24, height: 24)
+        Group {
+            if isEnabled {
+                row.leadingAccessory
+            } else {
+                row.leadingAccessory
+                    .renderingMode(.template)
+                    .foregroundStyle(AppColors.Gray.gray90.colorSwiftUI)
+            }
+        }
+        .frame(width: 24, height: 24)
     }
 
     @ViewBuilder func text() -> some View {

@@ -36,7 +36,8 @@ extension Module {
     struct RowView<Content: View>: View {
         // MARK: - Properties
         let row: Row
-        let content: () -> Content
+        var contentExtendsUnderAccessory = false
+        @ViewBuilder let content: () -> Content
 
         @AppStorage(.currentLocalize)
         private var currentLocalize: LocalizeKeys = .english
@@ -55,13 +56,23 @@ extension Module {
 // MARK: - Private Layout
 private extension RowView {
     @ViewBuilder func makeContent() -> some View {
-        HStack(alignment: .top, spacing: 8) {
-            leadingAccessoryImage()
-            text()
-                .multilineTextAlignment(.leading)
-                .frame(maxWidth: .infinity, alignment: .leading)
-            trailingAccessoryImage()
+        VStack(alignment: .leading, spacing: 2) {
+            HStack(alignment: .top, spacing: 8) {
+                leadingAccessoryImage()
+                if contentExtendsUnderAccessory {
+                    Text(row.title)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                } else {
+                    text()
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                trailingAccessoryImage()
+            }
+            if contentExtendsUnderAccessory {
+                content().padding(.leading, 32)
+            }
         }
+        .multilineTextAlignment(.leading)
         .padding()
     }
 

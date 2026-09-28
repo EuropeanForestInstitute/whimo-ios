@@ -38,10 +38,12 @@ private typealias Localization = AppLocale.CommodityVolume
 extension Module {
     struct MainView: View {
         // MARK: - Dependencies
-        @StateObject var viewModel: ViewModel
+        @StateObject private var viewModel: ViewModel
         @EnvironmentObject var navigator: AppFlowNavigator
+        @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
         // MARK: - Private Properties
+        @State private var seasonPickerPresented = false
         @FocusState private var keyboardActiveField: KeyboardField?
 
         private let decimalParser: DecimalNumbersParser = .default
@@ -51,11 +53,15 @@ extension Module {
             "\(viewModel.commodityType.code) \(viewModel.commodityType.name)"
         }
         private var balanceText: String {
-            let stringBalance = decimalFormatterShort.format(value: "\(viewModel.commodityType.balance ?? .zero)")
+            if viewModel.requiresSeason, viewModel.seasonalBalance == nil {
+                return AppLocale.CreationSeason.balanceUnavailable
+            }
+            let balance = viewModel.requiresSeason ? viewModel.seasonalBalance?.volume : viewModel.commodityType.balance
+            let stringBalance = decimalFormatterShort.format(value: "\(balance ?? .zero)")
             return Localization.balanceAmount("\(stringBalance)\(viewModel.commodityType.unit)")
         }
         private var isConfirmButtonEnabled: Bool {
-            !viewModel.volumeText.isEmpty
+            viewModel.canConfirm
         }
 
         // MARK: - Init
@@ -79,6 +85,13 @@ extension Module {
                     AppColors.Other.white.colorSwiftUI
                         .ignoresSafeArea()
                 }
+                .task(id: viewModel.commodityType.id) { await viewModel.loadSeasons() }
+                .task(id: "\(viewModel.commodityType.id):\(viewModel.selectedSeason?.id ?? ""):\(viewModel.isLoadingSeasons)") {
+                    await viewModel.loadBalance()
+                }
+                .onChange(of: seasonPickerPresented) { isPresented in
+                    if isPresented { keyboardActiveField = nil }
+                }
                 .keyboardDefaultToolbar(action: self.keyboardActiveField = .none)
         }
     }
@@ -92,14 +105,31 @@ private extension ModuleView {
                 VStack(spacing: 16) {
                     header()
                         .padding(.top, 16)
+                    if viewModel.requiresSeason {
+                        seasonPicker()
+                    }
                     VStack(alignment: .leading, spacing: 4) {
                         textFields()
                         Text(balanceText)
                             .appFontRegularSize14()
-                            .foregroundStyle(AppColors.Gray.gray60.colorSwiftUI)
+                            .foregroundStyle(viewModel.hasSeasonalShortage ? .red : AppColors.Gray.gray60.colorSwiftUI)
                     }
-                    if viewModel.enableNoteBanner {
+                    if viewModel.hasSeasonalShortage {
+                        NoteBanner(text: AppLocale.CreationSeason.insufficientBalance(
+                            TransactionSeasonPresentation(season: viewModel.selectedSeason).title
+                        ), state: .warning)
+                        .accessibilityElement(children: .ignore)
+                        .accessibilityLabel(AppLocale.CreationSeason.insufficientBalance(viewModel.selectedSeason?.name ?? ""))
+                    } else if viewModel.enableNoteBanner {
                         NoteBanner(text: Localization.Note.text, state: .warning)
+                    } else if viewModel.isSelling, viewModel.balanceUnavailable {
+                        Button(AppLocale.CreationSeason.retry) { Task { await viewModel.loadBalance() } }
+                    }
+                    if viewModel.seasonalBalance?.isCached == true {
+                        Text(AppLocale.CreationSeason.cachedBalance)
+                            .appFontRegularSize14()
+                            .foregroundStyle(AppColors.Gray.gray60.colorSwiftUI)
+                            .frame(maxWidth: .infinity, alignment: .leading)
                     }
                 }
                 .padding(.horizontal, 16)
@@ -108,30 +138,53 @@ private extension ModuleView {
         }
     }
 
+    @ViewBuilder func seasonPicker() -> some View {
+        if !viewModel.seasons.isEmpty {
+            HarvestSeasonPicker(
+                harvestSeasons: viewModel.seasons,
+                selectedSelection: viewModel.selectedSeason.map(HarvestSeasonSelection.harvestSeason),
+                isPresented: $seasonPickerPresented,
+                includesAll: false
+            ) { selection in
+                if case .harvestSeason(let season) = selection { viewModel.selectSeason(season) }
+            }
+        } else if viewModel.isLoadingSeasons {
+            ProgressView().frame(maxWidth: .infinity, minHeight: 48)
+        } else if viewModel.catalogueUnavailable {
+            NoteBanner(text: AppLocale.CreationSeason.catalogueRequired, state: .warning)
+            Button(AppLocale.CreationSeason.retry) {
+                Task { await viewModel.loadSeasons() }
+            }
+        }
+    }
+
     @ViewBuilder func header() -> some View {
         HStack(spacing: 12) {
             Text(titleText)
-                .appFontMediumSize18()
+                .appFontRegularSize16()
                 .foregroundStyle(AppColors.Gray.gray90.colorSwiftUI)
                 .frame(maxWidth: .infinity, alignment: .leading)
-            Spacer()
-                .frame(width: 32)
             Button {
                 didTapEdit()
             } label: {
-                Text(Localization.Buttons.edit)
-                    .appFontMediumSize16()
-                    .foregroundStyle(AppColors.Primary.primarySeaBlue.colorSwiftUI)
+                AppAssets.BuyTxOnFarmDialog.buyTxOnFarmDialogPencilIcon.imageSwiftUI
+                    .frame(width: 20, height: 20)
+                    .foregroundStyle(AppColors.Gray.gray50.colorSwiftUI)
+                    .accessibilityHidden(true)
             }
         }
     }
 
     @ViewBuilder func textFields() -> some View {
-        HStack(spacing: 12) {
+        let layout = dynamicTypeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 12))
+            : AnyLayout(HStackLayout(spacing: 12))
+        layout {
             AppTextField(
                 text: $viewModel.volumeText,
                 description: Localization.TextFields.Weight.description,
-                placeholder: Localization.TextFields.Weight.placeholder
+                placeholder: Localization.TextFields.Weight.placeholder,
+                state: viewModel.hasSeasonalShortage ? .failed(errorText: "") : .default
             )
             .onChange(of: viewModel.volumeText, perform: { [oldValue = viewModel.volumeText] newValue in
                 let formatted = decimalParser.format(value: newValue)
@@ -142,6 +195,7 @@ private extension ModuleView {
                     viewModel.volumeText = formatted
                 }
             })
+            .accessibilityLabel(Localization.TextFields.Weight.description)
             .focused($keyboardActiveField, equals: .amount)
             .keyboardType(.decimalPad)
             .submitLabel(.done)
@@ -151,8 +205,9 @@ private extension ModuleView {
                 state: .disabled,
                 tapDestination: .textField(keyboardActiveField = .amount),
             )
+            .accessibilityLabel(Localization.TextFields.Unit.description)
             .disabled(true)
-            .frame(width: 100)
+            .frame(width: dynamicTypeSize.isAccessibilitySize ? nil : 100)
         }
     }
 

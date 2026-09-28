@@ -29,6 +29,7 @@ import Foundation
 import Utility
 
 protocol TransactionDocumentsService: AnyObject {
+    func downloadCSV(query: TransactionListQuery) async throws -> URLDocument
     func downloadCSV(transactionId: String) async throws -> URLDocument
     func downloadDocumentsBundle(transactionId: String) async throws -> URLDocument
 }

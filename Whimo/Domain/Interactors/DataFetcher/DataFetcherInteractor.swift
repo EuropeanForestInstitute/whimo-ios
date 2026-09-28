@@ -33,4 +33,9 @@ protocol DataFetcherInteractor: AnyObject {
 
     /// Loads all data from local cache only (offline mode)
     func loadCacheData() async
+
+    /// Schedules owned preparation without waiting for catalogue transport.
+    func startCataloguePreparation() async
+    func prepareCatalogues() async
+    func cancelCataloguePreparation() async
 }

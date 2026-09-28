@@ -2,9 +2,9 @@
 //  HomeViewModel.swift
 //  Whimo
 //
-//  Created by Vyacheslav Razumeenko on 05.05.2025.
+//  Created by Pavel Pushkarev on 19.08.2026.
 //
-//  Copyright (c) 2025 EFI https://efi.int/
+//  Copyright (c) 2026 EFI https://efi.int/
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a copy
 //  of this software and associated documentation files (the "Software"), to deal
@@ -27,99 +27,128 @@
 
 import SwiftUI
 import Combine
-import RestClient
 import Utility
-import enum Resources.LocalizeKeys
 
 private typealias Module = HomeModule
-private typealias ViewModel = Module.ViewModel
 
-// MARK: - ViewModel
 extension Module {
+    @MainActor
     final class ViewModel: ViewModelProtocol {
-        enum ListLoader {
-            case top
-            case bottom
-        }
-
-        // MARK: - Public Properties
         @Published private(set) var transactions: Loadable<IdentifiedArrayOf<TransactionModel>> = .notRequested
         @Published private(set) var showBottomLoader = false
-        @Published var selectedFilter: TransactionFilter = .all
-        @Published var searchText: String = ""
-        @Published var dates: Set<DateComponents> = []
+        @Published private(set) var isCached = false
+        @Published private(set) var hasListError = false
+        @Published private(set) var appliedFilter = CommoditySeasonFilter()
+        @Published var csvDocument: URLDocument?
+        @Published var isExportingCSV = false
+        @Published var showsCSVExporter = false
+        @Published var filterSheet: CommoditySeasonFilterViewModel?
+        @Published var selectedFilter: TransactionFilter = .all { didSet { criteriaChanged() } }
+        @Published var searchText = "" { didSet { criteriaChanged() } }
+        @Published var dates: Set<DateComponents> = [] { didSet { criteriaChanged() } }
+
+        var hasCriteria: Bool { listInteractor.query != TransactionListQuery() }
 
         var filters: IdentifiedArrayOf<TransactionFilter> { .init(uniqueElements: TransactionFilter.allCases) }
+        private var cancellable = CancelBag()
+        private var exportTask: Task<Void, Never>?
+        private var queryTask: Task<Void, Never>?
 
-        // MARK: - Private Properties
-        @AppStorage(.currentLocalize)
-        private var currentLocalize: LocalizeKeys = .english
-        private var cancellable: CancelBag = .init()
-        private var dateFrom: Date?
-        private var dateTo: Date?
-        private var listLoader: ListLoader?
-
-        private let dateFormatter: DateTimeFormatter = .iso8601
-
-        // MARK: - Dependencies
+        @Inject(\.transactionDocumentsService) private var documentsService
         @Inject(\.appState) private var appState
         @Inject(\.permissionsService) private var permissionsService
-        @Inject(\.transactionsInteractor) private var transactionsInteractor
+        @Inject(\.transactionListInteractor) private var listInteractor
+        @Inject(\.seasonCatalogueInteractor) private var catalogue
         @Inject(\.transactionsLocalRepository) private var transactionsLocalRepository
 
-        // MARK: - Init
         init() {
-            setupBindings()
-            startup()
+            let query = listInteractor.query
+            searchText = query.search
+            appliedFilter = query.filter
+            selectedFilter = query.action.map { $0 == .buy ? .bought : .sold } ?? .all
+            dates = Set([query.createdAtFrom, query.createdAtTo].compactMap { $0 }
+                .map { Calendar.current.dateComponents([.year, .month, .day], from: $0) })
+            appState.transactions.state
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self] state in
+                    self?.transactions = state.list
+                    self?.isCached = state.isCached
+                    self?.hasListError = state.hasListError
+                }
+                .store(in: cancellable)
+            Task { [weak self] in
+                await self?.permissionsService.requestNotifications()
+                await self?.permissionsService.requestLocations(upTo: .authorizedAlways)
+            }
         }
 
-        // MARK: - ViewModelProtocol
-        func didPullRefresh() async {
-            let refreshTask = Task { [weak self] in
+        func startCSVExport() {
+            guard !isExportingCSV else { return }
+
+            let query = listInteractor.query
+            isExportingCSV = true
+            exportTask = Task { [weak self] in
                 guard let self else { return }
 
-                self.listLoader = .top
-                defer { self.listLoader = nil }
+                defer { if !Task.isCancelled { self.isExportingCSV = false } }
+                do {
+                    let document = try await self.documentsService.downloadCSV(query: query)
+                    try Task.checkCancellation()
+                    self.csvDocument = document
+                    self.showsCSVExporter = true
+                } catch {
+                    guard !Task.isCancelled else { return }
 
-                let searchData = self.createSearchData(
-                    searchText: self.searchText,
-                    selectedFilter: self.selectedFilter,
-                    dateFrom: self.dateFrom,
-                    dateTo: self.dateTo
-                )
-                await self.fetchData(searchData: searchData, refresh: true)
+                    await self.appState.showError(message: error.localizedDescription)
+                }
             }
+        }
 
-            _ = await refreshTask.result
+        func cancelCSVExport() {
+            exportTask?.cancel()
+            exportTask = nil
+            isExportingCSV = false
+        }
+
+        func didFinishCSVExport(_ result: Result<URL, any Swift.Error>) {
+            csvDocument = nil
+            if case .failure(let error) = result {
+                appState.showError(message: error.localizedDescription)
+            }
+        }
+
+        func openFilters() {
+            filterSheet = .init(applied: appliedFilter, catalogue: catalogue) { [weak self] filter in
+                guard let self else { return }
+
+                self.appliedFilter = filter
+                self.filterSheet = nil
+                self.criteriaChanged(debounce: false)
+            }
+        }
+
+        func clearFilter() {
+            appliedFilter = .init()
+            criteriaChanged(debounce: false)
+        }
+
+        func didPullRefresh() async {
+            queryTask?.cancel()
+            // SwiftUI can cancel its refresh action while the response is still being cached.
+            // Keep this user-requested refresh owned here, like filter changes and retry actions.
+            let task = Task { [listInteractor] in
+                await listInteractor.refresh(cacheOnly: false)
+            }
+            queryTask = task
+            await task.value
         }
 
         func didPullLoadNextPage() async {
-            let pagination = appState.transactions.value.pagination
-            guard pagination?.hasNextPage == true else { return }
+            guard !showBottomLoader else { return }
 
-            self.listLoader = .bottom
-            defer { self.listLoader = nil }
-
-            await MainActor.run {
-                withAnimation(.snappy) {
-                    showBottomLoader = true
-                }
-            }
-
-            let optionalText: String? = searchText.isEmpty ? nil : searchText
-            let searchData = createSearchData(
-                searchText: optionalText,
-                selectedFilter: selectedFilter,
-                dateFrom: dateFrom,
-                dateTo: dateTo
-            )
-            await fetchData(searchData: searchData, refresh: false)
-
-            await MainActor.run {
-                withAnimation(.snappy) {
-                    showBottomLoader = false
-                }
-            }
+            showBottomLoader = true
+            defer { showBottomLoader = false }
+            await listInteractor.loadNextPage()
         }
 
         func didTapOpenDetails(item: TransactionModel) async {
@@ -138,195 +167,27 @@ extension Module {
                 await appState.showError(message: error.localizedDescription)
             }
         }
-    }
-}
 
-// MARK: - Private Methods
-private extension ViewModel {
-    // MARK: - Setup
-    // swiftlint:disable function_body_length
-    func setupBindings() {
-        appState.transactions.state
-            .map(\.list)
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] transactions in
-                guard let self else { return }
+        private func criteriaChanged(debounce: Bool = true) {
+            let selectedDates = dates.compactMap { Calendar.current.date(from: $0) }.sorted()
+            var query = TransactionListQuery()
+            query.search = searchText
+            query.action = selectedFilter == .all ? nil : selectedFilter == .bought ? .buy : .sell
+            query.createdAtFrom = selectedDates.first
+            query.createdAtTo = selectedDates.count > 1 ? selectedDates.last : nil
+            query.filter = appliedFilter
+            guard query != listInteractor.query else { return }
 
-                // handle loader
-                let path = self.appState.navigation.value.path
-                switch transactions {
-                    case .notRequested, .requested:
-                        break
-                    case .isLoading:
-                        // handle only if home screen at the top of navigation
-                        guard path.last?.screen == .tabBar else { break }
-
-                        if self.listLoader != nil { break }
-                        self.appState.system[\.isLoading] = true
-                    case .loaded, .failed:
-                        // handle only if home screen at the top of navigation
-                        guard path.last?.screen == .tabBar else { break }
-
-                        self.appState.system[\.isLoading] = false
+            listInteractor.setQuery(query)
+            queryTask?.cancel()
+            queryTask = Task { [weak self] in
+                if debounce {
+                    do { try await Task.sleep(for: .milliseconds(250)) } catch { return }
                 }
+                guard !Task.isCancelled else { return }
 
-                // handle datasource
-                switch transactions {
-                    case .requested(let lastValue):
-                        self.transactions = .requested(lastValue: lastValue)
-                    case .isLoading(let lastValue):
-                        let lastValue = lastValue
-                        self.transactions = .isLoading(lastValue: lastValue)
-                    case .loaded(let value):
-                        self.transactions = .loaded(value: value)
-                    case .failed(let error):
-                        appState.showError(message: error.localizedDescription)
-                    default:
-                        break
-                }
+                await self?.listInteractor.refresh(cacheOnly: false)
             }
-            .store(in: cancellable)
-        $searchText
-            .dropFirst(3)
-            .removeDuplicates()
-            .defaultDebounce()
-            .receive(on: DispatchQueue.global(qos: .userInitiated))
-            .sink { [weak self] text in
-                guard let self else { return }
-
-                log.debug("text: \(text)")
-
-                Task {
-                    self.appState.transactions[\.list] = .requested(lastValue: nil)
-                    self.appState.system[\.isLoading] = true
-                    defer { self.appState.system[\.isLoading] = false }
-
-                    let searchData = self.createSearchData(
-                        searchText: text,
-                        selectedFilter: self.selectedFilter,
-                        dateFrom: self.dateFrom,
-                        dateTo: self.dateTo
-                    )
-                    await self.fetchData(searchData: searchData, refresh: true)
-                }
-            }
-            .store(in: cancellable)
-
-        $selectedFilter
-            .scan((selectedFilter, selectedFilter)) { prev, current -> (Module.TransactionFilter, Module.TransactionFilter) in
-                (prev.1, current)
-            }
-            .dropFirst()
-            .defaultDebounce()
-            .receive(on: DispatchQueue.global(qos: .userInitiated))
-            .sink { [weak self] prev, current in
-                guard
-                    let self,
-                    current != prev
-                else { return }
-
-                Task {
-                    self.appState.transactions[\.list] = .requested(lastValue: nil)
-                    self.appState.system[\.isLoading] = true
-                    defer { self.appState.system[\.isLoading] = false }
-
-                    let filter = current
-                    let searchData = self.createSearchData(
-                        searchText: self.searchText,
-                        selectedFilter: filter,
-                        dateFrom: self.dateFrom,
-                        dateTo: self.dateTo
-                    )
-                    await self.fetchData(searchData: searchData, refresh: true)
-                }
-            }
-            .store(in: cancellable)
-        $dates
-            .dropFirst()
-            .defaultDebounce()
-            .receive(on: DispatchQueue.global(qos: .userInitiated))
-            .sink { [weak self] dates in
-                guard let self else { return }
-
-                let dates = dates
-                    .map { Calendar.current.date(from: $0) }
-                    .compactMap { $0 }
-                let dateFrom = dates.min()
-                let dateTo = dates.count > 1 ? dates.max() : nil
-
-                Task {
-                    self.appState.transactions[\.list] = .requested(lastValue: nil)
-                    self.appState.system[\.isLoading] = true
-                    defer { self.appState.system[\.isLoading] = false }
-
-                    let searchData = self.createSearchData(
-                        searchText: self.searchText,
-                        selectedFilter: self.selectedFilter,
-                        dateFrom: dateFrom,
-                        dateTo: dateTo
-                    )
-                    await self.fetchData(searchData: searchData, refresh: true)
-
-                    self.dateFrom = dateFrom
-                    self.dateTo = dateTo
-                }
-            }
-            .store(in: cancellable)
-    }
-    // swiftlint:enable function_body_length
-
-    func startup() {
-        Task { [weak self] in
-            await self?.requestPermissions()
         }
-    }
-
-    // MARK: - Common
-    func requestPermissions() async {
-        await permissionsService.requestNotifications()
-        await permissionsService.requestLocations(upTo: .authorizedAlways)
-    }
-
-    func createSearchData(
-        searchText: String?,
-        selectedFilter: Module.TransactionFilter,
-        dateFrom: Date? = nil,
-        dateTo: Date? = nil
-    ) -> TransactionsInteractor.TransactionsPagination.SearchData {
-        let action: RequestModels.TransactionsList.Action?
-        var stringDateFrom: String?
-        var stringDateTo: String?
-
-        switch selectedFilter {
-            case .all:
-                action = nil
-            case .bought:
-                action = .buy
-            case .sold:
-                action = .sell
-        }
-
-        if let dateFrom {
-            stringDateFrom = self.dateFormatter.format(date: dateFrom)
-        }
-        if let dateTo {
-            stringDateTo = self.dateFormatter.format(date: dateTo)
-        }
-        let searchData: TransactionsInteractor.TransactionsPagination.SearchData = .init(
-            search: searchText,
-            createdAtFrom: stringDateFrom,
-            createdAtTo: stringDateTo,
-            action: action,
-            buyerData: nil
-        )
-
-        return searchData
-    }
-
-    func fetchData(
-        searchData: TransactionsInteractor.TransactionsPagination.SearchData,
-        refresh: Bool
-    ) async {
-            try? await transactionsInteractor.fetchTransactions(searchData: searchData, refresh: refresh)
     }
 }

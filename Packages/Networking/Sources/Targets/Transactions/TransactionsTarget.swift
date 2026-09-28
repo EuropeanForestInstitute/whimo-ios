@@ -35,7 +35,7 @@ public protocol TransactionsTarget {
     func getTransactionTraceability(_ model: RequestModels.GetTransactionTraceability) async throws -> ResponseModels.TransactionTraceabilityInfo
     func createProducerTransaction(_ model: RequestModels.CreateTransaction.Producer) async throws -> ResponseModels.TransactionInfo
     func createDownstreamTransaction(_ model: RequestModels.CreateTransaction.Downstream) async throws -> ResponseModels.TransactionInfo
-    func updateTransaction(_ model: RequestModels.UpdateTransactionStatus) async throws
+    func updateTransaction(_ model: RequestModels.UpdateTransactionStatus) async throws -> ResponseModels.UpdateTransactionStatus
     func updateTransactionGeodata(_ model: RequestModels.UpdateTransactionGeodata) async throws
     func downloadGeojson(_ model: RequestModels.DownloadGeojson) async throws -> ResponseModels.DownloadGeojson
     func downloadCSV(_ model: RequestModels.DownloadCSV) async throws -> ResponseModels.DownloadCSV
@@ -85,7 +85,7 @@ extension RequestRouter.Transactions: AnyNetworkRouter {
             case .resendTransactionNotification(let data):
                 "/transactions/\(data.transactionId)/notification/resend/"
             case .downloadCSV(let data):
-                "/transactions/\(data.transactionId)/download/csv/"
+                data.transactionId.map { "/transactions/\($0)/download/csv/" } ?? "/transactions/download/csv/"
             case .downloadBundle(let data):
                 "/transactions/\(data.transactionId)/download/bundle/"
         }
@@ -130,8 +130,8 @@ extension RequestRouter.Transactions: AnyNetworkRouter {
                 nil
             case .resendTransactionNotification:
                 nil
-            case .downloadCSV:
-                nil
+            case .downloadCSV(let data):
+                data.transactionId == nil ? data : nil
             case .downloadBundle:
                 nil
         }

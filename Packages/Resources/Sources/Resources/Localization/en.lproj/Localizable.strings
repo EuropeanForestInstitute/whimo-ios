@@ -398,21 +398,21 @@
 // MARK: - --- ADD TRANSACTION FLOW ---
 // MARK: - Create Transaction Select Type
 "createTxSelectType.title" = "Add Transaction";
+"createTxSelectType.subtitle" = "What do you want to do?";
 
-"createTxSelectType.options.buy" = "Buy or collect a commodity";
-"createTxSelectType.options.sell" = "Sell or deliver a commodity";
+"createTxSelectType.options.buy" = "Buy commodity";
+"createTxSelectType.options.sell" = "Sell commodity";
 
 // MARK: - Buy Transaction Select Type
 "buyTxSelectType.title" = "Buy or collect a commodity";
-"buyTxSelectType.subtitle" = "Does the person you're buying from use the app?";
+"buyTxSelectType.subtitle" = "What transaction are you creating?";
 
 "buyTxSelectType.row.producer.title" = "Initial transaction";
-"buyTxSelectType.row.producer.subtitle" = "The seller is not using this app";
-"buyTxSelectType.row.producer.infoText" = "Choose this if the seller does not have an account on WHIMO.";
+"buyTxSelectType.row.producer.infoText" = "Your supplier is not using this app. You will be the first point in the chain.";
 
 "buyTxSelectType.row.downstream.title" = "Downstream transaction";
 "buyTxSelectType.row.downstream.subtitle" = "The seller is using this app";
-"buyTxSelectType.row.downstream.infoText" = "Choose this if the seller has an account on WHIMO.";
+"buyTxSelectType.row.downstream.infoText" = "Your supplier is using this app. We will recover their traceability information.";
 
 // MARK: - Buy Transaction Select Seller
 "buyTxSelectSeller.title" = "Initial transaction";
@@ -621,3 +621,146 @@
 "notifications.row.locationReq.title" = "Location request";
 
 "notifications.buttons.save" = "Save";
+
+// MARK: - Harvest Season Picker
+"harvestSeasonPicker.season.title" = "Harvest season";
+"harvestSeasonPicker.season.fullTitle" = "%@ %@";
+"harvestSeasonPicker.all.title" = "All harvest seasons";
+"harvestSeasonPicker.status.active" = "Active";
+"harvestSeasonPicker.status.past" = "Past";
+"harvestSeasonPicker.status.archived" = "Archived";
+"harvestSeasonPicker.disclosure.expanded" = "Expanded";
+"harvestSeasonPicker.disclosure.collapsed" = "Collapsed";
+"harvestSeasonPicker.accessibility.rowTitle" = "%@, %@";
+
+// Commodity group and harvest season filters
+"commoditySeasonFilter.title" = "Filter";
+"commoditySeasonFilter.group" = "Commodity group";
+"commoditySeasonFilter.season" = "Harvest season";
+"commoditySeasonFilter.allGroups" = "All commodity groups";
+"commoditySeasonFilter.allSeasons" = "All harvest seasons";
+"commoditySeasonFilter.chooseGroup" = "Choose a commodity group first.";
+"commoditySeasonFilter.reset" = "Reset";
+"commoditySeasonFilter.apply" = "Apply";
+"commoditySeasonFilter.close" = "Close filters";
+"commoditySeasonFilter.clear" = "Clear group and season filters";
+"commoditySeasonFilter.loading" = "Loading catalogue";
+"commoditySeasonFilter.catalogueError" = "Unable to load the catalogue. Connect and try again.";
+"commoditySeasonFilter.retry" = "Try again";
+"commoditySeasonFilter.noSeasons" = "No harvest seasons are available for this group.";
+"commoditySeasonFilter.cachedCatalogue" = "Showing the saved catalogue.";
+"commoditySeasonFilter.cachedTransactions" = "Offline: showing available saved transactions. Results may be incomplete.";
+"commoditySeasonFilter.listError" = "Unable to load transactions.";
+"commoditySeasonFilter.noMatches" = "No matching transactions";
+"commoditySeasonFilter.adjustFilters" = "Try changing your search, date, or filters.";
+
+// Transaction harvest season
+"transactionSeason.unavailable" = "Season unavailable";
+"transactionSeason.explanation" = "Harvest seasons help organize transactions by crop harvest.";
+"transactionSeason.assignment" = "The season is assigned when the first transaction is created and is automatically used throughout the rest of the supply chain.";
+"transactionSeason.badge" = "%@ season %@";
+"transactionSeason.export" = "Export filtered transactions as CSV";
+"general.close" = "Close";
+
+// Seasonal Balance
+"seasonalBalance.search" = "Search balance";
+"seasonalBalance.cached" = "Showing cached balances. Results may be incomplete or out of date.";
+"seasonalBalance.error" = "Could not load balances. Try again.";
+"seasonalBalance.convert" = "Convert %@";
+"seasonalBalance.noMatches" = "No matching balances";
+"seasonalBalance.adjustFilters" = "Try changing your search or filters.";
+
+// Buyer harvest season creation
+"creationSeason.choose" = "Choose harvest season";
+"creationSeason.catalogueRequired" = "Connect to the internet to load harvest seasons for this commodity, then choose a season.";
+"creationSeason.balanceUnavailable" = "Your balance: unavailable";
+"creationSeason.retry" = "Retry";
+
+// Downstream volume summary
+"createTransactionForm.volumeSummary.purchaseIncludes" = "Your purchase will include:";
+"createTransactionForm.volumeSummary.transactionIncludes" = "Your transaction will include:";
+"createTransactionForm.volumeSummary.saleIncludes" = "Your sale will include:";
+"createTransactionForm.volumeSummary.fromSeason" = "from season %@";
+
+// Seasonal seller validation
+"creationSeason.insufficientBalance" = "Not enough available balance for the %@ harvest season.";
+"creationSeason.balanceRequired" = "Connect to load your balance for this harvest season before selling.";
+"creationSeason.cachedBalance" = "Offline: showing your last saved seasonal balance.";
+"creationSeason.invalidQuantity" = "Enter a valid quantity.";
+
+"creationSeason.producerCatalogueRequired" = "Connect to the internet to load the active harvest season for this commodity, then try again.";
+
+// Transaction acceptance
+"transactionAcceptance.accepted" = "Accepted in the transaction’s stored harvest season.";
+"transactionAcceptance.rejected" = "Rejected. The harvest season is unchanged.";
+"transactionAcceptance.automatic" = "Accepted. An Automatic transaction for %@ %@ was created in the same harvest season.";
+"transactionAcceptance.conflict" = "Still pending. Ask Seller to replenish this season’s balance and retry, or reject the request.";
+"transactionAcceptance.unconfirmed" = "Status unconfirmed. Refresh transaction details before retrying.";
+"transactionAcceptance.refreshFailed" = "Status changed. Some data is unavailable. Refresh Transactions and Balance.";
+
+// Seasonal conversion
+"conversionSeason.coverage" = "This recipe is unavailable in this harvest season. Choose another recipe.";
+"conversionSeason.insufficientBalance" = "Not enough balance in this harvest season. Review the quantities and retry.";
+"conversionSeason.unavailable" = "Conversion could not be completed. Check your connection and try again.";
+"conversionSeason.refreshFailed" = "Conversion completed. Refresh the lists to see updated balances and transactions.";
+
+"balanceDetails.title" = "Balance details";
+"balanceDetails.remainingBalance" = "Remaining balance";
+"balanceDetails.lastActivity" = "Last activity";
+"balanceDetails.sourceTransactions" = "Source transactions";
+"balanceDetails.historyConnectionRequired" = "Connect to the internet to load transactions for this commodity and harvest season.";
+"balanceDetails.historyError" = "Unable to load source transactions. Please try again.";
+
+// Seller Automatic volume preview
+"createTransactionForm.volumeSummary.automatic" = "auto transaction";
+"createTransactionForm.volumeSummary.edit" = "Edit volume and harvest season";
+"createTransactionForm.automatic.title" = "Automatic transaction";
+"createTransactionForm.automatic.explanation" = "An automatic transaction will be created, in order to add the necessary volumes to your balance. However, these additional volumes will not be fully traceable.";
+"createTransactionForm.automatic.review" = "You will be able to review and add necessary information later.";
+"createTransactionForm.automatic.estimate" = "The automatic transaction volume shown is an estimate. The final volume is determined when the sale is accepted.";
+
+"createTransactionForm.volumeSummary.savedBalance" = "Based on saved balance";
+"createTransactionForm.volumeSummary.unavailable" = "Breakdown unavailable";
+
+// MARK: - Acceptance seasonal balance
+"transactionAcceptance.balance.title" = "Accept transaction";
+"transactionAcceptance.balance.gotIt" = "Got It";
+"transactionAcceptance.balance.summary" = "You have %@ available from the %@ Harvest Season, but the buyer requested %@.";
+"transactionAcceptance.balance.requirement" = "You can’t accept this transaction until you have enough balance available.";
+"transactionAcceptance.balance.alternative" = "Alternatively, reject this request and create a new sale for the available amount.";
+"transactionAcceptance.balance.loading" = "Checking available balance…";
+"transactionAcceptance.balance.unavailable" = "Balance or harvest season information is unavailable. Retry to check whether you can accept.";
+"transactionAcceptance.balance.warningLabel" = "Why can’t I accept this transaction?";
+
+// Active-season acceptance preview
+"transactionAcceptance.preview.title" = "Not enough available balance.";
+"transactionAcceptance.preview.message" = "An automatic transaction will be created for the missing %@. This amount will have incomplete traceability.";
+"transactionAcceptance.preview.automaticTransaction" = "automatic transaction";
+"transactionAcceptance.preview.incompleteTraceability" = "incomplete traceability";
+
+"transactionAcceptance.detailsRefreshFailed" = "Could not refresh transaction details. Please try again.";
+
+// Test environment
+"testMode.title" = "Test Environment";
+"testMode.settingsUnavailable" = "Some settings are unavailable in the Test Environment.";
+"testMode.subtitle" = "Practice creating transactions in a separate environment without affecting your live data.";
+"testMode.entryTitle" = "Entering test environment";
+"testMode.gotIt" = "Got It";
+"testMode.unsynced" = "You have unsynced changes";
+"testMode.explanation" = "Everything works just like the live application, but nothing here affects your real data.";
+"testMode.syncRequired" = "Unsynced transactions must be synchronized before entering the Test Environment.\n\nReconnect to the internet and sync your data. Once synchronization is complete, you’ll be able to switch to the Test Environment.";
+"testMode.create" = "Create and receive test transactions.";
+"testMode.explore" = "Explore traceability and balances.";
+"testMode.learn" = "Learn how the app works before using it in real trading.";
+"testMode.separate" = "All test data is kept separate from your live workspace.";
+"testMode.returnToLive" = "Switch back to the Live Environment at any time from Settings.";
+
+"testMode.screenIndicator" = "You are in the Test Environment";
+
+"testMode.confirmation.transaction" = "You are creating a transaction in a test environment. Real transactions, balances and traceability are unaffected.";
+"testMode.confirmation.conversion" = "You are performing a conversion in a test environment. Real transactions, balances and traceability are unaffected.";
+
+"testMode.acceptance.title" = "Accept test transaction?";
+"testMode.acceptance.description" = "Confirm that you want to accept this pending transaction.";
+"testMode.acceptance.cancel" = "Cancel";
+"testMode.confirmation.acceptance" = "You are accepting a transaction in a test environment. Real transactions, balances and traceability are unaffected.";

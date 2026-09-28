@@ -30,12 +30,14 @@ import SwiftUI
 // MARK: - InstallAppAlertView
 private struct InstallAppAlertView: View {
     @ObservedObject var manager: AlertManager
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
         if manager.isPresented {
             Color.clear
                 .windowOverlay(isPresented: true) {
                     AlertOverlayView(manager: manager)
+                        .environment(\.dynamicTypeSize, dynamicTypeSize)
                 }
         }
     }

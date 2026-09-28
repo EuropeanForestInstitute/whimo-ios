@@ -61,6 +61,7 @@ extension RequestModels.CreateTransaction.Producer {
         public let transactionLongitude: String?
         public let recipient: Recipient?
         public let isBuyingFromFarmer: Bool
+        public let harvestSeasonId: String?
 
         public init(
             commodityId: String,
@@ -71,7 +72,8 @@ extension RequestModels.CreateTransaction.Producer {
             transactionLatitude: String? = nil,
             transactionLongitude: String? = nil,
             recipient: Recipient? = nil,
-            isBuyingFromFarmer: Bool
+            isBuyingFromFarmer: Bool,
+            harvestSeasonId: String?
         ) {
             self.commodityId = commodityId
             self.volume = volume
@@ -82,6 +84,7 @@ extension RequestModels.CreateTransaction.Producer {
             self.transactionLongitude = transactionLongitude
             self.recipient = recipient
             self.isBuyingFromFarmer = isBuyingFromFarmer
+            self.harvestSeasonId = harvestSeasonId
         }
     }
 }

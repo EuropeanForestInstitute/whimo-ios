@@ -30,6 +30,7 @@ import Foundation
 // MARK: - BalanceInteractorImpl
 final class BalanceInteractorImpl: BalanceInteractor {
     // MARK: - Dependencies
+    private let businessDataContext: BusinessDataContext
     private let appState: AppState
     private let balanceLocalRepository: BalanceLocalRepository
     private let commodityCachingRepositoryImpl: CommodityCachingRepository
@@ -38,8 +39,10 @@ final class BalanceInteractorImpl: BalanceInteractor {
     init(
         appState: AppState,
         balanceLocalRepository: BalanceLocalRepository,
-        commodityCachingRepositoryImpl: CommodityCachingRepository
+        commodityCachingRepositoryImpl: CommodityCachingRepository,
+        businessDataContext: BusinessDataContext = .init()
     ) {
+        self.businessDataContext = businessDataContext
         self.appState = appState
         self.balanceLocalRepository = balanceLocalRepository
         self.commodityCachingRepositoryImpl = commodityCachingRepositoryImpl
@@ -50,57 +53,73 @@ final class BalanceInteractorImpl: BalanceInteractor {
     /// Fetches commodity groups balance from network with cache fallback
     /// Uses CachingRepository which handles network + cache strategy
     func fetchCommodityGroupsBalance() async throws {
-        // Set loading state
-        appState.balance.dispatch { state in
-            state.commodityGroups.setIsLoading()
-        }
-
-        do {
-            // Local all commodities
-            _ = try await commodityCachingRepositoryImpl.fetchCommodityGroups()
-
-            // Fetch commodity groups balance from repository
-            let commodityGroups = try await balanceLocalRepository.fetchCommodityGroupsBalance()
-
-            // Update app state with loaded data
-            appState.balance.dispatch { state in
-                state.commodityGroups = .loaded(value: commodityGroups)
+        try await businessDataContext.withCurrentGeneration {
+            // Set loading state
+            try await businessDataContext.commitState {
+                appState.balance.dispatch { state in
+                    state.commodityGroups.setIsLoading()
+                }
             }
-        } catch {
-            // Update app state with error
-            appState.balance.dispatch { state in
-                state.commodityGroups = .failed(error: error)
+
+            do {
+                // Local all commodities
+                _ = try await commodityCachingRepositoryImpl.fetchCommodityGroups()
+
+                // Fetch commodity groups balance from repository
+                let commodityGroups = try await balanceLocalRepository.fetchCommodityGroupsBalance()
+
+                // Update app state with loaded data
+                try await businessDataContext.commitState {
+                    appState.balance.dispatch { state in
+                        state.commodityGroups = .loaded(value: commodityGroups)
+                    }
+                }
+            } catch {
+                // Update app state with error
+                try await businessDataContext.commitState {
+                    appState.balance.dispatch { state in
+                        state.commodityGroups = .failed(error: error)
+                    }
+                }
+                throw error
             }
-            throw error
         }
     }
 
     /// Fetches commodity groups balance from local cache only (offline mode)
     /// Uses LocalRepository for fast cache-only access
     func fetchCommodityGroupsBalanceFromCache() async throws {
-        // Set loading state
-        appState.balance.dispatch { state in
-            state.commodityGroups.setIsLoading()
-        }
-
-        do {
-            // Fetch commodity groups balance from local repository only
-            let commodityGroups = try await balanceLocalRepository.fetchCommodityGroupsBalance()
-
-            // Update app state with loaded data
-            appState.balance.dispatch { state in
-                if !commodityGroups.isEmpty {
-                    state.commodityGroups = .loaded(value: commodityGroups)
-                } else {
-                    state.commodityGroups = .requested(lastValue: nil)
+        try await businessDataContext.withCurrentGeneration {
+            // Set loading state
+            try await businessDataContext.commitState {
+                appState.balance.dispatch { state in
+                    state.commodityGroups.setIsLoading()
                 }
             }
-        } catch {
-            // Update app state with error
-            appState.balance.dispatch { state in
-                state.commodityGroups = .failed(error: error)
+
+            do {
+                // Fetch commodity groups balance from local repository only
+                let commodityGroups = try await balanceLocalRepository.fetchCommodityGroupsBalance()
+
+                // Update app state with loaded data
+                try await businessDataContext.commitState {
+                    appState.balance.dispatch { state in
+                        if !commodityGroups.isEmpty {
+                            state.commodityGroups = .loaded(value: commodityGroups)
+                        } else {
+                            state.commodityGroups = .requested(lastValue: nil)
+                        }
+                    }
+                }
+            } catch {
+                // Update app state with error
+                try await businessDataContext.commitState {
+                    appState.balance.dispatch { state in
+                        state.commodityGroups = .failed(error: error)
+                    }
+                }
+                throw error
             }
-            throw error
         }
     }
 }

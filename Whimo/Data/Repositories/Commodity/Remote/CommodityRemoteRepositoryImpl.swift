@@ -47,11 +47,24 @@ final class CommodityRemoteRepositoryImpl: CommodityRemoteRepository {
 
     // MARK: - CommodityRemoteRepository
     func fetchCommodityGroups() async throws -> IdentifiedArrayOf<CommodityGroupModel> {
-        let request: RequestModels.CommodityGroupsList = .init(pageData: .full)
-        let responses = try await commoditiesTarget.commodityGroupsList(request)
-        let groupsList = responses
-            .data
-            .map(commoditiesGroupsMapper.toDomain)
-        return .init(uniqueElements: groupsList)
+        var groups: [CommodityGroupModel] = []
+        var pagination = CataloguePagination()
+        while true {
+            let response = try await commoditiesTarget.commodityGroupsList(.init(pageData: .init(page: pagination.page, pageSize: 100)))
+            try Task.checkCancellation()
+            try BusinessDataContext.requestGeneration?.check()
+            groups += response.data.map(commoditiesGroupsMapper.toDomain)
+            guard try pagination.advance(response.pagination, itemCount: response.data.count) else { break }
+
+        }
+        let commodities = groups.flatMap(\.commodities)
+        guard Set(groups.map(\.id)).count == groups.count,
+              Set(commodities.map(\.id)).count == commodities.count,
+              groups.allSatisfy({ !$0.id.isEmpty }),
+              groups.allSatisfy({ group in group.commodities.allSatisfy { !$0.id.isEmpty && $0.group.id == group.id } }) else {
+            throw CocoaError(.coderInvalidValue)
+        }
+
+        return .init(uniqueElements: groups)
     }
 }

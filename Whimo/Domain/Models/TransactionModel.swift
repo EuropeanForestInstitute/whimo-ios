@@ -51,6 +51,9 @@ struct TransactionModel: DomainModel, AutoStringConvertible {
     let createdById: String?
 
     var persistingData: PersistingData
+    var harvestSeasonId: String?
+    var harvestSeason: HarvestSeason?
+    var producerRecipient: ContactIdentifier?
 }
 
 // MARK: - Transaction
@@ -98,7 +101,7 @@ extension TransactionModel {
 }
 
 extension TransactionModel {
-    enum Traceability: String, DomainModel {
+    enum Traceability: String, DomainModel, Codable {
         case fullTraceability
         case conditionalTraceability
         case partialTraceability
@@ -199,5 +202,25 @@ extension TransactionModel.PersistingData {
             self.fileName = fileName
             self.mimeType = mimeType
         }
+    }
+}
+
+// MARK: - Status Mutation
+extension TransactionModel {
+    enum StatusChange {
+        case accept, reject
+    }
+
+    struct StatusOutcome {
+        let transaction: TransactionModel
+        let automaticTransaction: TransactionModel?
+        var cacheSaveFailed = false
+    }
+
+    enum StatusChangeError: Error {
+        case conflict
+        case unconfirmed
+        case invalidResponse
+        case alreadySubmitting
     }
 }

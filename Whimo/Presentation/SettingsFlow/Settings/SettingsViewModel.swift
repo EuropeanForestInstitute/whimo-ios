@@ -27,6 +27,7 @@
 
 import SwiftUI
 import Utility
+import Combine
 import Resources
 import CommonUI
 
@@ -37,23 +38,32 @@ private typealias ViewModel = Module.ViewModel
 extension Module {
     final class ViewModel: ViewModelProtocol {
         // MARK: - Public Properties
-        @Published var connectionReachable: Bool = true
+        @Published private(set) var isTestMode = false
+        @Published private(set) var isSwitchingMode = false
+        @Published private(set) var entryAlert: EntryAlert?
+        enum EntryAlert { case explanation, synchronizationRequired }
+        private var cancellable = CancelBag()
+        private var entryAlertID: UUID?
 
         var list: IdentifiedArrayOf<Row> { .init(uniqueElements: Row.allCases) }
 
         // MARK: - Private Properties
         @AppStorage(.currentLocalize)
         private var currentLocalize: LocalizeKeys = .english
-        private var cancellable: CancelBag = .init()
 
         // MARK: - Dependencies
+        @Inject(\.businessModeInteractor) private var businessModeInteractor
+        @Inject(\.alertManager) private var alertManager
         @Inject(\.appState) private var appState
-        @Inject(\.connectivity) private var connectivity
         @Inject(\.emailClientService) private var emailClientService
 
         // MARK: - Init
         init() {
-            setupBinding()
+            isTestMode = businessModeInteractor.mode == .test
+            businessModeInteractor.changes
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self] mode in self?.isTestMode = mode == .test }
+                .store(in: cancellable)
         }
 
         // MARK: - ViewModelProtocol
@@ -90,22 +100,104 @@ extension ViewModel {
     }
 }
 
-// MARK: - Private Methods
-private extension ViewModel {
-    func setupBinding() {
-        connectivity.isReachable
-            .receive(on: DispatchQueue.main)
-            .map { status in
-                switch status {
-                    case .notReachable:
-                        return false
-                    case .reachable:
-                        return true
-                    case .unknown:
-                        return true
+// MARK: - Test Environment
+extension SettingsModule.ViewModel {
+    func isRowEnabled(_ row: SettingsModule.Row) -> Bool {
+        switch row {
+            case .accountInfo, .changePassword, .notifications:
+                return businessModeInteractor.mode == .ordinary && !isSwitchingMode
+            case .language, .feedback:
+                return !isSwitchingMode
+        }
+    }
+
+    @MainActor
+    func setTestModeEnabled(_ enabled: Bool) async {
+        guard !isSwitchingMode, enabled != (businessModeInteractor.mode == .test) else { return }
+
+        if !enabled {
+            await switchMode(to: .ordinary)
+            return
+        }
+        guard entryAlert == nil else { return }
+
+        isSwitchingMode = true
+        defer { isSwitchingMode = false }
+        do {
+            try await businessModeInteractor.checkEntry()
+            showEntryAlert(.explanation)
+        } catch BusinessModeError.synchronizationRequired {
+            showEntryAlert(.synchronizationRequired)
+        } catch {
+            await appState.showError(message: error.localizedDescription)
+        }
+    }
+
+    @MainActor
+    func confirmTestModeEntry() async {
+        guard takeEntryConfirmation() else { return }
+
+        await switchMode(to: .test)
+    }
+
+    @MainActor
+    func cancelTestModeEntry() {
+        entryAlert = nil
+        entryAlertID = nil
+    }
+
+    @MainActor
+    private func takeEntryConfirmation() -> Bool {
+        guard entryAlert == .explanation, !isSwitchingMode else { return false }
+
+        cancelTestModeEntry()
+        isSwitchingMode = true
+        return true
+    }
+
+    @MainActor
+    private func switchMode(to mode: BusinessMode) async {
+        isSwitchingMode = true
+        defer {
+            isSwitchingMode = false
+            isTestMode = businessModeInteractor.mode == .test
+        }
+        do {
+            try await businessModeInteractor.switchMode(to: mode)
+        } catch BusinessModeError.synchronizationRequired {
+            showEntryAlert(.synchronizationRequired)
+        } catch is CancellationError {
+            return
+        } catch {
+            await appState.showError(message: error.localizedDescription)
+        }
+    }
+
+    @MainActor
+    private func showEntryAlert(_ kind: EntryAlert) {
+        entryAlert = kind
+        let alertID = UUID()
+        entryAlertID = alertID
+        alertManager.show(.init(
+            title: AppLocale.TestMode.entryTitle,
+            contentView: AnyView(SettingsModule.EntryContent(isBlocked: kind == .synchronizationRequired)),
+            buttons: [.init(title: AppLocale.TestMode.gotIt, action: { [weak self] in
+                guard let self else { return }
+
+                if kind == .explanation {
+                    // Claim consent before AlertView closes; task scheduling order is not guaranteed.
+                    guard self.takeEntryConfirmation() else { return }
+
+                    Task { await self.switchMode(to: .test) }
+                } else {
+                    self.cancelTestModeEntry()
                 }
+            })],
+            onDismiss: { [weak self] in
+                guard self?.entryAlertID == alertID else { return }
+
+                self?.cancelTestModeEntry()
             }
-            .animatedAssign(on: self, to: \.connectionReachable)
-            .store(in: cancellable)
+        ))
     }
 }

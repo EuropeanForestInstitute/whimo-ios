@@ -35,12 +35,14 @@ struct NavBarModule {
         title: String,
         titlePrefferedFontStyle: TitleFontStyle = .h1,
         trailingItem: TrailingItem? = nil,
+        additionalTrailingItem: TrailingItem? = nil,
         showBackButton: Bool = true
     ) -> some View {
         MainView(
             title: title,
             titlePrefferedFontStyle: titlePrefferedFontStyle,
             trailingItem: trailingItem,
+            additionalTrailingItem: additionalTrailingItem,
             showBackButton: showBackButton
         )
     }

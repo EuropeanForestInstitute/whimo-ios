@@ -53,6 +53,8 @@ public struct PhoneTextField: UIViewRepresentable {
     @Binding var text: String
 
     // MARK: - Private Properties
+    private var focusController: FocusController?
+
     @AppStorage(.currentLocalize)
     private var currentLocalize: LocalizeKeys = .english
 
@@ -83,12 +85,20 @@ public struct PhoneTextField: UIViewRepresentable {
         self._text = .init(projectedValue: text)
     }
 
+    // MARK: - Internal Methods
+    func focusController(_ controller: FocusController) -> Self {
+        var field = self
+        field.focusController = controller
+        return field
+    }
+
     // MARK: - UIViewRepresentable
     public func makeUIView(context: Context) -> UIViewType {
         let textField: UIViewType = .init(defaultRegion: defaultRegion)
 
         textField.addTarget(context.coordinator, action: #selector(context.coordinator.textChanged), for: .editingChanged)
         context.coordinator.observe(textField)
+        focusController?.textField = textField
 
         return textField
     }
@@ -101,6 +111,7 @@ public struct PhoneTextField: UIViewRepresentable {
 // MARK: - Private Methods
 private extension CurrentView {
     func update(_ uiView: UIViewType, context: Context) {
+        focusController?.textField = uiView
         uiView.textFieldOverridingDelegate = context.coordinator
         uiView.maxDigits = maxDigits
         uiView.textColor = .init(textColor)
@@ -112,5 +123,19 @@ private extension CurrentView {
         uiView.withPrefix = withPrefix
         uiView.withExamplePlaceholder = withExamplePlaceholder
         context.coordinator.applyBindingText(text, to: uiView)
+    }
+}
+
+// MARK: - Focus
+extension PhoneTextField {
+    /// Retains no UIKit view and requests focus only in response to a user tap.
+    final class FocusController: ObservableObject {
+        weak var textField: UITextField?
+
+        func focus() {
+            guard let textField, textField.isEnabled, textField.isUserInteractionEnabled else { return }
+
+            textField.becomeFirstResponder()
+        }
     }
 }

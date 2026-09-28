@@ -40,8 +40,8 @@ extension Module {
         @EnvironmentObject var navigator: AppFlowNavigator
 
         // MARK: - Init
-        init(commodity: CommodityGroupModel.Commodity) {
-            self._viewModel = .init(wrappedValue: .init(commodity: commodity))
+        init(commodity: CommodityGroupModel.Commodity, season: HarvestSeason? = nil) {
+            self._viewModel = .init(wrappedValue: .init(commodity: commodity, season: season))
         }
 
         // MARK: - Body

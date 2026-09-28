@@ -32,6 +32,7 @@ import Targets
 
 final class TransactionsRemoteRepositoryImpl: TransactionsRemoteRepository {
     // MARK: - Dependencies
+    private let businessDataContext: BusinessDataContext
     private let transactionsTarget: TransactionsTarget
     private let transactionsMapper: TransactionsMapperProtocol
     private let supplierTransactionMapper: SupplierTransactionMapperProtocol
@@ -40,8 +41,10 @@ final class TransactionsRemoteRepositoryImpl: TransactionsRemoteRepository {
     init(
         transactionsTarget: TransactionsTarget,
         transactionsMapper: TransactionsMapperProtocol,
-        supplierTransactionMapper: SupplierTransactionMapperProtocol
+        supplierTransactionMapper: SupplierTransactionMapperProtocol,
+        businessDataContext: BusinessDataContext = .init()
     ) {
+        self.businessDataContext = businessDataContext
         self.transactionsTarget = transactionsTarget
         self.transactionsMapper = transactionsMapper
         self.supplierTransactionMapper = supplierTransactionMapper
@@ -49,29 +52,35 @@ final class TransactionsRemoteRepositoryImpl: TransactionsRemoteRepository {
 
     // MARK: - TransactionsRemoteRepository
     func fetchTransactions(with pagination: TransactionsPagination) async throws -> TransactionsData {
-        let response = try await transactionsTarget.transactionsList(pagination)
-        let transactionsList = response
-            .data
-            .map(transactionsMapper.toDomain)
+        try await businessDataContext.withCurrentGeneration {
+            let response = try await transactionsTarget.transactionsList(pagination)
+            let transactionsList = response
+                .data
+                .map(transactionsMapper.toDomain)
 
-        return (.init(uniqueElements: transactionsList), response.pagination)
+            return (.init(uniqueElements: transactionsList), response.pagination)
+        }
     }
 
     func fetchSupplierTransactions(with pagination: TransactionsPagination) async throws -> SupplierTransactionsData {
-        let response = try await transactionsTarget.getSuppliersTransaction(pagination)
-        let transactionsList = response
-            .data
-            .map(supplierTransactionMapper.toDomain)
+        try await businessDataContext.withCurrentGeneration {
+            let response = try await transactionsTarget.getSuppliersTransaction(pagination)
+            let transactionsList = response
+                .data
+                .map(supplierTransactionMapper.toDomain)
 
-        return (.init(uniqueElements: transactionsList), response.pagination)
+            return (.init(uniqueElements: transactionsList), response.pagination)
+        }
     }
 
     func fetchTransaction(by id: String) async throws -> TransactionModel {
-        let request: RequestModels.GetTransaction = .init(transactionId: id)
-        let response = try await transactionsTarget.getTransaction(request)
-        let transaction = transactionsMapper.toDomain(from: response.data)
+        try await businessDataContext.withCurrentGeneration {
+            let request: RequestModels.GetTransaction = .init(transactionId: id)
+            let response = try await transactionsTarget.getTransaction(request)
+            let transaction = transactionsMapper.toDomain(from: response.data)
 
-        return transaction
+            return transaction
+        }
     }
 
     @discardableResult
@@ -83,45 +92,49 @@ final class TransactionsRemoteRepositoryImpl: TransactionsRemoteRepository {
         transactionCoordinates: CLLocationCoordinate2D?,
         volume: String,
         inviteRecipient: RequestModels.CreateTransaction.Producer.TransactionData.Recipient?,
-        isBuyingFromFarmer: Bool
+        isBuyingFromFarmer: Bool,
+        season: HarvestSeason
     ) async throws -> TransactionModel {
-        var latitude: String?
-        var longitude: String?
+        try await businessDataContext.withCurrentGeneration {
+            var latitude: String?
+            var longitude: String?
 
-        var txLatitude: String?
-        var txLongitude: String?
+            var txLatitude: String?
+            var txLongitude: String?
 
-        if let latitudeDegrees = farmCoordinates?.latitude {
-            latitude = "\(latitudeDegrees)"
-        }
-        if let longitudeDegrees = farmCoordinates?.longitude {
-            longitude = "\(longitudeDegrees)"
-        }
-        if let latitudeDegrees = transactionCoordinates?.latitude {
-            txLatitude = "\(latitudeDegrees)"
-        }
-        if let longitudeDegrees = transactionCoordinates?.longitude {
-            txLongitude = "\(longitudeDegrees)"
-        }
-        let transactionData: RequestModels.CreateTransaction.Producer.TransactionData = .init(
-            commodityId: commodityId,
-            volume: volume,
-            location: location,
-            farmLatitude: latitude,
-            farmLongitude: longitude,
-            transactionLatitude: txLatitude,
-            transactionLongitude: txLongitude,
-            recipient: inviteRecipient,
-            isBuyingFromFarmer: isBuyingFromFarmer
-        )
-        let request: RequestModels.CreateTransaction.Producer = .init(
-            transactionData: transactionData,
-            uploadFile: uploadFile
-        )
-        let response = try await transactionsTarget.createProducerTransaction(request)
-        let transaction = transactionsMapper.toDomain(from: response.data)
+            if let latitudeDegrees = farmCoordinates?.latitude {
+                latitude = "\(latitudeDegrees)"
+            }
+            if let longitudeDegrees = farmCoordinates?.longitude {
+                longitude = "\(longitudeDegrees)"
+            }
+            if let latitudeDegrees = transactionCoordinates?.latitude {
+                txLatitude = "\(latitudeDegrees)"
+            }
+            if let longitudeDegrees = transactionCoordinates?.longitude {
+                txLongitude = "\(longitudeDegrees)"
+            }
+            let transactionData: RequestModels.CreateTransaction.Producer.TransactionData = .init(
+                commodityId: commodityId,
+                volume: volume,
+                location: location,
+                farmLatitude: latitude,
+                farmLongitude: longitude,
+                transactionLatitude: txLatitude,
+                transactionLongitude: txLongitude,
+                recipient: inviteRecipient,
+                isBuyingFromFarmer: isBuyingFromFarmer,
+                harvestSeasonId: season.id
+            )
+            let request: RequestModels.CreateTransaction.Producer = .init(
+                transactionData: transactionData,
+                uploadFile: uploadFile
+            )
+            let response = try await transactionsTarget.createProducerTransaction(request)
+            let transaction = transactionsMapper.toDomain(from: response.data)
 
-        return transaction
+            return transaction
+        }
     }
 
     @discardableResult
@@ -133,79 +146,100 @@ final class TransactionsRemoteRepositoryImpl: TransactionsRemoteRepository {
         farmCoordinates: CLLocationCoordinate2D?,
         volume: String,
         action: TransactionModel.Action,
-        recipient: RequestModels.CreateTransaction.Downstream.TransactionData.Recipient
+        recipient: RequestModels.CreateTransaction.Downstream.TransactionData.Recipient,
+        season: HarvestSeason?
     ) async throws -> TransactionModel {
-        let requestAction: RequestModels.CreateTransaction.Downstream.Action
-        var latitude: String?
-        var longitude: String?
+        try await businessDataContext.withCurrentGeneration {
+            let requestAction: RequestModels.CreateTransaction.Downstream.Action
+            var latitude: String?
+            var longitude: String?
 
-        var txLatitude: String?
-        var txLongitude: String?
+            var txLatitude: String?
+            var txLongitude: String?
 
-        if let latitudeDegrees = farmCoordinates?.latitude {
-            latitude = "\(latitudeDegrees)"
-        }
-        if let longitudeDegrees = farmCoordinates?.longitude {
-            longitude = "\(longitudeDegrees)"
-        }
-        if let latitudeDegrees = transactionCoordinates?.latitude {
-            txLatitude = "\(latitudeDegrees)"
-        }
-        if let longitudeDegrees = transactionCoordinates?.longitude {
-            txLongitude = "\(longitudeDegrees)"
-        }
-        switch action {
-            case .buy:
-                requestAction = .buy
-            case .sell:
-                requestAction = .sell
-        }
-        let transactionData: RequestModels.CreateTransaction.Downstream.TransactionData = .init(
-            commodityId: commodityId,
-            volume: volume,
-            location: location,
-            farmLatitude: latitude,
-            farmLongitude: longitude,
-            transactionLatitude: txLatitude,
-            transactionLongitude: txLongitude,
-            action: requestAction,
-            recipient: recipient
-        )
-        let request: RequestModels.CreateTransaction.Downstream = .init(
-            transactionData: transactionData,
-            uploadFile: uploadFile
-        )
-        let response = try await transactionsTarget.createDownstreamTransaction(request)
-        let transaction = transactionsMapper.toDomain(from: response.data)
+            if let latitudeDegrees = farmCoordinates?.latitude {
+                latitude = "\(latitudeDegrees)"
+            }
+            if let longitudeDegrees = farmCoordinates?.longitude {
+                longitude = "\(longitudeDegrees)"
+            }
+            if let latitudeDegrees = transactionCoordinates?.latitude {
+                txLatitude = "\(latitudeDegrees)"
+            }
+            if let longitudeDegrees = transactionCoordinates?.longitude {
+                txLongitude = "\(longitudeDegrees)"
+            }
+            switch action {
+                case .buy:
+                    requestAction = .buy
+                case .sell:
+                    requestAction = .sell
+            }
+            let transactionData: RequestModels.CreateTransaction.Downstream.TransactionData = .init(
+                commodityId: commodityId,
+                volume: volume,
+                location: location,
+                farmLatitude: latitude,
+                farmLongitude: longitude,
+                transactionLatitude: txLatitude,
+                transactionLongitude: txLongitude,
+                action: requestAction,
+                recipient: recipient,
+                harvestSeasonId: season?.id
+            )
+            let request: RequestModels.CreateTransaction.Downstream = .init(
+                transactionData: transactionData,
+                uploadFile: uploadFile
+            )
+            let response = try await transactionsTarget.createDownstreamTransaction(request)
+            let transaction = transactionsMapper.toDomain(from: response.data)
 
-        return transaction
+            return transaction
+        }
     }
 
-    func updateTransaction(transactionId: String, status: RequestModels.UpdateTransactionStatus.Status) async throws {
-        let request: RequestModels.UpdateTransactionStatus = .init(transactionId: transactionId, status: status)
-        try await transactionsTarget.updateTransaction(request)
+    func updateTransaction(transactionId: String, status: TransactionModel.StatusChange) async throws -> TransactionModel.StatusOutcome {
+        try await businessDataContext.withCurrentGeneration {
+            let request = RequestModels.UpdateTransactionStatus(transactionId: transactionId, status: status == .accept ? .accept : .reject)
+            do {
+                let response = try await transactionsTarget.updateTransaction(request)
+                return .init(transaction: transactionsMapper.toDomain(from: response.data.transaction),
+                             automaticTransaction: response.data.automaticTransaction.map(transactionsMapper.toDomain))
+            } catch RestClient.RestError.clientError(_, let code, _) where code.rawValue == 409 {
+                throw TransactionModel.StatusChangeError.conflict
+            } catch {
+                // Do not expose another participant's balance or claim a mutation after an incomplete response.
+                throw TransactionModel.StatusChangeError.unconfirmed
+            }
+        }
     }
 
     func updateTransactionGeodata(
         transactionId: String,
         uploadFile: RequestModels.UpdateTransactionGeodata.UploadFile
     ) async throws {
-        let request: RequestModels.UpdateTransactionGeodata = .init(
-            transactionId: transactionId,
-            transactionData: .init(location: .file),
-            uploadFile: uploadFile
-        )
-        try await transactionsTarget.updateTransactionGeodata(request)
+        try await businessDataContext.withCurrentGeneration {
+            let request: RequestModels.UpdateTransactionGeodata = .init(
+                transactionId: transactionId,
+                transactionData: .init(location: .file),
+                uploadFile: uploadFile
+            )
+            try await transactionsTarget.updateTransactionGeodata(request)
+        }
     }
 
     @discardableResult
     func requestTransactionGeodata(transactionId: String) async throws -> ResponseModels.RequestTransactionGeodata {
-        let request: RequestModels.RequestTransactionGeodata = .init(transactionId: transactionId)
-        return try await transactionsTarget.requestTransactionGeodata(request)
+        try await businessDataContext.withCurrentGeneration {
+            let request: RequestModels.RequestTransactionGeodata = .init(transactionId: transactionId)
+            return try await transactionsTarget.requestTransactionGeodata(request)
+        }
     }
 
     func resendTransactionNotification(transactionId: String) async throws -> ResponseModels.ResendTransactionNotification {
-        let request: RequestModels.ResendTransactionNotification = .init(transactionId: transactionId)
-        return try await transactionsTarget.resendTransactionNotification(request)
+        try await businessDataContext.withCurrentGeneration {
+            let request: RequestModels.ResendTransactionNotification = .init(transactionId: transactionId)
+            return try await transactionsTarget.resendTransactionNotification(request)
+        }
     }
 }

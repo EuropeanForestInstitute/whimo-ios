@@ -40,6 +40,9 @@ extension Module {
         // MARK: - Dependencies
         @StateObject var viewModel: ViewModel
         @EnvironmentObject var navigator: AppFlowNavigator
+        @Environment(\.scenePhase) private var scenePhase
+        @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+        @AppStorage(.currentLocalize) private var currentLocalize: LocalizeKeys = .english
 
         // MARK: - Private Properties
         private var navigationBarItem: NavBarModule.TrailingItem {
@@ -60,6 +63,11 @@ extension Module {
         // MARK: - Body
         var body: some View {
             content()
+                .task { await viewModel.onAppear() }
+                .onDisappear { viewModel.onDisappear() }
+                .onChange(of: scenePhase) { phase in
+                    if phase == .active { Task { await viewModel.onForeground() } }
+                }
                 .applyNavigationBar(
                     title: Localization.title,
                     trailingItem: navigationBarItemOptional
@@ -76,9 +84,21 @@ extension Module {
 private extension ModuleView {
     // MARK: - Content
     @ViewBuilder func content() -> some View {
-        VStack(spacing: .zero) {
-            list()
-            actionButtons()
+        if dynamicTypeSize.isAccessibilitySize {
+            ScrollView {
+                VStack(spacing: .zero) {
+                    detailsContent()
+                    actionButtons()
+                        .disabled(viewModel.isSubmittingStatus)
+                }
+            }
+            .refreshable { await viewModel.didPullRefresh() }
+        } else {
+            VStack(spacing: .zero) {
+                list()
+                actionButtons()
+                    .disabled(viewModel.isSubmittingStatus)
+            }
         }
     }
 
@@ -95,40 +115,44 @@ private extension ModuleView {
 
     // MARK: - List
     @ViewBuilder func list() -> some View {
-        ScrollView {
-            VStack(spacing: 24) {
-                if let transaction = viewModel.transaction.value {
-                    Module.ListView(
-                        rows: viewModel.rows,
-                        transaction: transaction,
-                        pieChartData: viewModel.pieChartData.value,
-                        didTapAddMissignGeodata: didTapAddMissignGeodata,
-                        didTapTraceabilityStatus: didTapTraceabilityStatus,
-                        didTapShowRecipientInfo: didTapShowRecipientInfo,
-                        didTapTransactionStatus: didTapTransactionStatus
-                    )
-                    .animation(.snappy, value: viewModel.pieChartData.value)
-                    VStack {
-                        if transaction.action == .buy,
-                           let supplierTransactions = viewModel.supplierTransactions.value,
-                           !supplierTransactions.isEmpty {
-                            Module.SuppliersHistoryList(
-                                items: .init(uniqueElements: supplierTransactions.prefix(2)),
-                                didTapViewAll: didTapShowSupplierHistory,
-                                didTapSupplyRow: didTapSupplyRow(_:)
-                            )
-                        } else {
-                            EmptyView()
-                        }
+        ScrollView { detailsContent() }
+            .refreshable { await viewModel.didPullRefresh() }
+    }
+
+    @ViewBuilder func detailsContent() -> some View {
+        VStack(spacing: 24) {
+            if let transaction = viewModel.transaction.value {
+                Module.ListView(
+                    rows: viewModel.rows,
+                    transaction: transaction,
+                    pieChartData: viewModel.pieChartData.value,
+                    didTapAddMissignGeodata: didTapAddMissignGeodata,
+                    didTapTraceabilityStatus: didTapTraceabilityStatus,
+                    didTapShowRecipientInfo: didTapShowRecipientInfo,
+                    didTapTransactionStatus: didTapTransactionStatus,
+                    didTapHarvestSeason: viewModel.showHarvestSeasonInfo
+                )
+                .animation(.snappy, value: viewModel.pieChartData.value)
+                VStack {
+                    if transaction.action == .buy,
+                       let supplierTransactions = viewModel.supplierTransactions.value,
+                       !supplierTransactions.isEmpty {
+                        Module.SuppliersHistoryList(
+                            items: .init(uniqueElements: supplierTransactions.prefix(2)),
+                            didTapViewAll: didTapShowSupplierHistory,
+                            didTapSupplyRow: didTapSupplyRow(_:)
+                        )
+                    } else {
+                        EmptyView()
                     }
-                    .animation(.snappy, value: viewModel.supplierTransactions.value)
-                } else {
-                    Rectangle()
-                        .fill(.white.opacity(0.001))
                 }
+                .animation(.snappy, value: viewModel.supplierTransactions.value)
+            } else {
+                Rectangle()
+                    .fill(.white.opacity(0.001))
             }
-            .animation(.snappy, value: viewModel.transaction.value)
         }
+        .animation(.snappy, value: viewModel.transaction.value)
     }
 
     // MARK: - Bottom Overlays
@@ -160,15 +184,58 @@ private extension ModuleView {
 
     @ViewBuilder func recipientButtonsView() -> some View {
         VStack(spacing: 12) {
+            if let preview = viewModel.acceptanceAutomaticPreview {
+                NoteBanner(
+                    attributedText: preview.summary(locale: currentLocalize.locale),
+                    title: AppLocale.TransactionAcceptance.Preview.title,
+                    state: .warning
+                )
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityElement(children: .combine)
+            }
             AppButton(
                 title: Localization.ForMe.Buttons.reject,
                 style: .bordered,
                 action: didTapRejectTransaction
             )
-            AppButton(
-                title: Localization.ForMe.Buttons.accept,
-                action: didTapAcceptTransaction
-            )
+            if viewModel.isAcceptanceBalanceUnavailable {
+                if viewModel.isLoadingAcceptanceBalance {
+                    HStack(spacing: 8) {
+                        ProgressView()
+                        Text(AppLocale.TransactionAcceptance.Balance.loading)
+                            .appFontRegularSize14()
+                    }
+                    .accessibilityElement(children: .combine)
+                } else {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(AppLocale.TransactionAcceptance.Balance.unavailable)
+                            .appFontRegularSize14()
+                        Button(AppLocale.CreationSeason.retry) {
+                            Task { await viewModel.refreshAcceptanceBalance() }
+                        }
+                        .frame(minHeight: 44)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+            }
+            HStack(spacing: 0) {
+                AppButton(
+                    title: Localization.ForMe.Buttons.accept,
+                    isEnabled: viewModel.canAcceptTransaction,
+                    action: didTapAcceptTransaction
+                )
+                if viewModel.acceptanceShortage != nil {
+                    Button(action: viewModel.showAcceptanceShortage) {
+                        Image(systemName: "exclamationmark.triangle")
+                            .font(.system(size: 16))
+                            .foregroundStyle(AppColors.Expanded.expandedWarning.colorSwiftUI)
+                            .frame(width: 44, height: 48)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(AppLocale.TransactionAcceptance.Balance.warningLabel)
+                }
+            }
         }
     }
 

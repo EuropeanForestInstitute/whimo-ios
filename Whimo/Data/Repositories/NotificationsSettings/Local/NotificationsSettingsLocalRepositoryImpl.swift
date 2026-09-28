@@ -31,29 +31,39 @@ import DatabaseKit
 
 final class NotificationsSettingsLocalRepositoryImpl: NotificationsSettingsLocalRepository {
     // MARK: - Dependencies
+    private let businessDataContext: BusinessDataContext
     private let database: DatabaseKit.Database
     private let notificationsSettingsMapper: NotificationsSettingsMapperProtocol
 
     // MARK: - Init
     init(
         database: DatabaseKit.Database,
-        notificationsSettingsMapper: NotificationsSettingsMapperProtocol
+        notificationsSettingsMapper: NotificationsSettingsMapperProtocol,
+        businessDataContext: BusinessDataContext = .init()
     ) {
+        self.businessDataContext = businessDataContext
         self.database = database
         self.notificationsSettingsMapper = notificationsSettingsMapper
     }
 
     // MARK: - NotificationsSettingsLocalRepository
     func fetchSettingsList() async throws -> IdentifiedArrayOf<NotificationsSettingsModel> {
-        let fetchRequest = DatabaseKit.NotificationsSettings.allSorted()
-        let dbModels = try await database.readAll(fetchRequest)
-        let settingsList = dbModels.map(notificationsSettingsMapper.toDomain)
+        try await businessDataContext.withCurrentGeneration {
+            let fetchRequest = DatabaseKit.NotificationsSettings.allSorted()
+            let dbModels = try await database.readAll(fetchRequest)
+            let settingsList = dbModels.map(notificationsSettingsMapper.toDomain)
 
-        return .init(uniqueElements: settingsList)
+            return .init(uniqueElements: settingsList)
+        }
     }
 
     func save(_ model: NotificationsSettingsModel) async throws {
-        let dbModel = notificationsSettingsMapper.toDatabase(from: model)
-        try await database.save(dbModel)
+        try await businessDataContext.withCurrentGeneration {
+            let dbModel = notificationsSettingsMapper.toDatabase(from: model)
+            let businessGeneration = try businessDataContext.capture()
+            try await database.save { db in
+                try businessGeneration.whileCurrent { _ = try dbModel.saved(db) }
+            }
+        }
     }
 }

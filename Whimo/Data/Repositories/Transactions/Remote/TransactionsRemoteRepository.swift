@@ -48,7 +48,8 @@ protocol TransactionsRemoteRepository: AnyObject {
         transactionCoordinates: CLLocationCoordinate2D?,
         volume: String,
         inviteRecipient: RequestModels.CreateTransaction.Producer.TransactionData.Recipient?,
-        isBuyingFromFarmer: Bool
+        isBuyingFromFarmer: Bool,
+        season: HarvestSeason
     ) async throws -> TransactionModel
     @discardableResult
     func createDownstreamTransaction(
@@ -59,10 +60,11 @@ protocol TransactionsRemoteRepository: AnyObject {
         farmCoordinates: CLLocationCoordinate2D?,
         volume: String,
         action: TransactionModel.Action,
-        recipient: RequestModels.CreateTransaction.Downstream.TransactionData.Recipient
+        recipient: RequestModels.CreateTransaction.Downstream.TransactionData.Recipient,
+        season: HarvestSeason?
     ) async throws -> TransactionModel
 
-    func updateTransaction(transactionId: String, status: RequestModels.UpdateTransactionStatus.Status) async throws
+    func updateTransaction(transactionId: String, status: TransactionModel.StatusChange) async throws -> TransactionModel.StatusOutcome
     func updateTransactionGeodata(
         transactionId: String,
         uploadFile: RequestModels.UpdateTransactionGeodata.UploadFile

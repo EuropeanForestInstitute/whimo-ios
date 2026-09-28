@@ -42,6 +42,7 @@ extension Module {
         let title: String
         let titlePrefferedFontStyle: TitleFontStyle
         let trailingItem: TrailingItem?
+        var additionalTrailingItem: TrailingItem?
         let showBackButton: Bool
 
         // MARK: - Private Properties
@@ -73,6 +74,9 @@ private extension ModuleView {
             }
             titleView()
             Spacer()
+            if let additionalTrailingItem {
+                trailingItemView(additionalTrailingItem)
+            }
             if let trailingItem {
                 trailingItemView(trailingItem)
             }
@@ -96,11 +100,19 @@ private extension ModuleView {
     }
 
     @ViewBuilder func trailingItemView(_ trailingItem: Module.TrailingItem) -> some View {
+        if let label = trailingItem.accessibilityLabel {
+            trailingItemButton(trailingItem).accessibilityLabel(label)
+        } else {
+            trailingItemButton(trailingItem)
+        }
+    }
+
+    @ViewBuilder func trailingItemButton(_ trailingItem: Module.TrailingItem) -> some View {
         Button {
             switch trailingItem {
                 case .notifications, .more:
                     didTapTrailingItem(trailingItem)
-                case .custom(_, _, let action):
+                case .custom(_, _, _, _, let action):
                     action()
             }
         } label: {
@@ -108,6 +120,8 @@ private extension ModuleView {
                 .frame(width: 24, height: 24)
                 .animation(.snappy, value: trailingItem.alternativeImage)
         }
+        .disabled(!trailingItem.isEnabled)
+        .opacity(trailingItem.isEnabled ? 1 : 0.4)
     }
 }
 
@@ -122,7 +136,7 @@ private extension ModuleView {
                 uiImage = dynamicImage
             case .more:
                 uiImage = trailingItem.image
-            case .custom(let image, _, _):
+            case .custom(let image, _, _, _, _):
                 uiImage = image
         }
 

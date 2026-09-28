@@ -1,5 +1,5 @@
 //
-//  TransactionDetails+TraceabilityStatusPopup.swift
+//  TraceabilityStatusInfoPopup.swift
 //  Whimo
 //
 //  Created by Vyacheslav Razumeenko on 19.05.2025.
@@ -29,27 +29,23 @@ import SwiftUI
 import CommonUI
 import Resources
 
-private typealias Module = TransactionDetailsModule
-private typealias TraceabilityStatusPopup = Module.TraceabilityStatusPopup
 private typealias Localization = AppLocale.TransactionDetails.Popups.TraceabilityStatus
 
-// MARK: - TraceabilityStatusPopup
-extension Module {
-    struct TraceabilityStatusPopup: View {
-        // MARK: - Body
-        var body: some View {
-            content()
-                .fitToScrollView()
-                .background {
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(AppColors.Gray.gray5.colorSwiftUI)
-                }
-        }
+// MARK: - TraceabilityStatusInfoPopup
+struct TraceabilityStatusInfoPopup: View {
+    // MARK: - Body
+    var body: some View {
+        content()
+            .fitToScrollView()
+            .background {
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(AppColors.Gray.gray5.colorSwiftUI)
+            }
     }
 }
 
 // MARK: - Private Layout
-private extension TraceabilityStatusPopup {
+private extension TraceabilityStatusInfoPopup {
     @ViewBuilder func content() -> some View {
         VStack(spacing: 2) {
             Group {
@@ -88,10 +84,10 @@ private extension TraceabilityStatusPopup {
 
 // MARK: - Previews
 #if !RELEASE
-struct TransactionDetailsTraceabilityStatusPopup_Previews: PreviewProvider {
+struct TransactionDetailsTraceabilityStatusInfoPopup_Previews: PreviewProvider {
     static var previews: some View {
         VStack {
-            TraceabilityStatusPopup()
+            TraceabilityStatusInfoPopup()
                 .padding()
         }
         .frame(maxWidth: .infinity)

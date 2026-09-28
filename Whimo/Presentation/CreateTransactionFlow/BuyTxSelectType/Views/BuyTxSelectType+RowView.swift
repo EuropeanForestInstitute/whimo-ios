@@ -73,17 +73,12 @@ private extension RowView {
     @ViewBuilder func text() -> some View {
         VStack(spacing: 8) {
             Text(row.title)
-                .appFontMediumSize14()
-                .foregroundStyle(AppColors.Primary.primarySeaBlue.colorSwiftUI)
-            VStack(spacing: 8) {
-                Text(row.subtitle)
-                    .appFontMediumSize18()
-                    .foregroundStyle(AppColors.Gray.gray90.colorSwiftUI)
-                Text(row.infoText)
-                    .appFontRegularSize14()
-                    .foregroundStyle(AppColors.Gray.gray60.colorSwiftUI)
-                    .multilineTextAlignment(.center)
-            }
+                .font(FontBuilder.buildMedium(size: 20))
+                .foregroundStyle(AppColors.Gray.gray90.colorSwiftUI)
+            Text(row.infoText)
+                .appFontRegularSize14()
+                .foregroundStyle(AppColors.Gray.gray60.colorSwiftUI)
+                .multilineTextAlignment(.center)
         }
     }
 }

@@ -32,15 +32,18 @@ import RestClient
 extension RequestModels {
     public struct MakeConversion: Encodable {
         public let recipeId: String
+        public let harvestSeasonId: String
         public let inputOverrides: [Override]
         public let outputOverrides: [Override]
 
         public init(
             recipeId: String,
+            harvestSeasonId: String,
             inputOverrides: [Override],
             outputOverrides: [Override]
         ) {
             self.recipeId = recipeId
+            self.harvestSeasonId = harvestSeasonId
             self.inputOverrides = inputOverrides
             self.outputOverrides = outputOverrides
         }

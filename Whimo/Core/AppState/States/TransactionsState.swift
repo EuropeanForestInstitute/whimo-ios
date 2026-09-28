@@ -26,12 +26,9 @@
 //
 
 import Foundation
-import RestClient
 import Utility
 
 struct TransactionsState: AnyState {
-    typealias TransactionsPagination = RequestModels.TransactionsList
-
     // MARK: - Static
     static let initialState: Self = .init()
     static let preview: Self = .init()
@@ -43,5 +40,29 @@ struct TransactionsState: AnyState {
     // MARK: - Properties
     var updatingList: IdentifiedArrayOf<TransactionModel> = []
     var list: Loadable<IdentifiedArrayOf<TransactionModel>> = .notRequested
-    var pagination: TransactionsPagination?
+    var query = TransactionListQuery()
+    var isCached = false
+    var hasListError = false
+
+    /// Cross-feature updates must respect the current query and retain its loading state.
+    mutating func updateList(with transaction: TransactionModel, replacing oldId: String? = nil) {
+        guard var items = list.value else { return }
+
+        if let oldId { items.remove(id: oldId) }
+        if query.matches(transaction) {
+            if items[id: transaction.id] != nil {
+                items[id: transaction.id] = transaction
+            } else {
+                items.insert(transaction, at: 0)
+            }
+        } else {
+            items.remove(id: transaction.id)
+        }
+        switch list {
+            case .loaded: list = .loaded(value: items)
+            case .requested: list = .requested(lastValue: items)
+            case .isLoading: list = .isLoading(lastValue: items)
+            case .notRequested, .failed: break
+        }
+    }
 }

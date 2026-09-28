@@ -36,6 +36,7 @@ private typealias DeleteAccountInteractor = Module.ViewModel.DeleteAccountIntera
 extension ViewModel {
     final class DeleteAccountInteractor: DeleteAccountInteractorProtocol {
         // MARK: - Dependencies
+        @Inject(\.businessModeInteractor) private var businessModeInteractor
         @Inject(\.appState) private var appState
         @Inject(\.authInteractor) private var authInteractor
         @Inject(\.dataCleanerInteractor) private var dataCleanerInteractor
@@ -43,7 +44,7 @@ extension ViewModel {
         // MARK: - DeleteAccountInteractorProtocol
         func deleteAccount() {
             Task { [weak self] in
-                guard let self else { return }
+                guard let self, self.businessModeInteractor.mode == .ordinary else { return }
 
                 self.appState.system[\.isLoading] = true
                 defer { self.appState.system[\.isLoading] = false }
