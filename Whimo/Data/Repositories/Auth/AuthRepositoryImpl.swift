@@ -1,0 +1,128 @@
+//
+//  AuthRepositoryImpl.swift
+//  Whimo
+//
+//  Created by Vyacheslav Razumeenko on 22.05.2025.
+//
+//  Copyright (c) 2025 EFI https://efi.int/
+//
+//  Permission is hereby granted, free of charge, to any person obtaining a copy
+//  of this software and associated documentation files (the "Software"), to deal
+//  in the Software without restriction, including without limitation the rights
+//  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+//  copies of the Software, and to permit persons to whom the Software is
+//  furnished to do so, subject to the following conditions:
+//
+//  The above copyright notice and this permission notice shall be included in all
+//  copies or substantial portions of the Software.
+//
+//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+//  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+//  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+//  SOFTWARE.
+//
+
+import Foundation
+import class Networking.TokenManager
+import protocol Networking.TokenManagerProtocol
+import RestClient
+import Targets
+
+// MARK: - AuthRepositoryImpl
+final class AuthRepositoryImpl: AuthRepository {
+    // MARK: - Dependencies
+    private let authTarget: AuthTarget
+    private let tokenManager: TokenManagerProtocol
+
+    // MARK: - Init
+    init(
+        authTarget: AuthTarget,
+        tokenManager: TokenManagerProtocol
+    ) {
+        self.authTarget = authTarget
+        self.tokenManager = tokenManager
+    }
+
+    // MARK: - AuthRepository
+    func signUp(contactIdentifier: ContactIdentifier, password: String) async throws {
+        let request: RequestModels.Register
+        switch contactIdentifier {
+            case .email(let email):
+                request = .init(email: email, password: password)
+            case .phone(let phone):
+                request = .init(phone: phone, password: password)
+        }
+        try await authTarget.register(request)
+    }
+
+    func signIn(contactIdentifier: ContactIdentifier, password: String) async throws {
+        let request: RequestModels.Login = .init(username: contactIdentifier.identifier, password: password)
+        let response = try await authTarget.login(request)
+        let tokenData = response.data
+        let tokenModel: TokenManager.TokensModel = .init(
+            access: tokenData.access,
+            refresh: tokenData.refresh
+        )
+        tokenManager.updateToken(tokenModel)
+    }
+
+    func signInWithApple(idToken: String, nonce: String) async throws {
+        let request: RequestModels.AppleAuth = .init(idToken: idToken, nonce: nonce)
+        let response = try await authTarget.appleAuth(request)
+        let tokenData = response.data
+        let tokenModel: TokenManager.TokensModel = .init(
+            access: tokenData.access,
+            refresh: tokenData.refresh
+        )
+        tokenManager.updateToken(tokenModel)
+    }
+
+    func signInWithGoogle(idToken: String) async throws {
+        let request: RequestModels.GoogleAuth = .init(idToken: idToken)
+        let response = try await authTarget.googleAuth(request)
+        let tokenData = response.data
+        let tokenModel: TokenManager.TokensModel = .init(
+            access: tokenData.access,
+            refresh: tokenData.refresh
+        )
+        tokenManager.updateToken(tokenModel)
+    }
+
+    func sendOTP(gadgetId: String, captchaToken: String) async throws {
+        let request: RequestModels.SendOTP = .init(
+            identifier: gadgetId,
+            captchaToken: captchaToken
+        )
+        try await authTarget.sendOTP(request)
+    }
+
+    func verifyOTP(gadgetId: String, code: String) async throws {
+        let request: RequestModels.VerifyOTP = .init(identifier: gadgetId, code: code)
+        try await authTarget.verifyOTP(request)
+    }
+
+    func sendPasswordReset(gadgetId: String, captchaToken: String) async throws {
+        let request: RequestModels.SendOTP = .init(
+            identifier: gadgetId,
+            captchaToken: captchaToken
+        )
+        try await authTarget.sendPasswordReset(request)
+    }
+
+    func checkPasswordReset(gadgetId: String, code: String) async throws {
+        let request: RequestModels.CheckPasswordReset = .init(identifier: gadgetId, code: code)
+        try await authTarget.checkPasswordReset(request)
+    }
+
+    func verifyPasswordReset(gadgetId: String, pass: String, code: String) async throws {
+        let request: RequestModels.VerifyPasswordReset = .init(code: code, identifier: gadgetId, password: pass)
+        try await authTarget.verifyPasswordReset(request)
+    }
+
+    func flush() {
+        tokenManager.updateToken(nil)
+    }
+}

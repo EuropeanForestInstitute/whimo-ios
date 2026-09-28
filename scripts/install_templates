@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+# Compatibility wrapper. The canonical installer is install_templates.sh.
+set -euo pipefail
+
+script_dir="$(cd -- "$(dirname -- "$BASH_SOURCE")" && pwd)"
+exec bash "$script_dir/install_templates.sh" "$@"
